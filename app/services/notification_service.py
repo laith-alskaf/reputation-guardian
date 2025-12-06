@@ -1,7 +1,7 @@
 import firebase_admin
 from firebase_admin import credentials, messaging
 import json
-from app.config import FIREBASE_JSON
+from app.config import FIREBASE_JSON, TELEGRAM_TOKEN
 import telegram
 import os
 
@@ -39,13 +39,12 @@ def send_telegram_notification(chat_id, message):
     """
     Send Telegram notification as alternative to FCM.
     """
-    token = os.environ.get('TELEGRAM_TOKEN')
-    if not token:
+    if not TELEGRAM_TOKEN:
         print("Telegram token not set")
         return
 
     try:
-        bot = telegram.Bot(token=token)
+        bot = telegram.Bot(token=TELEGRAM_TOKEN)
         bot.send_message(chat_id=chat_id, text=message)
         print(f"Telegram notification sent to {chat_id}")
     except Exception as e:

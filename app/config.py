@@ -20,6 +20,9 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 # Firebase (load JSON content or path)
 FIREBASE_JSON = os.environ.get('FIREBASE_JSON')
 
+# Telegram
+TELEGRAM_TOKEN = os.environ.get('TELEGRAM_TOKEN')
+
 # Shop Types
 SHOP_TYPES = [
     "مطعم", "مقهى", "محل ملابس", "صيدلية", "سوبر ماركت",
