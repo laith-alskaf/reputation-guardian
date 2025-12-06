@@ -2,7 +2,12 @@ from flask import Blueprint, request, jsonify
 from app.models.user import UserModel
 from app.models.review import ReviewModel
 from app.services.sentiment_service import clean_text, analyze_sentiment, analyze_toxicity, classify_review, detect_review_quality
-from app.services.deepseek_service import organize_customer_feedback, determine_overall_sentiment
+from app.services.deepseek_service import (
+    organize_customer_feedback,
+    determine_overall_sentiment,
+    generate_actionable_insights,
+    generate_suggested_reply
+)
 from app.services.notification_service import send_fcm_notification, send_telegram_notification
 from bson import ObjectId
 import logging
@@ -54,8 +59,21 @@ def webhook():
 
         organized_feedback = organize_customer_feedback(enjoy_most, improve_product, additional_feedback)
 
-        solutions = ""
-        if overall_sentiment == "سلبي" or review_type in ['شكوى', 'نقد']:
+        # Generate actionable insights and suggested reply using DeepSeek
+        actionable_insights = ""
+        suggested_reply = ""
+
+        try:
+            if overall_sentiment == "سلبي" or review_type in ['شكوى', 'نقد']:
+                actionable_insights = generate_actionable_insights(text, improve_product, shop_type)
+
+            suggested_reply = generate_suggested_reply(text, overall_sentiment, shop_type)
+        except Exception as e:
+            logging.error(f"DeepSeek generation failed: {e}")
+
+        # Fallback for solutions if AI fails or returns empty
+        solutions = actionable_insights if actionable_insights else ""
+        if not solutions and (overall_sentiment == "سلبي" or review_type in ['شكوى', 'نقد']):
             solutions = f"بناءً على التقييم السلبي والاقتراحات المقدمة، يُنصح بمراجعة النقاط المذكورة في اقتراحات التحسين."
 
         review_data = {
@@ -65,6 +83,7 @@ def webhook():
             "overall_sentiment": overall_sentiment,
             "organized_feedback": organized_feedback,
             "solutions": solutions,
+            "suggested_reply": suggested_reply,
             "original_fields": {
                 "text": text,
                 "enjoy_most": enjoy_most,
