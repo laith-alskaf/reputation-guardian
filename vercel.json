@@ -13,8 +13,8 @@
     }
   ],
   "functions": {
-    "app.py": {
-      "runtime": "python3.13"
+    "*.py": {
+      "runtime": "python3.9"
     }
   }
 }
