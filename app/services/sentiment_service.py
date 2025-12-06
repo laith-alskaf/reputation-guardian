@@ -1,7 +1,7 @@
 import requests
 import re
 import unicodedata
-from config import HF_TOKEN
+from app.config import HF_TOKEN
 
 def clean_text(text):
     """

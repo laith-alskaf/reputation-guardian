@@ -1,7 +1,7 @@
 import qrcode
 from io import BytesIO
 import base64
-from config import TALLY_FORM_URL
+from app.config import TALLY_FORM_URL
 
 def generate_qr(shop_id):
     """

@@ -1,7 +1,7 @@
 import requests
-from config import HF_TOKEN
+from app.config import HF_TOKEN
 import re
-from sentiment_analysis import clean_text
+from app.services.sentiment_service import clean_text
 
 def organize_customer_feedback(enjoy_most, improve_product, additional_feedback):
     """

@@ -1,7 +1,7 @@
 import firebase_admin
 from firebase_admin import credentials, messaging
 import json
-from config import FIREBASE_JSON
+from app.config import FIREBASE_JSON
 import telegram
 import os
 
