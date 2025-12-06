@@ -1,0 +1,33 @@
+import os
+import logging
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# Setup logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# MongoDB
+MONGO_URI = os.environ.get('MONGO_URI')
+DATABASE_NAME = 'ReputationGuardian'
+
+# Hugging Face
+HF_TOKEN = os.environ.get('HF_TOKEN')
+
+# JWT
+SECRET_KEY = os.environ.get('SECRET_KEY')
+
+# Firebase (load JSON content or path)
+FIREBASE_JSON = os.environ.get('FIREBASE_JSON')
+
+# Shop Types
+SHOP_TYPES = [
+    "مطعم", "مقهى", "محل ملابس", "صيدلية", "سوبر ماركت",
+    "متجر إلكترونيات", "مكتبة", "محل تجميل", "صالة رياضية",
+    "مدرسة/روضة", "مستشفى/عيادة", "محطة وقود", "متجر أجهزة",
+    "محل ألعاب", "مكتب سياحي", "محل هدايا", "مغسلة ملابس",
+    "متجر هواتف", "محل أثاث", "آخر"
+]
+
+# Other
+TALLY_FORM_URL = "https://tally.so/r/b5ZPV2"
