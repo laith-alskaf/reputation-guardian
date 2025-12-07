@@ -1,5 +1,5 @@
 const API_CONFIG = {
-  BASE_URL: 'https://reputationguardian1app.vercel.app',
+  BASE_URL: 'https://api-reputation-guardian.vercel.app',
   TIMEOUT: 1000000,
   RETRIES: 3
 };
