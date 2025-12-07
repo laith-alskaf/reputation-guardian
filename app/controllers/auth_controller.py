@@ -1,143 +1,59 @@
 from flask import Blueprint, request
-from app.models.user import UserModel
-from app.config import SECRET_KEY, SHOP_TYPES
-from app.utils.middleware import token_required, handle_mongodb_errors
-import jwt
-import datetime
-from datetime import timezone
-import logging
-import re
+from app.services.core import AuthService
+from app.services_interfaces import IAuthService
 from app.utils.response import ResponseBuilder
+from app.dto.user_dto import RegisterDTO,LoginDTO
+import logging
 
 auth_bp = Blueprint('auth', __name__)
-user_model = UserModel()
+auth_service: IAuthService = AuthService()  # استخدام الواجهة مع الخدمة
 
 @auth_bp.route('/register', methods=['POST'])
 def register():
     try:
-        data = request.json
-        required_fields = ['email', 'password', 'shop_name', 'shop_type']
+        data = request.json or {}
+        dto = RegisterDTO.from_dict(data)
 
-        if not data or not all(data.get(field) for field in required_fields):
-            missing_fields = [field for field in required_fields if not data.get(field)]
-            arabic_fields = {
-                'email': 'البريد الإلكتروني',
-                'password': 'كلمة المرور',
-                'shop_name': 'اسم المتجر',
-                'shop_type': 'نوع المتجر'
-            }
-            missing_arabic = [arabic_fields[field] for field in missing_fields]
-            return ResponseBuilder.error(f"الحقول التالية مطلوبة: {', '.join(missing_arabic)}", 400)
-
-        if data['shop_type'] not in SHOP_TYPES:
-            return ResponseBuilder.error("يرجى اختيار نوع متجر صحيح من القائمة", 400)
-
-        if not re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', data['email']):
-            return ResponseBuilder.error("يرجى إدخال بريد إلكتروني صحيح", 400)
-
-        if len(data['password']) < 6:
-            return ResponseBuilder.error("كلمة المرور يجب أن تكون 6 أحرف على الأقل", 400)
-
-        if len(data['shop_name'].strip()) < 2:
-            return ResponseBuilder.error("اسم المتجر يجب أن يكون حرفين على الأقل", 400)
-
-        shop_id = user_model.create_user(
-            data['email'],
-            data['password'],
-            data['shop_name'],
-            data['shop_type'],
-            data.get('device_token', '')
+        result = auth_service.register(
+            email=dto.email,
+            password=dto.password,
+            shop_name=dto.shop_name,
+            shop_type=dto.shop_type,
+            device_token=dto.device_token
         )
+        return ResponseBuilder.success(result, "تم التسجيل بنجاح", 201)
 
-        token = jwt.encode({
-            "email": data['email'].lower().strip(),
-            "shop_id": shop_id,
-            "shop_type": data['shop_type'],
-            "exp": datetime.datetime.now(timezone.utc) + datetime.timedelta(days=30)
-        }, SECRET_KEY, algorithm="HS256")
 
-        return ResponseBuilder.success({
-            "token": token,
-            "shop_id": shop_id,
-            "shop_type": data['shop_type']
-        }, "تم إنشاء الحساب بنجاح", 201)
-
+    except LookupError as e:
+        logging.warning(f"Duplicate email: {e}")
+        return ResponseBuilder.error(str(e), 400)
+    except ValueError as e:
+        logging.warning(f"Validation error: {e}")
+        return ResponseBuilder.error(str(e), 400)
     except Exception as e:
-        error_message = handle_mongodb_errors(e)
-        logging.error(f"Registration failed: {e}")
-        return ResponseBuilder.error(error_message, 400)
+        logging.error(f"Register error: {e}", exc_info=True)
+        return ResponseBuilder.error("Internal server error", 500)
+
 
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
     try:
-        data = request.json
-        if not data or not data.get('email') or not data.get('password'):
-            return ResponseBuilder.error("البريد الإلكتروني وكلمة المرور مطلوبان", 400)
+        data = request.json or {}
+        dto = LoginDTO.from_dict(data)
 
-        if not re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', data['email']):
-            return ResponseBuilder.error("يرجى إدخال بريد إلكتروني صحيح", 400)
+        result = auth_service.login(
+            email=dto.email,
+            password=dto.password
+        )
+        return ResponseBuilder.success(result, "تم تسجيل الدخول بنجاح", 200)
 
-        user = user_model.find_by_email(data['email'])
-
-        if not user:
-            return ResponseBuilder.error("البريد الإلكتروني أو كلمة المرور غير صحيحة", 401)
-
-        if not user_model.verify_password(user['password'], data['password']):
-            return ResponseBuilder.error("البريد الإلكتروني أو كلمة المرور غير صحيحة", 401)
-
-        token = jwt.encode({
-            "email": user['email'],
-            "shop_id": str(user['_id']),
-            "shop_type": user.get('shop_type', ''),
-            "exp": datetime.datetime.now(timezone.utc) + datetime.timedelta(days=30)
-        }, SECRET_KEY, algorithm="HS256")
-
-        return ResponseBuilder.success({
-            "token": token,
-            "shop_id": str(user['_id']),
-            "shop_type": user.get('shop_type', '')
-        }, "تم تسجيل الدخول بنجاح", 200)
-
+    except LookupError as e:
+        logging.warning(f"Login failed: {e}")
+        return ResponseBuilder.error(str(e), 401)
+    except ValueError as e:
+        logging.warning(f"Password error: {e}")
+        return ResponseBuilder.error(str(e), 400)
     except Exception as e:
-        error_message = handle_mongodb_errors(e)
-        logging.error(f"Login failed: {e}")
-        return ResponseBuilder.error(error_message, 400)
-
-
-@auth_bp.route('/profile', methods=['GET'])
-@token_required
-def get_profile():
-    try:
-        shop_id = request.shop_id
-        user = user_model.find_by_id(shop_id)
-
-        if not user:
-            return ResponseBuilder.error("المستخدم غير موجود", 404)
-
-        user_data = {
-            "shop_id": str(user['_id']),
-            "email": user.get('email'),
-            "shop_name": user.get('shop_name'),
-            "shop_type": user.get('shop_type'),
-            "created_at": user.get('created_at'),
-            "qr_code": user.get('qr_code'),
-            "qr_updated_at": user.get('qr_updated_at')
-        }
-
-        return ResponseBuilder.success(user_data, "تم جلب بيانات المستخدم", 200)
-
-    except Exception as e:
-        error_message = handle_mongodb_errors(e)
-        logging.error(f"Profile retrieval failed: {e}")
-        return ResponseBuilder.error(error_message, 400)
-
-
-@auth_bp.route('/logout', methods=['POST'])
-@token_required
-def logout():
-    try:
-        return ResponseBuilder.success(None, "تم تسجيل الخروج بنجاح", 200)
-    except Exception as e:
-        logging.error(f"Logout failed: {e}")
-        return ResponseBuilder.error("حدث خطأ في تسجيل الخروج", 400)
+        logging.error(f"Login error: {e}", exc_info=True)
+        return ResponseBuilder.error("Internal server error", 500)

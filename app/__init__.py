@@ -1,11 +1,8 @@
-from flask import Flask, jsonify
+from flask import Flask
 from flask_cors import CORS
-from app.config import SECRET_KEY
-from app.controllers.auth_controller import auth_bp
-from app.controllers.qr_controller import qr_bp
-from app.controllers.dashboard_controller import dashboard_bp
-from app.controllers.webhook_controller import webhook_bp
-from app.services.notification_service import initialize_firebase
+from app.controllers import auth_bp, qr_bp, dashboard_bp, webhook_bp
+from app.services.external import NotificationService
+from app.services_interfaces import INotificationService
 import logging
 import json
 from bson import ObjectId
@@ -20,23 +17,24 @@ class JSONEncoder(json.JSONEncoder):
             return obj.isoformat()
         return super().default(obj)
 
+notification_service: INotificationService 
 def create_app():
     app = Flask(__name__)
     app.json_encoder = JSONEncoder
-
     # Enable CORS
     CORS(app, origins=["http://localhost:3000", "http://localhost:5000", "https://your-frontend-domain.com"])
     app.register_blueprint(auth_bp)
     app.register_blueprint(qr_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(webhook_bp)
-
-    # Initialize Firebase
     try:
-        initialize_firebase()
+      notification_service: INotificationService = NotificationService()  
     except Exception as e:
         logging.warning(f"Firebase initialization failed: {e}")
-
-    
+    # Initialize Firebase
+    # try:
+    #     notification_service._initialize_firebase()
+    # except Exception as e:
+    #     logging.warning(f"Firebase initialization failed: {e}")
 
     return app

@@ -2,12 +2,11 @@
   "version": 2,
   "builds": [
     {
-      "src": "aap/app.py",
+      "src": "run.py",
       "use": "@vercel/python",
       "config": {
         "includeFiles": [
-          "./app/**",
-          "**"
+          "app/**"
         ]
       }
     }
@@ -16,7 +15,7 @@
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "app/app.py"
+      "dest": "run.py"
     }
   ]
 }
