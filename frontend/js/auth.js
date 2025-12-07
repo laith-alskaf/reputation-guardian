@@ -23,42 +23,30 @@ const AuthManager = {
   },
 
   updateUIForAuthenticatedUser() {
-    const loginBtn = document.querySelector('.btn[onclick*="showLoginModal"]');
-    if (loginBtn) {
-      loginBtn.textContent = 'لوحة التحكم';
-      loginBtn.onclick = () => (window.location.href = 'dashboard.html');
-    }
-    const navLinks = document.querySelector('.nav-links');
-    if (navLinks && this.currentUser) {
-      const userInfo = document.createElement('div');
-      userInfo.className = 'user-info';
-      userInfo.innerHTML = `
-        <span class="user-name">${this.currentUser.shop_name || this.currentUser.email || 'المستخدم'}</span>
-        <button class="btn btn-outline btn-sm" onclick="AuthManager.logout()">تسجيل خروج</button>
-      `;
-      navLinks.appendChild(userInfo);
+    const navLinks = document.getElementById("navLinks");
+    const userInfo = document.getElementById("userInfo");
+    if (navLinks) navLinks.style.display = "none";
+    if (userInfo) {
+      userInfo.style.display = "flex";
+      document.getElementById("userName").textContent =
+        this.currentUser.shop_name || this.currentUser.email || "المستخدم";
     }
   },
 
   updateUIForGuest() {
-    const loginBtn = document.querySelector('.btn[onclick*="showLoginModal"]');
-    if (loginBtn) {
-      loginBtn.textContent = 'تسجيل الدخول';
-      loginBtn.onclick = () => window.UI.Modal.show('loginModal');
-    }
+    const navLinks = document.getElementById("navLinks");
+    const userInfo = document.getElementById("userInfo");
+    if (navLinks) navLinks.style.display = "flex";
+    if (userInfo) userInfo.style.display = "none";
   },
 
   async login(credentials) {
     try {
       window.UI.Loading.show('loginSubmitBtn');
-
       if (!window.UI.Validator.isValidEmail(credentials.email)) throw new Error('يرجى إدخال بريد إلكتروني صحيح');
-      if (!credentials.password || credentials.password.length < 1) throw new Error('يرجى إدخال كلمة المرور');
+      if (!credentials.password) throw new Error('يرجى إدخال كلمة المرور');
 
-      // API.auth.login الآن يعيد data مباشرة ومخزّن فيه التوكن
       const data = await window.API.auth.login(credentials);
-
-      // نتوقع: { token, shop_id, shop_type, shop_name? }
       this.currentUser = {
         email: credentials.email,
         shop_id: data.shop_id,
@@ -68,6 +56,7 @@ const AuthManager = {
 
       window.UI.Toast.show('تم تسجيل الدخول بنجاح', 'success');
       window.UI.Modal.hide('loginModal');
+      this.updateUIForAuthenticatedUser();
       setTimeout(() => (window.location.href = 'dashboard.html'), 800);
     } catch (error) {
       window.UI.Toast.show(error.message || 'فشل تسجيل الدخول', 'error');
@@ -79,15 +68,11 @@ const AuthManager = {
   async register(userData) {
     try {
       window.UI.Loading.show('registerSubmitBtn');
-
       if (!window.UI.Validator.isValidEmail(userData.email)) throw new Error('يرجى إدخال بريد إلكتروني صحيح');
-      const pwd = window.UI.Validator.validatePassword(userData.password);
-      if (!pwd.isValid) throw new Error(pwd.errors[0]);
-      if (!userData.shop_name || userData.shop_name.length < 2) throw new Error('اسم المتجر يجب أن يكون حرفين على الأقل');
+      if (!userData.shop_name || userData.shop_name.length < 2) throw new Error('اسم المتجر قصير جداً');
       if (!userData.shop_type) throw new Error('يرجى اختيار نوع المتجر');
 
       const data = await window.API.auth.register(userData);
-
       this.currentUser = {
         email: userData.email,
         shop_name: userData.shop_name,
@@ -95,8 +80,9 @@ const AuthManager = {
         shop_type: data.shop_type
       };
 
-      window.UI.Toast.show('تم إنشاء الحساب بنجاح! سيتم توجيهك إلى لوحة التحكم', 'success');
+      window.UI.Toast.show('تم إنشاء الحساب بنجاح', 'success');
       window.UI.Modal.hide('registerModal');
+      this.updateUIForAuthenticatedUser();
       setTimeout(() => (window.location.href = 'dashboard.html'), 1500);
     } catch (error) {
       window.UI.Toast.show(error.message || 'فشل إنشاء الحساب', 'error');
@@ -112,6 +98,7 @@ const AuthManager = {
       console.warn('Logout API call failed:', error);
     } finally {
       this.currentUser = null;
+      this.updateUIForGuest();
       window.UI.Toast.show('تم تسجيل الخروج بنجاح', 'success');
       setTimeout(() => (window.location.href = 'index.html'), 800);
     }

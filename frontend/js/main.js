@@ -1,17 +1,21 @@
 /**
  * App bootstrapping and page-specific initialization
  */
-
 const App = {
   async init() {
     try {
       if (document.readyState === 'loading') {
         await new Promise((resolve) => document.addEventListener('DOMContentLoaded', resolve));
       }
+
       window.UI.Navigation.init();
       window.Forms.init();
-      this.initPage();
+
+      // تحقق من حالة المستخدم أولاً
       await window.Auth.checkAuthStatus();
+
+      // ثم تهيئة الصفحة
+      this.initPage();
     } catch (e) {
       console.error('App init failed:', e);
       window.UI.Toast.show('حدث خطأ في تحميل التطبيق', 'error');
@@ -42,12 +46,13 @@ const App = {
     });
 
     // Close toast on click
-    document.addEventListener('click', (e) => { if (e.target.closest('.toast')) window.UI.Toast.hide(); });
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('.toast')) window.UI.Toast.hide();
+    });
   },
 
   initDashboardPage() {
-    // Everything is handled in DashboardManager
-    // Here we can add any page-specific hooks later
+    DashboardManager.init();
   }
 };
 

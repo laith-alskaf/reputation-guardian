@@ -19,11 +19,20 @@
         <span>حارس السمعة</span>
       </div>
 
+      <!-- روابط الضيف -->
       <div class="nav-links" id="navLinks">
         <a href="#home" class="nav-link active">الرئيسية</a>
         <a href="#features" class="nav-link">المميزات</a>
         <a href="#contact" class="nav-link">اتصل بنا</a>
         <button class="btn btn-primary" onclick="showLoginModal()">تسجيل الدخول</button>
+        <button class="btn btn-outline" onclick="showRegisterModal()">إنشاء حساب</button>
+      </div>
+
+      <!-- روابط المستخدم -->
+      <div class="user-info" id="userInfo" style="display:none;">
+        <span id="userName"></span>
+        <button class="btn btn-primary btn-sm" onclick="window.location.href='dashboard.html'">لوحة التحكم</button>
+        <button class="btn btn-outline btn-sm" onclick="AuthManager.logout()">خروج</button>
       </div>
     </nav>
 
@@ -169,7 +178,7 @@
               <option value="محل هدايا">محل هدايا</option>
               <option value="مغسلة ملابس">مغسلة ملابس</option>
               <option value="متجر هواتف">متجر هواتف</option>
-              <option value="محل أثاث">محل أثاث</option>
+                           <option value="محل أثاث">محل أثاث</option>
               <option value="آخر">آخر</option>
             </select>
           </div>
@@ -193,6 +202,7 @@
     </div>
   </div>
 
+  <!-- Scripts -->
   <script src="js/api.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/auth.js"></script>

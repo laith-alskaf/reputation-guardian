@@ -1,7 +1,3 @@
-/**
- * UI management: Modals, Toasts, Loading, Validation, Navigation, Utils
- */
-
 /** Modals */
 const ModalManager = {
   show(id) {
@@ -83,8 +79,7 @@ const FormValidator = {
   showError(fieldId, message) {
     const field = document.getElementById(fieldId);
     if (!field) return;
-    field.classList.add('error');
-    field.setAttribute('data-error', message);
+    field.classList.add('error-border');
     let err = field.parentNode.querySelector('.field-error');
     if (!err) {
       err = document.createElement('div');
@@ -97,10 +92,18 @@ const FormValidator = {
   clearError(fieldId) {
     const field = document.getElementById(fieldId);
     if (!field) return;
-    field.classList.remove('error');
-    field.removeAttribute('data-error');
+    field.classList.remove('error-border');
     const err = field.parentNode.querySelector('.field-error');
     if (err) err.style.display = 'none';
+  },
+  resetForm(formId) {
+    const form = document.getElementById(formId);
+    if (!form) return;
+    form.querySelectorAll('input, select').forEach(f => {
+      f.classList.remove('error-border');
+      const err = f.parentNode.querySelector('.field-error');
+      if (err) err.style.display = 'none';
+    });
   }
 };
 
@@ -144,7 +147,10 @@ const Utils = {
     const d = new Date(date);
     return d.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
   },
-  truncate(text, max) { if (!text) return ''; return text.length <= max ? text : text.slice(0, max) + '…'; }
+  truncate(text, max) { 
+    if (!text) return ''; 
+    return text.length <= max ? text : text.slice(0, max) + '…'; 
+  }
 };
 
 window.UI = { Modal: ModalManager, Toast: ToastManager, Loading: LoadingManager, Validator: FormValidator, Navigation: NavigationManager, Utils: Utils };

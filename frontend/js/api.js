@@ -1,6 +1,6 @@
 const API_CONFIG = {
   BASE_URL: 'https://api-reputation-guardian.vercel.app',
-  TIMEOUT: 1000000,
+  TIMEOUT: 60000, // دقيقة واحدة بدل 16 دقيقة
   RETRIES: 3
 };
 
@@ -32,7 +32,6 @@ async function apiRequest(endpoint, options = {}) {
         throw new APIError(response.status, errData.message || errData.error || `HTTP ${response.status}`, errData);
       }
 
-      // Server returns { status, message, data: {...} }
       const json = await response.json();
       return json;
 
@@ -42,6 +41,10 @@ async function apiRequest(endpoint, options = {}) {
       if (error.name === 'AbortError') {
         throw new APIError(408, 'Request timeout');
       }
+
+      // لا تعيد المحاولة إذا الخطأ من المستخدم (400/401/409)
+      if (error instanceof APIError && error.status < 500) break;
+
       if (attempt === API_CONFIG.RETRIES) break;
 
       await new Promise((r) => setTimeout(r, Math.pow(2, attempt) * 1000)); // backoff
@@ -67,18 +70,24 @@ function getStoredToken() {
   try { return localStorage.getItem('auth_token'); } catch (e) { console.warn('Failed to retrieve token:', e); return null; }
 }
 function clearStoredToken() {
-  try { localStorage.removeItem('auth_token'); } catch (e) { console.warn('Failed to clear token:', e); }
+  try { localStorage.removeItem('auth_token'); localStorage.removeItem('shop_info'); } catch (e) { console.warn('Failed to clear token:', e); }
 }
 
-/** Auth APIs (normalized to return data object) */
+/** Auth APIs */
 const authAPI = {
   async register(userData) {
     try {
       const res = await apiRequest('/register', { method: 'POST', body: JSON.stringify(userData) });
       const data = res.data || res;
 
-      if (data.token) storeToken(data.token);
-      // Return normalized data to callers
+      if (data.token) {
+        storeToken(data.token);
+        localStorage.setItem('shop_info', JSON.stringify({
+          shop_id: data.shop_id,
+          shop_type: data.shop_type,
+          shop_name: data.shop_name
+        }));
+      }
       return data;
     } catch (err) {
       throw handleAuthError(err);
@@ -90,7 +99,14 @@ const authAPI = {
       const res = await apiRequest('/login', { method: 'POST', body: JSON.stringify(credentials) });
       const data = res.data || res;
 
-      if (data.token) storeToken(data.token);
+      if (data.token) {
+        storeToken(data.token);
+        localStorage.setItem('shop_info', JSON.stringify({
+          shop_id: data.shop_id,
+          shop_type: data.shop_type,
+          shop_name: data.shop_name
+        }));
+      }
       return data;
     } catch (err) {
       throw handleAuthError(err);
@@ -101,7 +117,6 @@ const authAPI = {
     try {
       await apiRequest('/logout', { method: 'POST' });
     } catch (err) {
-      // even if API fails, we still clear token
       console.warn('Logout API failed:', err);
     } finally {
       clearStoredToken();
@@ -110,7 +125,7 @@ const authAPI = {
   }
 };
 
-/** Dashboard APIs (normalized to return data object) */
+/** Dashboard APIs */
 const dashboardAPI = {
   async getDashboard() {
     const res = await apiRequest('/dashboard');

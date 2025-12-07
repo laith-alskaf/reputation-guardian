@@ -4,7 +4,8 @@
 
 const DashboardManager = {
   async init() {
-    if (!window.API.isAuthenticated()) {
+    const isAuth = await AuthManager.checkAuthStatus();
+    if (!isAuth) {
       window.UI.Toast.show('يرجى تسجيل الدخول أولاً', 'error');
       setTimeout(() => (window.location.href = 'index.html'), 1500);
       return;
@@ -29,7 +30,6 @@ const DashboardManager = {
   },
 
   renderDashboard(data) {
-    // Normalize data shape from API sample:
     const metrics = data.metrics || {};
     const reviews = data.recent_reviews || [];
     const shopInfo = data.shop_info || {};
@@ -83,7 +83,6 @@ const DashboardManager = {
     }
 
     const cards = reviews.map((r) => {
-      // API sample: text is inside original_fields.text, review_type inside technical_analysis.review_type
       const text = r.text || r.original_fields?.text || '';
       const type = r.review_type || r.technical_analysis?.review_type || 'محايد';
       const typeClass = this.getReviewTypeClass(type);
@@ -219,6 +218,7 @@ const DashboardManager = {
       default: return 'neutral';
     }
   },
+
   getReviewTypeLabel(t) {
     switch (t) {
       case 'إيجابي': return 'إيجابي';
@@ -228,86 +228,41 @@ const DashboardManager = {
     }
   }
 };
+
+/**
+ * رسم مخطط التقييمات باستخدام Chart.js
+ */
 function renderReviewsChart(metrics) {
-  const ctx = document.getElementById('reviewsChart').getContext('2d');
+  const ctx = document.getElementById('reviewsChart');
   if (!ctx) return;
 
-  // لو فيه مخطط قديم نحذفه
-  if (window.reviewsChartInstance) {
-    window.reviewsChartInstance.destroy();
-  }
+  const data = {
+    labels: ['إيجابي', 'سلبي', 'محايد'],
+    datasets: [{
+      label: 'عدد التقييمات',
+      data: [
+        metrics.positive_reviews ?? 0,
+        metrics.negative_reviews ?? 0,
+        metrics.neutral_reviews ?? 0
+      ],
+      backgroundColor: ['#4CAF50', '#F44336', '#FFC107']
+    }]
+  };
 
-  window.reviewsChartInstance = new Chart(ctx, {
-    type: 'pie',
-    data: {
-      labels: ['إيجابي', 'سلبي', 'محايد'],
-      datasets: [{
-        data: [
-          metrics.positive_reviews || 0,
-          metrics.negative_reviews || 0,
-          metrics.neutral_reviews || 0
-        ],
-        backgroundColor: [
-          '#10b981', // أخضر للإيجابي
-          '#ef4444', // أحمر للسلبي
-          '#64748b'  // رمادي للمحايد
-        ],
-        borderColor: '#ffffff',
-        borderWidth: 2
-      }]
-    },
+  new Chart(ctx, {
+    type: 'bar',
+    data: data,
     options: {
       responsive: true,
       plugins: {
-        legend: {
-          position: 'bottom',
-          labels: {
-            font: { size: 14 }
-          }
-        },
-        title: {
-          display: true,
-          text: 'توزيع التقييمات',
-          font: { size: 18 }
-        }
+        legend: { display: false },
+        title: { display: true, text: 'إحصائيات التقييمات' }
       }
     }
   });
 }
-function generateWeeklyReport() { /* server-side in future */ window.UI.Toast.show('سيتم إضافة إرسال التقارير قريباً', 'warning'); }
-function exportData() { DashboardManagerExportCSV(); }
 
-async function DashboardManagerExportCSV() {
-  try {
-    const data = await window.API.dashboard.getDashboard();
-    const reviews = data.recent_reviews || [];
-    if (!reviews.length) return window.UI.Toast.show('لا توجد بيانات للتصدير', 'warning');
-
-    const headers = ['Date', 'Stars', 'Review Type', 'Text', 'Solutions'];
-    const rows = reviews.map(r => {
-      const text = (r.text || r.original_fields?.text || '').replace(/"/g, '""');
-      const type = r.review_type || r.technical_analysis?.review_type || '';
-      const solutions = (r.solutions || '').replace(/"/g, '""');
-      return [r.timestamp || '', r.stars || 0, type, `"${text}"`, `"${solutions}"`].join(',');
-    });
-    const csv = [headers.join(','), ...rows].join('\n');
-
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `reviews-export-${new Date().toISOString().split('T')[0]}.csv`;
-    link.click();
-    window.UI.Toast.show('تم تصدير البيانات بنجاح', 'success');
-  } catch (e) {
-    console.error('Export failed:', e);
-    window.UI.Toast.show('فشل في تصدير البيانات', 'error');
-  }
-}
-
+// بدء تشغيل الداشبورد عند تحميل الصفحة
 document.addEventListener('DOMContentLoaded', () => {
-  if (window.location.pathname.includes('dashboard')) {
-    DashboardManager.init();
-  }
+  DashboardManager.init();
 });
-
-window.DashboardManager = DashboardManager;
