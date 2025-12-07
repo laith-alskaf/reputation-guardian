@@ -26,8 +26,6 @@ def create_app():
 
     # Enable CORS
     CORS(app, origins=["http://localhost:3000", "http://localhost:5000", "https://your-frontend-domain.com"])
-
-    # Register Blueprints
     app.register_blueprint(auth_bp)
     app.register_blueprint(qr_bp)
     app.register_blueprint(dashboard_bp)
@@ -39,8 +37,6 @@ def create_app():
     except Exception as e:
         logging.warning(f"Firebase initialization failed: {e}")
 
-    @app.route('/')
-    def health():
-        return jsonify({"status": "حارس السمعة يعمل بكفاءة 🛡️", "version": "2.0"}), 200
+    
 
     return app

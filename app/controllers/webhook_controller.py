@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request
 from app.models.user import UserModel
 from app.models.review import ReviewModel
 from app.services.sentiment_service import clean_text, analyze_sentiment, analyze_toxicity, classify_review, detect_review_quality
@@ -9,6 +9,7 @@ from app.services.deepseek_service import (
     generate_suggested_reply
 )
 from app.services.notification_service import send_fcm_notification, send_telegram_notification
+from app.utils.response import ResponseBuilder
 from bson import ObjectId
 import logging
 
@@ -22,7 +23,7 @@ def webhook():
         data = request.json
         if not data or not data.get('fields'):
             logging.warning("Invalid webhook data received")
-            return jsonify({"error": "Invalid data"}), 400
+            return ResponseBuilder.error("Invalid data", 400)
 
         fields = data['fields']
         email = fields.get('email', '').strip().lower()
@@ -36,12 +37,12 @@ def webhook():
 
         if not email or not text or not shop_id:
             logging.warning(f"Missing required fields: email={bool(email)}, text={bool(text)}, shop_id={bool(shop_id)}")
-            return jsonify({"error": "Missing required fields: email, text, shop_id"}), 400
+            return ResponseBuilder.error("Missing required fields: email, text, shop_id", 400)
 
         existing_review = review_model.find_existing_review(email, shop_id)
         if existing_review:
             logging.warning(f"Duplicate review attempt from {email} for shop {shop_id}")
-            return jsonify({"error": "لقد قمت بإرسال تقييم لهذا المتجر مسبقاً"}), 400
+            return ResponseBuilder.error("لقد قمت بإرسال تقييم لهذا المتجر مسبقاً", 400)
 
         owner = user_model.find_by_id(shop_id)
         shop_type = owner.get('shop_type', 'عام') if owner else 'عام'
@@ -115,8 +116,8 @@ def webhook():
         except Exception as e:
             logging.error(f"Notification failed: {e}")
 
-        return jsonify({"status": "success", "review_id": review_id}), 200
+        return ResponseBuilder.success({"review_id": review_id}, "تم حفظ التقييم بنجاح", 200)
 
     except Exception as e:
         logging.error(f"Webhook error: {e}", exc_info=True)
-        return jsonify({"error": "Internal server error"}), 500
+        return ResponseBuilder.error("Internal server error", 500)

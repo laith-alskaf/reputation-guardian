@@ -1,7 +1,8 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request
 from app.models.user import UserModel
 from app.models.review import ReviewModel
 from app.utils.middleware import token_required, handle_mongodb_errors
+from app.utils.response import ResponseBuilder
 from bson import ObjectId
 import datetime
 from datetime import timezone
@@ -32,11 +33,11 @@ def get_dashboard():
         try:
             ObjectId(shop_id)
         except:
-            return jsonify({"error": "معرف المتجر غير صحيح"}), 400
+            return ResponseBuilder.error("معرف المتجر غير صحيح", 400)
 
         user = user_model.find_by_id(shop_id)
         if not user:
-            return jsonify({"error": "المتجر غير موجود"}), 404
+            return ResponseBuilder.error("المتجر غير موجود", 404)
 
         reviews_list = review_model.find_by_shop(shop_id)
 
@@ -72,9 +73,9 @@ def get_dashboard():
 
         dashboard_data = convert_object_ids(dashboard_data)
 
-        return jsonify(dashboard_data), 200
+        return ResponseBuilder.success(dashboard_data, "تم جلب بيانات لوحة التحكم", 200)
 
     except Exception as e:
         error_message = handle_mongodb_errors(e)
         logging.error(f"Dashboard retrieval failed: {e}")
-        return jsonify({"error": error_message}), 400
+        return ResponseBuilder.error(error_message, 400)
