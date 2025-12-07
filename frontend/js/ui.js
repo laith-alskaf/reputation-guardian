@@ -1,0 +1,150 @@
+/**
+ * UI management: Modals, Toasts, Loading, Validation, Navigation, Utils
+ */
+
+/** Modals */
+const ModalManager = {
+  show(id) {
+    const modal = document.getElementById(id);
+    if (!modal) return;
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    const focusables = modal.querySelectorAll('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])');
+    if (focusables.length) focusables[0].focus();
+  },
+  hide(id) {
+    const modal = document.getElementById(id);
+    if (!modal) return;
+    modal.classList.remove('show');
+    document.body.style.overflow = '';
+  },
+  hideAll() {
+    document.querySelectorAll('.modal').forEach(m => m.classList.remove('show'));
+    document.body.style.overflow = '';
+  }
+};
+
+/** Toasts */
+const ToastManager = {
+  show(message, type = 'success', duration = 4000) {
+    const toast = document.getElementById('messageToast');
+    const text = document.getElementById('messageText');
+    const icon = toast.querySelector('i');
+    text.textContent = message;
+
+    toast.className = 'toast';
+    if (type === 'error') {
+      toast.classList.add('error');
+      icon.className = 'fas fa-exclamation-triangle';
+    } else if (type === 'warning') {
+      icon.className = 'fas fa-exclamation-circle';
+    } else {
+      icon.className = 'fas fa-check-circle';
+    }
+
+    toast.classList.add('show');
+    setTimeout(() => this.hide(), duration);
+  },
+  hide() {
+    const toast = document.getElementById('messageToast');
+    toast.classList.remove('show');
+  }
+};
+
+/** Loading */
+const LoadingManager = {
+  show(elementId) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    el.classList.add('loading');
+    if ('disabled' in el) el.disabled = true;
+  },
+  hide(elementId) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    el.classList.remove('loading');
+    if ('disabled' in el) el.disabled = false;
+  }
+};
+
+/** Validation */
+const FormValidator = {
+  isValidEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  },
+  validatePassword(password) {
+    const result = { isValid: true, errors: [] };
+    if (password.length < 6) { result.isValid = false; result.errors.push('كلمة المرور يجب أن تكون 6 أحرف على الأقل'); }
+    if (!/[A-Za-z]/.test(password)) { result.isValid = false; result.errors.push('كلمة المرور يجب أن تحتوي على حرف واحد على الأقل'); }
+    if (!/\d/.test(password)) { result.isValid = false; result.errors.push('كلمة المرور يجب أن تحتوي على رقم واحد على الأقل'); }
+    return result;
+  },
+  showError(fieldId, message) {
+    const field = document.getElementById(fieldId);
+    if (!field) return;
+    field.classList.add('error');
+    field.setAttribute('data-error', message);
+    let err = field.parentNode.querySelector('.field-error');
+    if (!err) {
+      err = document.createElement('div');
+      err.className = 'field-error';
+      field.parentNode.appendChild(err);
+    }
+    err.textContent = message;
+    err.style.display = 'block';
+  },
+  clearError(fieldId) {
+    const field = document.getElementById(fieldId);
+    if (!field) return;
+    field.classList.remove('error');
+    field.removeAttribute('data-error');
+    const err = field.parentNode.querySelector('.field-error');
+    if (err) err.style.display = 'none';
+  }
+};
+
+/** Navigation & scroll */
+const NavigationManager = {
+  init() {
+    this.updateActiveNavLink();
+    this.handleScroll();
+    window.addEventListener('scroll', () => this.handleScroll());
+  },
+  updateActiveNavLink() {
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.nav-link');
+    let current = '';
+    sections.forEach(s => {
+      const top = s.offsetTop;
+      const height = s.clientHeight;
+      if (window.pageYOffset >= top - height / 3) current = s.id;
+    });
+    navLinks.forEach(link => {
+      link.classList.toggle('active', link.getAttribute('href') === `#${current}`);
+    });
+  },
+  handleScroll() {
+    const navbar = document.querySelector('.navbar');
+    if (window.scrollY > 50) navbar.classList.add('scrolled');
+    else navbar.classList.remove('scrolled');
+    this.updateActiveNavLink();
+  },
+  scrollToSection(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+};
+
+/** Utils */
+const Utils = {
+  formatDate(date) {
+    if (!date) return '';
+    const d = new Date(date);
+    return d.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  },
+  truncate(text, max) { if (!text) return ''; return text.length <= max ? text : text.slice(0, max) + '…'; }
+};
+
+window.UI = { Modal: ModalManager, Toast: ToastManager, Loading: LoadingManager, Validator: FormValidator, Navigation: NavigationManager, Utils: Utils };

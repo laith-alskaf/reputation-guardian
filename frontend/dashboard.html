@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>لوحة التحكم - حارس السمعة</title>
+
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <!-- Navigation -->
+    <nav class="navbar">
+      <div class="nav-brand">
+        <i class="fas fa-shield-alt"></i>
+        <span>حارس السمعة</span>
+      </div>
+      <div class="nav-links">
+        <a href="index.html" class="nav-link"><i class="fas fa-home"></i> الرئيسية</a>
+        <div class="user-info">
+          <span class="user-name" id="userName">جاري التحميل...</span>
+          <button class="btn btn-outline btn-sm" onclick="window.Auth.logout()">
+            <i class="fas fa-sign-out-alt"></i> خروج
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Header -->
+    <section class="dashboard-header">
+      <div class="header-content">
+        <h1 class="dashboard-title"><i class="fas fa-tachometer-alt"></i> لوحة التحكم</h1>
+        <p class="dashboard-subtitle">مراقبة أداء متجرك وإدارة التقييمات</p>
+        <div class="header-actions">
+          <button class="btn btn-primary" id="refreshDashboard">
+            <i class="fas fa-sync-alt"></i> تحديث
+          </button>
+          <button class="btn btn-outline" id="generateQR">
+            <i class="fas fa-qrcode"></i> إنشاء QR جديد
+          </button>
+        </div>
+        <p class="last-updated mt-3"></p>
+      </div>
+    </section>
+
+    <!-- Content -->
+    <div class="dashboard-content" id="dashboardContainer">
+      <!-- Shop info -->
+      <div class="dashboard-card shop-info-card">
+        <div class="card-header">
+          <h3><i class="fas fa-store"></i> معلومات المتجر</h3>
+        </div>
+        <div class="card-content shop-info"></div>
+      </div>
+
+      <!-- Metrics -->
+      <div class="metrics-grid"></div>
+
+      <!-- QR -->
+      <div class="dashboard-card qr-card">
+        <div class="card-header">
+          <h3><i class="fas fa-qrcode"></i> رمز QR الحالي</h3>
+        </div>
+        <div class="card-content" id="qrDisplay">
+          <div class="qr-placeholder">
+            <i class="fas fa-qrcode"></i>
+            <p>جاري تحميل رمز QR...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reviews -->
+      <div class="dashboard-card reviews-card">
+        <div class="card-header">
+          <h3><i class="fas fa-comments"></i> أحدث التقييمات</h3>
+          <div class="card-actions">
+            <select id="reviewFilter" class="filter-select">
+              <option value="">جميع التقييمات</option>
+              <option value="إيجابي">إيجابي</option>
+              <option value="نقد">نقد بناء</option>
+              <option value="شكوى">شكاوى</option>
+            </select>
+          </div>
+        </div>
+        <div class="card-content recent-reviews"></div>
+      </div>
+
+      <!-- Analytics placeholder -->
+      <div class="dashboard-card analytics-card">
+        <div class="card-header">
+          <h3><i class="fas fa-chart-bar"></i> تحليلات الأداء</h3>
+        </div>
+        <div class="card-content">
+          <canvas id="reviewsChart" width="400" height="400"></canvas>
+        </div>
+      </div>
+
+      <!-- Report -->
+      <div class="dashboard-card report-card">
+        <div class="card-header">
+          <h3><i class="fas fa-file-alt"></i> التقارير</h3>
+        </div>
+        <div class="card-content">
+          <div class="report-actions">
+            <button class="btn btn-outline" onclick="generateWeeklyReport()">
+              <i class="fas fa-envelope"></i> إرسال تقرير أسبوعي
+            </button>
+            <button class="btn btn-outline" onclick="exportData()">
+              <i class="fas fa-download"></i> تصدير البيانات
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay" class="loading-overlay" style="display:none;">
+    <div class="loading-spinner">
+      <i class="fas fa-spinner fa-spin"></i>
+      <p>جاري التحميل...</p>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="messageToast" class="toast">
+    <div class="toast-content">
+      <i class="fas fa-check-circle"></i>
+      <span id="messageText"></span>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/main.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</body>
+</html>
