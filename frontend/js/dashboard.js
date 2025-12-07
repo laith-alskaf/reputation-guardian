@@ -262,7 +262,4 @@ function renderReviewsChart(metrics) {
   });
 }
 
-// بدء تشغيل الداشبورد عند تحميل الصفحة
-document.addEventListener('DOMContentLoaded', () => {
-  DashboardManager.init();
-});
+window.DashboardManager = DashboardManager;
