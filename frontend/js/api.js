@@ -121,6 +121,7 @@ const authAPI = {
 
   async logout() {
     try {
+      clearStoredToken();
       await apiRequest('/logout', { method: 'POST' });
     } catch (err) {
       console.warn('Logout API failed:', err);
