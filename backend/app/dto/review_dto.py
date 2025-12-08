@@ -4,6 +4,7 @@ from typing import Optional
 @dataclass
 class ReviewDTO:
     email: str
+    phone: Optional[str]
     shop_id: str
     text: str
     stars: int
@@ -17,6 +18,7 @@ class ReviewDTO:
         field_dict = {field["label"]: field.get("value") for field in fields}
         return ReviewDTO(
             email=str(field_dict.get("email") or "").strip().lower(),
+            phone=str(field_dict.get("phone") or "").strip(),
             shop_id=str(field_dict.get("shop_id") or "").strip(),
             text=str(field_dict.get("enjoy_most") or "").strip(),
             stars=int(field_dict.get("stars") or 0),

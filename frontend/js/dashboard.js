@@ -140,6 +140,10 @@ const DashboardManager = {
             <!-- Customer Voice -->
             <div class="review-section customer-voice">
               <h4><i class="fas fa-user"></i> صوت العميل</h4>
+              <div class="customer-contact">
+                ${r.email ? `<p class="contact-item"><i class="fas fa-envelope"></i> <strong>البريد:</strong> ${r.email}</p>` : ''}
+                ${r.phone ? `<p class="contact-item"><i class="fas fa-phone"></i> <strong>الهاتف:</strong> ${r.phone}</p>` : ''}
+              </div>
               <div class="original-text">${safeText}</div>
               ${safeImproveProduct ? `<p class="mt-2"><small><strong>اقتراح تحسين:</strong> ${safeImproveProduct}</small></p>` : ''}
             </div>
@@ -483,11 +487,13 @@ const DashboardManager = {
   },
 
   convertToCSV(reviews) {
-    const headers = ['التاريخ', 'النجوم', 'النوع', 'النص'];
+    const headers = ['التاريخ', 'النجوم', 'النوع', 'البريد', 'الهاتف', 'النص'];
     const rows = reviews.map(review => [
       window.UI.Utils.formatDate(review.timestamp),
       review.stars || 0,
       this.getReviewTypeLabel(review.review_type || 'محايد'),
+      review.email || '',
+      review.phone || '',
       (review.text || '').replace(/"/g, '""')
     ]);
 

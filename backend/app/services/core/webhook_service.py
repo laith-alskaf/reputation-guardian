@@ -64,6 +64,7 @@ class WebhookService(IWebhookService):
 
         review_data = {
             "email": dto.email,
+            "phone": dto.phone,
             "shop_id": dto.shop_id,
             "stars": dto.stars,
             "overall_sentiment": overall_sentiment,
@@ -72,6 +73,7 @@ class WebhookService(IWebhookService):
             "suggested_reply": suggested_reply,
             "original_fields": {
                 "text": dto.text,
+                "phone": dto.phone,
                 "enjoy_most": dto.enjoy_most,
                 "improve_product": dto.improve_product,
                 "additional_feedback": dto.additional_feedback
