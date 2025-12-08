@@ -11,9 +11,12 @@ const DashboardManager = {
     const isAuth = await AuthManager.checkAuthStatus();
     if (!isAuth) {
       window.UI.Toast.show('يرجى تسجيل الدخول أولاً', 'error');
-      setTimeout(() => (window.location.href = 'index.html'), 1500);
+      window.location.href = 'index.html';
       return;
     }
+
+    // Show user info since authenticated
+    document.getElementById('userInfo').style.display = 'flex';
 
     this.initRealtimeUpdates();
     await this.loadDashboardData();
