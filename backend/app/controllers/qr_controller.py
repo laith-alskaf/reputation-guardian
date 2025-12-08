@@ -24,7 +24,13 @@ def generate_qr():
         except:
             return ResponseBuilder.error("معرف المتجر غير صحيح", 400)
 
-        qr_base64 = qr_service.generate_qr_with_type(dto.shop_id, dto.shop_type)
+        user = user_model.find_by_id(dto.shop_id)
+        if not user:
+            return ResponseBuilder.error("المتجر غير موجود", 404)
+
+        shop_name = user.get('shop_name', '')
+
+        qr_base64 = qr_service.generate_qr_with_type(dto.shop_id, dto.shop_type, shop_name)
 
         if not qr_base64:
             return ResponseBuilder.error("فشل في إنشاء رمز QR", 500)
@@ -36,7 +42,8 @@ def generate_qr():
 
         return ResponseBuilder.success({
             "qr_code": qr_base64,
-            "shop_type": dto.shop_type
+            "shop_type": dto.shop_type,
+            "shop_name": shop_name
         }, "تم إنشاء رمز QR بنجاح", 201)
 
     except Exception as e:
@@ -57,7 +64,7 @@ def get_qr(shop_id):
 
         qr_base64 = user.get('qr_code')
         if not qr_base64:
-            qr_base64 = qr_service.generate_qr_with_type(shop_id, shop_type)
+            qr_base64 = qr_service.generate_qr_with_type(shop_id, shop_type, shop_name)
 
         url = f"{TALLY_FORM_URL}?shop_id={shop_id}&shop_type={shop_type}&shop_name={shop_name}"
 

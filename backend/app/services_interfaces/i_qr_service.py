@@ -7,7 +7,7 @@ class IQRService(ABC):
         pass
 
     @abstractmethod
-    def generate_qr_with_type(self, shop_id: str, shop_type: str = None) -> str:
+    def generate_qr_with_type(self, shop_id: str, shop_type: str = None, shop_name: str = None) -> str:
         """توليد رمز QR مع تضمين نوع المتجر في الرابط"""
         pass
 

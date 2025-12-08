@@ -21,11 +21,13 @@ class QRService(IQRService):
             logging.error(f"Error generating QR: {e}")
             raise
 
-    def generate_qr_with_type(self, shop_id: str, shop_type: str = None) -> str:
+    def generate_qr_with_type(self, shop_id: str, shop_type: str = None, shop_name: str = None) -> str:
         try:
             url = f"{TALLY_FORM_URL}?shop_id={shop_id}"
             if shop_type:
                 url += f"&shop_type={shop_type}"
+            if shop_name:
+                url += f"&shop_name={shop_name}"
 
             qr = qrcode.QRCode(version=1, box_size=10, border=5)
             qr.add_data(url)

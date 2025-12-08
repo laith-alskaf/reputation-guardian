@@ -13,13 +13,14 @@ class ReviewDTO:
 
     @staticmethod
     def from_dict(data: dict):
-        fields = data.get("fields", {})
+        fields = data.get("data", {}).get("fields", [])
+        field_dict = {field["label"]: field.get("value") for field in fields}
         return ReviewDTO(
-            email=fields.get("email", "").strip().lower(),
-            shop_id=fields.get("shop_id", "").strip(),
-            text=fields.get("text", "").strip(),
-            stars=int(fields.get("stars", 0)) if fields.get("stars") else 0,
-            enjoy_most=fields.get("enjoy_most", "").strip(),
-            improve_product=fields.get("improve_product", "").strip(),
-            additional_feedback=fields.get("additional_feedback", "").strip()
+            email=str(field_dict.get("email") or "").strip().lower(),
+            shop_id=str(field_dict.get("shop_id") or "").strip(),
+            text=str(field_dict.get("enjoy_most") or "").strip(),
+            stars=int(field_dict.get("stars") or 0),
+            enjoy_most=str(field_dict.get("enjoy_most") or "").strip(),
+            improve_product=str(field_dict.get("improve_product") or "").strip(),
+            additional_feedback=str(field_dict.get("additional_feedback") or "").strip()
         )
