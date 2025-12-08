@@ -18,6 +18,7 @@ class AuthService(IAuthService):
             "email": email,
             "shop_id": shop_id,
             "shop_type": shop_type,
+            "shop_name": shop_name,
             "exp": datetime.datetime.now(timezone.utc) + datetime.timedelta(days=30)
         }, SECRET_KEY, algorithm="HS256")
         return {"token": token, "shop_id": shop_id, "shop_type": shop_type ,"shop_name":shop_name}
@@ -30,6 +31,7 @@ class AuthService(IAuthService):
             "email": user["email"],
             "shop_id": str(user["_id"]),
             "shop_type": user.get("shop_type", ""),
+            "shop_name": user.get("shop_name", ""),
             "exp": datetime.datetime.now(timezone.utc) + datetime.timedelta(days=30)
         }, SECRET_KEY, algorithm="HS256")
         return {"token": token, "shop_id": str(user["_id"]), "shop_type": user.get("shop_type", ""),"shop_name":user.get("shop_name", "")}

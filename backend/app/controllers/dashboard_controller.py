@@ -35,7 +35,7 @@ def get_profile():
             "shop_id": request.shop_id,
             "email": request.email,
             "shop_type": request.shop_type,
-            "shop_name": getattr(request, 'shop_name', None)
+            "shop_name": request.shop_name
         }
         
         return ResponseBuilder.success(profile_data, "تم جلب معلومات الحساب", 200)

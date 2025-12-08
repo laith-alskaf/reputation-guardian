@@ -34,6 +34,7 @@ def token_required(f):
             request.shop_id = payload.get('shop_id')
             request.email = payload.get('email')
             request.shop_type = payload.get('shop_type')
+            request.shop_name = payload.get('shop_name')
 
         except jwt.ExpiredSignatureError:
             return jsonify({'error': 'Token has expired'}), 401

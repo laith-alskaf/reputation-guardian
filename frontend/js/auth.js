@@ -31,6 +31,10 @@ const AuthManager = {
       document.getElementById("userName").textContent =
         this.currentUser.shop_name || this.currentUser.email || "المستخدم";
     }
+
+    // Hide hero buttons for authenticated users
+    const heroButtons = document.querySelector('.hero-buttons');
+    if (heroButtons) heroButtons.style.display = 'none';
   },
 
   updateUIForGuest() {
@@ -38,6 +42,10 @@ const AuthManager = {
     const userInfo = document.getElementById("userInfo");
     if (navLinks) navLinks.style.display = "flex";
     if (userInfo) userInfo.style.display = "none";
+
+    // Show hero buttons for guest users
+    const heroButtons = document.querySelector('.hero-buttons');
+    if (heroButtons) heroButtons.style.display = 'flex';
   },
 
   async login(credentials) {
