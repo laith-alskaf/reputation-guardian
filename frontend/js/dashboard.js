@@ -270,13 +270,19 @@ const DashboardManager = {
       const qrData = await window.API.qr.generateQR();
       this.displayGeneratedQR(qrData);
       window.UI.Toast.show('تم إنشاء رمز QR بنجاح', 'success');
-       this.loadDashboardData();
+      // استخدام setTimeout بدون eval
+      setTimeout(() => this.reloadDashboard(), 800);
     } catch (e) {
       console.error('QR generation failed:', e);
       window.UI.Toast.show('فشل في إنشاء رمز QR', 'error');
     } finally {
       window.UI.Loading.hide('generateQR');
     }
+  },
+
+  // Helper function for setTimeout to avoid eval
+  reloadDashboard() {
+    this.loadDashboardData();
   },
 
   displayGeneratedQR(qrData) {
@@ -523,10 +529,12 @@ const DashboardManager = {
   },
 
   clearNotifications() {
+    // Simple operation, no need for loading state
     this.notifications = [];
     this.renderNotifications();
     const panel = document.getElementById('notificationsPanel');
     if (panel) panel.style.display = 'none';
+    window.UI.Toast.show('تم مسح جميع الإشعارات', 'success');
   },
 
   // Advanced Analytics
@@ -537,6 +545,7 @@ const DashboardManager = {
   // Export Functions
   async exportData() {
     try {
+      window.UI.Loading.show('exportDataBtn');
       const data = await window.API.dashboard.getDashboard();
       const csvContent = this.convertToCSV(data.recent_reviews || []);
       this.downloadCSV(csvContent, `reviews-${Date.now()}.csv`);
@@ -544,6 +553,8 @@ const DashboardManager = {
     } catch (e) {
       console.error('Export failed:', e);
       window.UI.Toast.show('فشل في تصدير البيانات', 'error');
+    } finally {
+      window.UI.Loading.hide('exportDataBtn');
     }
   },
 
@@ -576,6 +587,7 @@ const DashboardManager = {
   // Report Functions
   async generateWeeklyReport() {
     try {
+      window.UI.Loading.show('weeklyReportBtn');
       const data = await window.API.dashboard.getDashboard();
       const report = this.generateReportContent(data);
       this.downloadReport(report);
@@ -583,6 +595,8 @@ const DashboardManager = {
     } catch (e) {
       console.error('Report generation failed:', e);
       window.UI.Toast.show('فشل في إنشاء التقرير', 'error');
+    } finally {
+      window.UI.Loading.hide('weeklyReportBtn');
     }
   },
 

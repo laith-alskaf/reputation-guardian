@@ -59,6 +59,7 @@ class DashboardService(IDashboardService):
                 "neutral_reviews": total_reviews - negative_reviews - positive_reviews
             },
             "recent_reviews": recent_reviews,
+            "qr_code": user.get('qr_code'),
             "last_updated": datetime.datetime.now(timezone.utc).isoformat()
         }
 

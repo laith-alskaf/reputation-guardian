@@ -122,13 +122,13 @@
         </div>
         <div class="card-content">
           <div class="report-actions">
-            <button class="btn btn-outline" onclick="DashboardManager.generateWeeklyReport()">
+            <button class="btn btn-outline" id="weeklyReportBtn" onclick="DashboardManager.generateWeeklyReport()">
               <i class="fas fa-envelope"></i> إرسال تقرير أسبوعي
             </button>
-            <button class="btn btn-outline" onclick="DashboardManager.exportData()">
+            <button class="btn btn-outline" id="exportDataBtn" onclick="DashboardManager.exportData()">
               <i class="fas fa-download"></i> تصدير البيانات
             </button>
-            <button class="btn btn-primary" onclick="DashboardManager.showAdvancedAnalytics()">
+            <button class="btn btn-primary" id="advancedAnalyticsBtn" onclick="DashboardManager.showAdvancedAnalytics()">
               <i class="fas fa-chart-line"></i> تحليلات متقدمة
             </button>
           </div>
@@ -161,7 +161,7 @@
   </div>
 
   <!-- Toast -->
-  <div id="messageToast" class="toast">
+  <div id="messageToast">
     <div class="toast-content">
       <i class="fas fa-check-circle"></i>
       <span id="messageText"></span>

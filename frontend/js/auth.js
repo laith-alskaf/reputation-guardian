@@ -65,7 +65,9 @@ const AuthManager = {
       window.UI.Toast.show('تم تسجيل الدخول بنجاح', 'success');
       window.UI.Modal.hide('loginModal');
       this.updateUIForAuthenticatedUser();
-      setTimeout(() => (window.location.href = 'dashboard.html'), 800);
+      setTimeout(() => {
+        window.location.href = 'dashboard.html';
+      }, 800);
     } catch (error) {
       window.UI.Toast.show(error.message || 'فشل تسجيل الدخول', 'error');
     } finally {
@@ -91,7 +93,9 @@ const AuthManager = {
       window.UI.Toast.show('تم إنشاء الحساب بنجاح', 'success');
       window.UI.Modal.hide('registerModal');
       this.updateUIForAuthenticatedUser();
-      setTimeout(() => (window.location.href = 'dashboard.html'), 1500);
+      setTimeout(() => {
+        window.location.href = 'dashboard.html';
+      }, 1500);
     } catch (error) {
       window.UI.Toast.show(error.message || 'فشل إنشاء الحساب', 'error');
     } finally {
