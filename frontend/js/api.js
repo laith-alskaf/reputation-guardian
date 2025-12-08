@@ -1,14 +1,12 @@
-const API_CONFIG = {
-  BASE_URL: 'https://api-reputation-guardian.vercel.app',
-  TIMEOUT: 60000, // دقيقة واحدة بدل 16 دقيقة
-  RETRIES: 3
-};
+/**
+ * Enhanced API Client with better error handling and loading states
+ */
 
 async function apiRequest(endpoint, options = {}) {
-  const url = `${API_CONFIG.BASE_URL}${endpoint}`;
+  const url = `${window.CONFIG.API.BASE_URL}${endpoint}`;
   const config = {
     headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
-    timeout: API_CONFIG.TIMEOUT,
+    timeout: window.CONFIG.API.TIMEOUT,
     ...options
   };
 
@@ -19,7 +17,7 @@ async function apiRequest(endpoint, options = {}) {
   }
 
   let lastError;
-  for (let attempt = 1; attempt <= API_CONFIG.RETRIES; attempt++) {
+  for (let attempt = 1; attempt <= window.CONFIG.API.RETRIES; attempt++) {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), config.timeout);
@@ -38,16 +36,24 @@ async function apiRequest(endpoint, options = {}) {
     } catch (error) {
       lastError = error;
 
+      // Handle abort errors
       if (error.name === 'AbortError') {
-        throw new APIError(408, 'Request timeout');
+        throw new APIError(408, 'انتهى وقت الطلب. يرجى المحاولة مرة أخرى.');
       }
 
-      // لا تعيد المحاولة إذا الخطأ من المستخدم (400/401/409)
-      if (error instanceof APIError && error.status < 500) break;
+      // Handle network errors
+      if (error.message === 'Failed to fetch' || error.message.includes('NetworkError')) {
+        throw new APIError(0, 'لا يمكن الاتصال بالخادم. يرجى التحقق من اتصال الإنترنت.');
+      }
 
-      if (attempt === API_CONFIG.RETRIES) break;
+      // Don't retry for client errors (400/401/409)
+      if (error instanceof APIError && error.status >= 400 && error.status < 500) break;
 
-      await new Promise((r) => setTimeout(r, Math.pow(2, attempt) * 1000)); // backoff
+      // Retry for server errors
+      if (attempt === window.CONFIG.API.RETRIES) break;
+
+      // Exponential backoff
+      await new Promise((r) => setTimeout(r, Math.pow(2, attempt) * 1000));
     }
   }
   throw lastError;

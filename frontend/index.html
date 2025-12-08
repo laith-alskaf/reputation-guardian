@@ -34,7 +34,23 @@
         <button class="btn btn-primary btn-sm" onclick="window.location.href='dashboard.html'">لوحة التحكم</button>
         <button class="btn btn-outline btn-sm" onclick="AuthManager.logout()">خروج</button>
       </div>
+
+      <!-- Hamburger Menu -->
+      <div class="hamburger" id="hamburger" onclick="toggleMobileMenu()">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
     </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="#home" class="nav-link" onclick="closeMobileMenu()">الرئيسية</a>
+      <a href="#features" class="nav-link" onclick="closeMobileMenu()">المميزات</a>
+      <a href="#contact" class="nav-link" onclick="closeMobileMenu()">اتصل بنا</a>
+      <button class="btn btn-primary btn-block" onclick="showLoginModal(); closeMobileMenu()">تسجيل الدخول</button>
+      <button class="btn btn-outline btn-block" onclick="showRegisterModal(); closeMobileMenu()">إنشاء حساب</button>
+    </div>
 
     <!-- Hero -->
     <section id="home" class="hero">
@@ -203,6 +219,7 @@
   </div>
 
   <!-- Scripts -->
+  <script src="js/config.js"></script>
   <script src="js/api.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/auth.js"></script>

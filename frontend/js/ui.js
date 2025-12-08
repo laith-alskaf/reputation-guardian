@@ -54,12 +54,48 @@ const LoadingManager = {
     if (!el) return;
     el.classList.add('loading');
     if ('disabled' in el) el.disabled = true;
+    
+    // Add spinner icon to button if it's a button
+    if (el.tagName === 'BUTTON' && !el.querySelector('.loading-spinner-icon')) {
+      const originalContent = el.innerHTML;
+      el.dataset.originalContent = originalContent;
+      el.innerHTML = '<i class="fas fa-spinner fa-spin loading-spinner-icon"></i> جاري التحميل...';
+    }
   },
+  
   hide(elementId) {
     const el = document.getElementById(elementId);
     if (!el) return;
     el.classList.remove('loading');
     if ('disabled' in el) el.disabled = false;
+    
+    // Restore original button content
+    if (el.tagName === 'BUTTON' && el.dataset.originalContent) {
+      el.innerHTML = el.dataset.originalContent;
+      delete el.dataset.originalContent;
+    }
+  },
+  
+  showFullscreen(message = 'جاري التحميل...') {
+    let overlay = document.getElementById('loadingOverlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'loadingOverlay';
+      overlay.className = 'loading-overlay';
+      overlay.innerHTML = `
+        <div class="loading-spinner">
+          <i class="fas fa-spinner fa-spin"></i>
+          <p>${message}</p>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+    }
+    overlay.style.display = 'flex';
+  },
+  
+  hideFullscreen() {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) overlay.style.display = 'none';
   }
 };
 
@@ -152,5 +188,34 @@ const Utils = {
     return text.length <= max ? text : text.slice(0, max) + '…'; 
   }
 };
+
+/** Mobile Menu */
+function toggleMobileMenu() {
+  const menu = document.getElementById('mobileMenu');
+  const hamburger = document.getElementById('hamburger');
+  if (menu && hamburger) {
+    menu.classList.toggle('show');
+    hamburger.classList.toggle('active');
+  }
+}
+
+function closeMobileMenu() {
+  const menu = document.getElementById('mobileMenu');
+  const hamburger = document.getElementById('hamburger');
+  if (menu && hamburger) {
+    menu.classList.remove('show');
+    hamburger.classList.remove('active');
+  }
+}
+
+function scrollToFeatures() {
+  const el = document.getElementById('features');
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
+}
+
+// Export functions to window
+window.toggleMobileMenu = toggleMobileMenu;
+window.closeMobileMenu = closeMobileMenu;
+window.scrollToFeatures = scrollToFeatures;
 
 window.UI = { Modal: ModalManager, Toast: ToastManager, Loading: LoadingManager, Validator: FormValidator, Navigation: NavigationManager, Utils: Utils };
