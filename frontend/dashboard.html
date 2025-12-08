@@ -111,13 +111,13 @@
         </div>
         <div class="card-content">
           <div class="report-actions">
-            <button class="btn btn-outline" onclick="generateWeeklyReport()">
+            <button class="btn btn-outline" onclick="DashboardManager.generateWeeklyReport()">
               <i class="fas fa-envelope"></i> إرسال تقرير أسبوعي
             </button>
-            <button class="btn btn-outline" onclick="exportData()">
+            <button class="btn btn-outline" onclick="DashboardManager.exportData()">
               <i class="fas fa-download"></i> تصدير البيانات
             </button>
-            <button class="btn btn-primary" onclick="showAdvancedAnalytics()">
+            <button class="btn btn-primary" onclick="DashboardManager.showAdvancedAnalytics()">
               <i class="fas fa-chart-line"></i> تحليلات متقدمة
             </button>
           </div>
@@ -129,7 +129,7 @@
         <div class="card-header">
           <h3><i class="fas fa-bell animate-notification"></i> إشعارات فورية</h3>
           <div class="card-actions">
-            <button class="btn btn-sm btn-outline" onclick="clearNotifications()">
+            <button class="btn btn-sm btn-outline" onclick="DashboardManager.clearNotifications()">
               <i class="fas fa-times"></i> مسح الكل
             </button>
           </div>

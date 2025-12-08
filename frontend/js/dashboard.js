@@ -480,6 +480,11 @@ function renderReviewsChart(metrics) {
   const ctx = document.getElementById('reviewsChart');
   if (!ctx) return;
 
+  // Destroy existing chart to avoid canvas reuse error
+  if (window.reviewsChart) {
+    window.reviewsChart.destroy();
+  }
+
   // Hide loading and show chart
   const container = ctx.parentElement;
   const loading = container.querySelector('.loading-dots');
@@ -578,6 +583,9 @@ function renderReviewsChart(metrics) {
       DashboardManager.showSentimentDetails(sentiment, count);
     }
   };
+
+  // Store chart reference to avoid canvas reuse
+  window.reviewsChart = chart;
 
   return chart;
 }
