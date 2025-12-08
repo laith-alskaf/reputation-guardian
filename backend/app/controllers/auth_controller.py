@@ -61,3 +61,12 @@ def login():
     except Exception as e:
         logging.error(f"Login error: {e}", exc_info=True)
         return ResponseBuilder.error("Internal server error", 500)
+
+@auth_bp.route('/logout', methods=['POST'])
+def logout():
+    try:
+        # Since logout is handled client-side, just return success
+        return ResponseBuilder.success(None, "تم تسجيل الخروج بنجاح", 200)
+    except Exception as e:
+        logging.error(f"Logout error: {e}", exc_info=True)
+        return ResponseBuilder.error("Internal server error", 500)

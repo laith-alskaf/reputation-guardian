@@ -11,3 +11,8 @@ class IAuthService(ABC):
     def login(self, email: str, password: str) -> dict:
         """تسجيل الدخول وإرجاع بيانات التوكن"""
         pass
+
+    @abstractmethod
+    def logout(self):
+        """تسجيل الخروج"""
+        pass

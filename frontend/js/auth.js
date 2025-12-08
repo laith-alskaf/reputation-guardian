@@ -104,12 +104,12 @@ const AuthManager = {
       await window.API.auth.logout();
     } catch (error) {
       console.warn('Logout API call failed:', error);
-    } finally {
-      this.currentUser = null;
-      this.updateUIForGuest();
-      window.UI.Toast.show('تم تسجيل الخروج بنجاح', 'success');
-      setTimeout(() => (window.location.href = 'index.html'), 800);
     }
+    this.currentUser = null;
+    this.updateUIForGuest();
+    window.UI.Toast.show('تم تسجيل الخروج بنجاح', 'success');
+    // Redirect immediately to ensure it happens
+    window.location.href = 'index.html';
   }
 };
 

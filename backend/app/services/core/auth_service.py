@@ -35,5 +35,7 @@ class AuthService(IAuthService):
             "exp": datetime.datetime.now(timezone.utc) + datetime.timedelta(days=30)
         }, SECRET_KEY, algorithm="HS256")
         return {"token": token, "shop_id": str(user["_id"]), "shop_type": user.get("shop_type", ""),"shop_name":user.get("shop_name", "")}
-    
-    
+
+    def logout(self):
+        # Client-side logout, no server-side action needed
+        pass
