@@ -25,3 +25,21 @@ def get_dashboard():
         error_message = handle_mongodb_errors(e)
         logging.error(f"Dashboard retrieval failed: {e}")
         return ResponseBuilder.error(error_message, 400)
+@dashboard_bp.route('/profile', methods=['GET'])
+@token_required
+def get_profile():
+    """Get user profile information"""
+    try:
+        # Token data is already attached to request by @token_required
+        profile_data = {
+            "shop_id": request.shop_id,
+            "email": request.email,
+            "shop_type": request.shop_type,
+            "shop_name": getattr(request, 'shop_name', None)
+        }
+        
+        return ResponseBuilder.success(profile_data, "تم جلب معلومات الحساب", 200)
+    
+    except Exception as e:
+        logging.error(f"Profile retrieval failed: {e}")
+        return ResponseBuilder.error("فشل في جلب معلومات الحساب", 400)
