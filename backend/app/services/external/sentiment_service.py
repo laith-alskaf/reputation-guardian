@@ -10,12 +10,14 @@ class SentimentService(ISentimentService):
     @staticmethod
     def clean_text(text: str) -> str:
         try:
+            if not text or not isinstance(text, str):
+              return ""
             text = unicodedata.normalize('NFKC', text)
             text = re.sub(r'[^\u0600-\u06FF\s]', '', text).strip()
             return text
         except Exception as e:
             logging.error(f"Error cleaning text: {e}")
-            return text
+            return str(text) if text else ""
 
     @staticmethod
     def analyze_sentiment(text: str) -> str:
@@ -73,7 +75,7 @@ class SentimentService(ISentimentService):
         quality_score = 1.0
         all_text = f"{text} {enjoy_most} {improve_product} {additional_feedback}".strip()
 
-        if not all_text:
+        if not all_text or len(all_text.strip()) < 3:
             return {'quality_score': 0.0, 'flags': ['empty_content'], 'is_suspicious': True}
 
         try:
@@ -85,7 +87,9 @@ class SentimentService(ISentimentService):
                 quality_score -= 0.3
         except Exception as e:
             logging.error(f"Language detection error: {e}")
-
+        if total_alpha > 500:  # تقييم طويل جداً قد يكون غير طبيعي
+           flags.append('too_long')
+           quality_score -= 0.1
         if re.search(r'(.)\1{4,}', all_text):
             flags.append('repetitive_characters')
             quality_score -= 0.2
