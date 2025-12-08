@@ -481,7 +481,7 @@ function renderReviewsChart(metrics) {
   if (!ctx) return;
 
   // Destroy existing chart to avoid canvas reuse error
-  if (window.reviewsChart) {
+  if (window.reviewsChart && typeof window.reviewsChart.destroy === 'function') {
     window.reviewsChart.destroy();
   }
 
