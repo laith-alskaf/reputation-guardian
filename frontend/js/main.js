@@ -174,42 +174,6 @@ window.addEventListener('unhandledrejection', (e) => {
   window.UI.Toast.show('حدث خطأ في الاتصال', 'error');
 });
 
-// PWA Registration
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(registration => {
-        console.log('SW registered: ', registration);
-      })
-      .catch(registrationError => {
-        console.log('SW registration failed: ', registrationError);
-      });
-  });
-}
-
-// Install prompt for PWA
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-
-  // Show install button or notification
-  if (window.location.pathname === '/index.html' || window.location.pathname === '/') {
-    setTimeout(() => {
-      window.UI.Toast.show(
-        'يمكنك تثبيت التطبيق على جهازك للحصول على تجربة أفضل',
-        'info',
-        8000
-      );
-    }, 3000);
-  }
-});
-
-// Handle successful installation
-window.addEventListener('appinstalled', (evt) => {
-  console.log('PWA was installed successfully');
-  window.UI.Toast.show('تم تثبيت التطبيق بنجاح!', 'success');
-});
 
 document.addEventListener('DOMContentLoaded', () => App.init());
 window.App = App;
