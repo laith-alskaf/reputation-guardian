@@ -270,7 +270,7 @@ const DashboardManager = {
       const qrData = await window.API.qr.generateQR();
       this.displayGeneratedQR(qrData);
       window.UI.Toast.show('تم إنشاء رمز QR بنجاح', 'success');
-      setTimeout(() => this.loadDashboardData(), 800);
+       this.loadDashboardData();
     } catch (e) {
       console.error('QR generation failed:', e);
       window.UI.Toast.show('فشل في إنشاء رمز QR', 'error');
