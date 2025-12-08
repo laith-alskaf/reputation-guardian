@@ -3,6 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="نظام حارس السمعة - نظام ذكي لإدارة تقييمات العملاء باستخدام الذكاء الاصطناعي. احصل على تقييمات صادقة ومفيدة مع تحليلات شاملة وإشعارات فورية.">
+  <meta name="keywords" content="إدارة التقييمات, ذكاء اصطناعي, تقييمات العملاء, QR codes, تحليل المشاعر, إدارة السمعة">
+  <meta name="author" content="حارس السمعة">
+  <meta name="robots" content="index, follow">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="حارس السمعة - نظام إدارة تقييمات العملاء">
+  <meta property="og:description" content="نظام ذكي لإدارة تقييمات العملاء باستخدام الذكاء الاصطناعي">
+  <meta property="og:image" content="https://reputation-guardian.vercel.app/images/og-image.png">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="حارس السمعة - نظام إدارة تقييمات العملاء">
+  <meta name="twitter:description" content="نظام ذكي لإدارة تقييمات العملاء باستخدام الذكاء الاصطناعي">
+
+  <link rel="canonical" href="https://reputation-guardian.vercel.app">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.json">
+
   <title>حارس السمعة - نظام إدارة تقييمات العملاء</title>
 
   <link rel="stylesheet" href="css/style.css">
@@ -126,6 +147,217 @@
       </div>
     </section>
 
+    <!-- Contact -->
+    <section id="contact" class="contact">
+      <div class="container">
+        <div class="section-header">
+          <h2>تواصل معنا</h2>
+          <p>نحن هنا لمساعدتك في تطوير أعمالك وتحسين تجربتك مع عملائك</p>
+        </div>
+
+        <div class="contact-grid">
+          <!-- Contact Info Cards -->
+          <div class="contact-info-cards">
+            <div class="info-card">
+              <div class="card-icon">
+                <i class="fas fa-envelope"></i>
+              </div>
+              <div class="card-content">
+                <h3>البريد الإلكتروني</h3>
+                <p>Laithalskaf@gmail.com</p>
+                <a href="mailto:laithalskaf@gmail.com" class="card-link">
+                  <i class="fas fa-external-link-alt"></i> أرسل بريد إلكتروني
+                </a>
+              </div>
+            </div>
+
+            <div class="info-card">
+              <div class="card-icon">
+                <i class="fas fa-globe"></i>
+              </div>
+              <div class="card-content">
+                <h3>الموقع الإلكتروني</h3>
+                <p>Portfolio</p>
+                <a href="https://laith-alskaf.github.io/portfolio/" target="_blank" class="card-link">
+                  <i class="fas fa-external-link-alt"></i> زور الموقع
+                </a>
+              </div>
+            </div>
+
+            <div class="info-card">
+              <div class="card-icon">
+                <i class="fas fa-phone"></i>
+              </div>
+              <div class="card-content">
+                <h3>الهاتف</h3>
+                <p>+963 982 055 788</p>
+                <a href="tel:+963982055788" class="card-link">
+                  <i class="fas fa-phone"></i> اتصل الآن
+                </a>
+              </div>
+            </div>
+
+            <div class="info-card">
+              <div class="card-icon">
+                <i class="fab fa-whatsapp"></i>
+              </div>
+              <div class="card-content">
+                <h3>واتساب</h3>
+                <p>دردشة فورية</p>
+                <a href="https://wa.me/963982055788" target="_blank" class="card-link whatsapp">
+                  <i class="fab fa-whatsapp"></i> واتساب
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contact Form -->
+          <div class="contact-form-container">
+            <div class="form-header">
+              <h3><i class="fas fa-paper-plane"></i> أرسل لنا رسالة</h3>
+              <p>نحن نقدر تواصلك ونسعد بمساعدتك</p>
+            </div>
+
+            <form id="contactForm" class="contact-form">
+              <div class="form-group">
+                <label for="contactName">
+                  <i class="fas fa-user"></i> الاسم الكامل
+                </label>
+                <input type="text" id="contactName" name="name" required placeholder="أدخل اسمك الكامل">
+              </div>
+
+              <div class="form-group">
+                <label for="contactEmail">
+                  <i class="fas fa-envelope"></i> البريد الإلكتروني
+                </label>
+                <input type="email" id="contactEmail" name="email" required placeholder="name@example.com">
+              </div>
+
+              <div class="form-group">
+                <label for="contactSubject">
+                  <i class="fas fa-tag"></i> الموضوع
+                </label>
+                <input type="text" id="contactSubject" name="subject" required placeholder="ما هو موضوع رسالتك؟">
+              </div>
+
+              <div class="form-group">
+                <label for="contactMessage">
+                  <i class="fas fa-comment"></i> الرسالة
+                </label>
+                <textarea id="contactMessage" name="message" required rows="5" placeholder="اكتب رسالتك هنا... سنكون سعيدين بالرد عليك"></textarea>
+              </div>
+
+              <button type="submit" id="contactSubmitBtn" class="btn btn-primary btn-block">
+                <i class="fas fa-paper-plane"></i>
+                <span>إرسال الرسالة</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+
+        <!-- Main Footer Content -->
+        <div class="footer-main">
+          <div class="footer-content">
+            <!-- Brand Section -->
+            <div class="footer-section brand-section">
+              <div class="brand-header">
+                <div class="brand-logo">
+                  <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="brand-info">
+                  <h3>حارس السمعة</h3>
+                  <p>نظام ذكي لإدارة تقييمات العملاء</p>
+                </div>
+              </div>
+              <p class="brand-tagline">نحن نساعد أصحاب الأعمال في بناء سمعة قوية من خلال تقييمات عملائهم</p>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="footer-section links-section">
+              <h4><i class="fas fa-link"></i> روابط سريعة</h4>
+              <ul class="footer-nav">
+                <li><a href="#home"><i class="fas fa-home"></i> الرئيسية</a></li>
+                <li><a href="#features"><i class="fas fa-star"></i> المميزات</a></li>
+                <li><a href="#contact"><i class="fas fa-envelope"></i> اتصل بنا</a></li>
+                <li><a href="#" onclick="showLoginModal()"><i class="fas fa-sign-in-alt"></i> تسجيل الدخول</a></li>
+                <li><a href="#" onclick="showRegisterModal()"><i class="fas fa-user-plus"></i> إنشاء حساب</a></li>
+                <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> لوحة التحكم</a></li>
+              </ul>
+            </div>
+
+            <!-- Developer Section -->
+            <div class="footer-section developer-section">
+              <h4><i class="fas fa-code"></i> المطور</h4>
+              <div class="developer-card">
+                <div class="developer-avatar">
+                  <i class="fas fa-user-tie"></i>
+                </div>
+                <div class="developer-info">
+                  <h5>المهندس ليث السكاف</h5>
+                  <p>مطور ومصمم التطبيق</p>
+                  <div class="developer-contact">
+                    <a href="tel:+963982055788" class="contact-btn phone">
+                      <i class="fas fa-phone"></i> +963 982 055 788
+                    </a>
+                    <a href="https://wa.me/963982055788" target="_blank" class="contact-btn whatsapp">
+                      <i class="fab fa-whatsapp"></i> واتساب
+                    </a>
+                    <a href="mailto:laithalskaf@gmail.com" class="contact-btn email">
+                      <i class="fas fa-envelope"></i> البريد
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Social Section -->
+            <div class="footer-section social-section">
+              <h4><i class="fas fa-share-alt"></i> تابعنا</h4>
+              <p>تابع آخر الأخبار والتحديثات</p>
+              <div class="social-grid">
+                <a href="https://github.com/laith-alskaf/reputation-guardian" target="_blank" class="social-link github">
+                  <i class="fab fa-github"></i>
+                  <span>GitHub</span>
+                </a>
+                <a href="https://wa.me/963982055788" target="_blank" class="social-link whatsapp">
+                  <i class="fab fa-whatsapp"></i>
+                  <span>واتساب</span>
+                </a>
+                <a href="https://www.linkedin.com/in/laith-alskaf" target="_blank" class="social-link linkedin">
+                  <i class="fab fa-linkedin"></i>
+                  <span>LinkedIn</span>
+                </a>
+                <a href="https://twitter.com/laith_alskaf" target="_blank" class="social-link twitter">
+                  <i class="fab fa-twitter"></i>
+                  <span>Twitter</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer Bottom -->
+        <div class="footer-bottom">
+          <div class="footer-copyright">
+            <p>&copy; 2025 <strong>حارس السمعة</strong>. جميع الحقوق محفوظة.</p>
+            <p>تم التطوير بـ <i class="fas fa-heart text-red"></i> من قبل <strong>المهندس ليث السكاف</strong></p>
+          </div>
+
+          <div class="footer-bottom-links">
+            <a href="#"><i class="fas fa-shield-alt"></i> سياسة الخصوصية</a>
+            <a href="#"><i class="fas fa-file-contract"></i> الشروط والأحكام</a>
+            <a href="#contact"><i class="fas fa-envelope"></i> اتصل بنا</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
     <!-- Login Modal -->
     <div id="loginModal" class="modal">
       <div class="modal-content">
@@ -194,7 +426,7 @@
               <option value="محل هدايا">محل هدايا</option>
               <option value="مغسلة ملابس">مغسلة ملابس</option>
               <option value="متجر هواتف">متجر هواتف</option>
-                           <option value="محل أثاث">محل أثاث</option>
+              <option value="محل أثاث">محل أثاث</option>
               <option value="آخر">آخر</option>
             </select>
           </div>

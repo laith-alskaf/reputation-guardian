@@ -47,33 +47,38 @@
     <!-- Content -->
     <div class="dashboard-content" id="dashboardContainer">
       <!-- Shop info -->
-      <div class="dashboard-card shop-info-card">
+      <div class="dashboard-card shop-info-card animate-float-up">
         <div class="card-header">
-          <h3><i class="fas fa-store"></i> معلومات المتجر</h3>
+          <h3><i class="fas fa-store animate-sentiment-wave"></i> معلومات المتجر</h3>
         </div>
-        <div class="card-content shop-info"></div>
+        <div class="card-content shop-info">
+          <div class="loading-dots">جاري تحميل البيانات<span class="loading-dots"></span></div>
+        </div>
       </div>
 
       <!-- Metrics -->
-      <div class="metrics-grid"></div>
+      <div class="metrics-grid" id="metricsContainer">
+        <!-- Metrics will be populated by JavaScript -->
+      </div>
 
       <!-- QR -->
-      <div class="dashboard-card qr-card">
+      <div class="dashboard-card qr-card animate-float-up animate-stagger-3">
         <div class="card-header">
           <h3><i class="fas fa-qrcode"></i> رمز QR الحالي</h3>
         </div>
         <div class="card-content" id="qrDisplay">
           <div class="qr-placeholder">
-            <i class="fas fa-qrcode"></i>
+            <i class="fas fa-qrcode animate-glow-pulse"></i>
             <p>جاري تحميل رمز QR...</p>
+            <div class="loading-dots"><span class="loading-dots"></span></div>
           </div>
         </div>
       </div>
 
       <!-- Reviews -->
-      <div class="dashboard-card reviews-card">
+      <div class="dashboard-card reviews-card animate-float-up animate-stagger-4">
         <div class="card-header">
-          <h3><i class="fas fa-comments"></i> أحدث التقييمات</h3>
+          <h3><i class="fas fa-comments animate-sentiment-wave"></i> أحدث التقييمات</h3>
           <div class="card-actions">
             <select id="reviewFilter" class="filter-select">
               <option value="">جميع التقييمات</option>
@@ -83,23 +88,26 @@
             </select>
           </div>
         </div>
-        <div class="card-content recent-reviews"></div>
+        <div class="card-content recent-reviews">
+          <div class="loading-dots">جاري تحميل التقييمات<span class="loading-dots"></span></div>
+        </div>
       </div>
 
       <!-- Analytics -->
-      <div class="dashboard-card analytics-card">
+      <div class="dashboard-card analytics-card animate-float-up animate-stagger-5">
         <div class="card-header">
-          <h3><i class="fas fa-chart-bar"></i> تحليلات الأداء</h3>
+          <h3><i class="fas fa-chart-bar animate-data-flow"></i> تحليلات الأداء</h3>
         </div>
         <div class="card-content">
-          <canvas id="reviewsChart" width="400" height="400"></canvas>
+          <div class="loading-dots">جاري إعداد التحليلات<span class="loading-dots"></span></div>
+          <canvas id="reviewsChart" width="400" height="400" style="display:none;"></canvas>
         </div>
       </div>
 
       <!-- Report -->
-      <div class="dashboard-card report-card">
+      <div class="dashboard-card report-card animate-float-up animate-stagger-5">
         <div class="card-header">
-          <h3><i class="fas fa-file-alt"></i> التقارير</h3>
+          <h3><i class="fas fa-file-alt animate-data-flow"></i> التقارير والأدوات</h3>
         </div>
         <div class="card-content">
           <div class="report-actions">
@@ -109,7 +117,25 @@
             <button class="btn btn-outline" onclick="exportData()">
               <i class="fas fa-download"></i> تصدير البيانات
             </button>
+            <button class="btn btn-primary" onclick="showAdvancedAnalytics()">
+              <i class="fas fa-chart-line"></i> تحليلات متقدمة
+            </button>
           </div>
+        </div>
+      </div>
+
+      <!-- Real-time Notifications Panel -->
+      <div class="dashboard-card notifications-card animate-float-up animate-stagger-4" id="notificationsPanel" style="display:none;">
+        <div class="card-header">
+          <h3><i class="fas fa-bell animate-notification"></i> إشعارات فورية</h3>
+          <div class="card-actions">
+            <button class="btn btn-sm btn-outline" onclick="clearNotifications()">
+              <i class="fas fa-times"></i> مسح الكل
+            </button>
+          </div>
+        </div>
+        <div class="card-content" id="notificationsList">
+          <p class="no-data">لا توجد إشعارات جديدة</p>
         </div>
       </div>
     </div>
