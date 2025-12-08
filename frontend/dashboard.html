@@ -80,11 +80,22 @@
         <div class="card-header">
           <h3><i class="fas fa-comments animate-sentiment-wave"></i> أحدث التقييمات</h3>
           <div class="card-actions">
+            <select id="sentimentFilter" class="filter-select">
+              <option value="">جميع المشاعر</option>
+              <option value="إيجابي">إيجابي 🟢</option>
+              <option value="سلبي">سلبي 🔴</option>
+              <option value="محايد">محايد 🟡</option>
+            </select>
             <select id="reviewFilter" class="filter-select">
-              <option value="">جميع التقييمات</option>
+              <option value="">جميع الأنواع</option>
               <option value="إيجابي">إيجابي</option>
               <option value="نقد">نقد بناء</option>
               <option value="شكوى">شكاوى</option>
+            </select>
+            <select id="mismatchFilter" class="filter-select">
+              <option value="">جميع التقييمات</option>
+              <option value="valid">المتطابقة فقط ✅</option>
+              <option value="mismatch">غير المتطابقة ⚠️</option>
             </select>
           </div>
         </div>

@@ -108,8 +108,14 @@ const DashboardManager = {
       const type = r.review_type || r.technical_analysis?.review_type || 'محايد';
       const sentiment = r.overall_sentiment || r.technical_analysis?.sentiment || 'محايد';
       const typeClass = this.getReviewTypeClass(type);
+      const sentimentClass = this.getSentimentClass(sentiment);
       const stars = '⭐'.repeat(r.stars || 0);
       const date = window.UI.Utils.formatDate(r.timestamp);
+
+      // كشف mismatch من البيانات الجديدة
+      const contextCheck = r.technical_analysis?.context_check || {};
+      const hasMismatch = contextCheck.has_mismatch || false;
+      const mismatchClass = hasMismatch ? 'mismatch' : 'valid';
 
       // Markdown parsing with DOMPurify sanitization
       const parseMarkdown = (content) => {
@@ -125,24 +131,32 @@ const DashboardManager = {
       const suggestedReplyHtml = parseMarkdown(r.suggested_reply);
 
       return `
-        <div class="review-card">
+        <div class="review-card ${sentimentClass} ${mismatchClass}" data-sentiment="${sentiment}" data-type="${type}" data-mismatch="${hasMismatch}">
           <div class="review-header">
             <div class="review-meta">
               <div class="review-stars" title="${r.stars} نجوم">${stars}</div>
               <span class="review-badge ${typeClass}">${this.getReviewTypeLabel(type)}</span>
+              <span class="sentiment-badge ${sentimentClass}">${this.getSentimentLabel(sentiment)}</span>
+              ${hasMismatch ? `<span class="mismatch-badge" title="${contextCheck.reasons?.join(', ') || 'قد يكون التقييم عن متجر آخر'}">⚠️ غير متطابق</span>` : ''}
             </div>
             <div class="review-date">
               <i class="far fa-clock"></i> ${date}
             </div>
           </div>
-          
+
+          ${hasMismatch ? `
+          <div class="mismatch-notice">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>هذا التقييم قد يكون عن متجر آخر أو خطأ في التصنيف</span>
+          </div>` : ''}
+
           <div class="review-body">
             <!-- Customer Voice -->
             <div class="review-section customer-voice">
               <h4><i class="fas fa-user"></i> صوت العميل</h4>
               <div class="customer-contact">
-                ${r.email ? `<p class="contact-item"><i class="fas fa-envelope"></i> <strong>البريد:</strong> ${r.email}</p>` : ''}
-                ${r.phone ? `<p class="contact-item"><i class="fas fa-phone"></i> <strong>الهاتف:</strong> ${r.phone}</p>` : ''}
+                ${r.email ? `<p class="contact-item"><i class="fas fa-envelope"></i> <a href="mailto:${r.email}">${r.email}</a></p>` : ''}
+                ${r.phone ? `<p class="contact-item"><i class="fas fa-phone"></i> <a href="tel:${r.phone}">${r.phone}</a></p>` : ''}
               </div>
               <div class="original-text">${safeText}</div>
               ${safeImproveProduct ? `<p class="mt-2"><small><strong>اقتراح تحسين:</strong> ${safeImproveProduct}</small></p>` : ''}
@@ -241,7 +255,13 @@ const DashboardManager = {
     if (generateQRBtn) generateQRBtn.addEventListener('click', () => this.generateNewQR());
 
     const reviewFilter = document.getElementById('reviewFilter');
-    if (reviewFilter) reviewFilter.addEventListener('change', (e) => this.filterReviews(e.target.value));
+    if (reviewFilter) reviewFilter.addEventListener('change', (e) => this.filterReviews(e.target.value, 'type'));
+
+    const sentimentFilter = document.getElementById('sentimentFilter');
+    if (sentimentFilter) sentimentFilter.addEventListener('change', (e) => this.filterReviews(e.target.value, 'sentiment'));
+
+    const mismatchFilter = document.getElementById('mismatchFilter');
+    if (mismatchFilter) mismatchFilter.addEventListener('change', (e) => this.filterReviews(e.target.value, 'mismatch'));
   },
 
   async generateNewQR() {
@@ -283,14 +303,37 @@ const DashboardManager = {
     link.click();
   },
 
-  filterReviews(type) {
+  filterReviews(value, filterType) {
     const cards = document.querySelectorAll('.review-card');
-    const map = { 'إيجابي': 'positive', 'نقد': 'warning', 'شكوى': 'negative' };
+
     cards.forEach((card) => {
-      if (!type) { card.style.display = 'block'; return; }
-      const badge = card.querySelector('.review-type');
-      const cls = badge ? badge.className.split(' ').find(c => c !== 'review-type') : '';
-      card.style.display = (map[type] === cls) ? 'block' : 'none';
+      let show = true;
+
+      // فلترة حسب النوع (type)
+      if (filterType === 'type' && value) {
+        const typeMap = { 'إيجابي': 'positive', 'نقد': 'warning', 'شكوى': 'negative' };
+        const badge = card.querySelector('.review-badge');
+        const currentTypeClass = badge ? badge.className.split(' ').find(c => c !== 'review-badge') : '';
+        show = show && (typeMap[value] === currentTypeClass);
+      }
+
+      // فلترة حسب المشاعر (sentiment)
+      if (filterType === 'sentiment' && value) {
+        const sentiment = card.getAttribute('data-sentiment');
+        show = show && (sentiment === value);
+      }
+
+      // فلترة حسب التطابق (mismatch)
+      if (filterType === 'mismatch' && value) {
+        const hasMismatch = card.getAttribute('data-mismatch') === 'true';
+        if (value === 'mismatch') {
+          show = show && hasMismatch;
+        } else if (value === 'valid') {
+          show = show && !hasMismatch;
+        }
+      }
+
+      card.style.display = show ? 'block' : 'none';
     });
   },
 
@@ -309,6 +352,24 @@ const DashboardManager = {
       case 'نقد': return 'نقد بناء';
       case 'شكوى': return 'شكوى';
       default: return 'محايد';
+    }
+  },
+
+  getSentimentClass(sentiment) {
+    switch (sentiment) {
+      case 'إيجابي': return 'positive';
+      case 'سلبي': return 'negative';
+      case 'محايد': return 'neutral';
+      default: return 'neutral';
+    }
+  },
+
+  getSentimentLabel(sentiment) {
+    switch (sentiment) {
+      case 'إيجابي': return 'تقييم إيجابي 🟢';
+      case 'سلبي': return 'تقييم سلبي 🔴';
+      case 'محايد': return 'تقييم متوسط 🟡';
+      default: return 'تقييم متوسط 🟡';
     }
   },
 

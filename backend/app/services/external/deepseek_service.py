@@ -26,35 +26,63 @@ class DeepSeekService(IDeepSeekService):
             logging.error(f"AI Model Query Error: {e}")
             return None
 
-    def organize_customer_feedback(self, enjoy_most, improve_product, additional_feedback):
+    def organize_customer_feedback(self, enjoy_most, improve_product, additional_feedback, shop_type="متجر عام"):
         enjoy_clean = SentimentService.clean_text(enjoy_most)
         improve_clean = SentimentService.clean_text(improve_product)
         additional_clean = SentimentService.clean_text(additional_feedback)
 
         prompt = f"""
-        أنت مساعد ذكي متخصص في تحليل آراء العملاء. قم بتلخيص وتنظيم الملاحظات التالية في نقاط واضحة باللغة العربية:
+        أنت محلل آراء عملاء متخصص في مجال {shop_type}. قم بتلخيص وتنظيم الملاحظات التالية في نقاط واضحة باللغة العربية مع مراعاة طبيعة النشاط التجاري:
 
-        1. ما أعجب العميل: {enjoy_clean if enjoy_clean else "لا يوجد"}
-        2. اقتراحات التحسين: {improve_clean if improve_clean else "لا يوجد"}
-        3. ملاحظات إضافية: {additional_clean if additional_clean else "لا يوجد"}
+        **ما أعجب العميل:** {enjoy_clean if enjoy_clean else "لم يذكر نقاط إيجابية محددة"}
+        **اقتراحات التحسين:** {improve_clean if improve_clean else "لم يقدم اقتراحات محددة"}
+        **ملاحظات إضافية:** {additional_clean if additional_clean else "لا توجد ملاحظات إضافية"}
 
-        الإجابة يجب أن تكون مهنية ومختصرة.
+        **تعليمات مهمة:**
+        - ركز على الجوانب المتعلقة بنشاط {shop_type}
+        - استخدم صيغة مهنية ومنظمة
+        - إذا كانت الملاحظات لا تتناسب مع نوع المتجر، أشر لذلك
+        - كن موجزاً ولكن شاملاً
+
+        الإجابة بتنسيق واضح ومنظم.
         """
         messages = [{"role": "user", "content": prompt}]
         result = self.query_deepseek(messages)
         return result if result else "تعذر تنظيم الملاحظات."
 
-    def generate_actionable_insights(self, text, improve_product, shop_type):
+    def generate_actionable_insights(self, text, improve_product, shop_type, stars=None):
+        # تحليل إضافي للسياق
+        context_analysis = ""
+        if stars is not None:
+            if stars <= 2:
+                context_analysis = "العميل منح نجوم قليلة جداً، مما يشير لمشكلة خطيرة تحتاج حل فوري."
+            elif stars == 3:
+                context_analysis = "العميل منح تقييماً متوسطاً، يمكن تحويله لإيجابي بتحسينات بسيطة."
+
         prompt = f"""
-        بصفتك مستشار أعمال خبير للمتاجر من نوع "{shop_type}"، قدم 3 نصائح عملية وقابلة للتنفيذ بناءً على شكوى/ملاحظات العميل التالية:
+        بصفتك مستشار أعمال خبير ومحلل آراء عملاء متخصص في مجال {shop_type}، قدم 3 نصائح عملية وقابلة للتنفيذ بناءً على الشكوى التالية:
 
-        التقييم: "{text}"
-        اقتراحات العميل: "{improve_product}"
+        **الشكوى الأساسية:** "{text}"
+        **اقتراحات العميل للتحسين:** "{improve_product or 'لم يقدم اقتراحات محددة'}"
+        **نوع النشاط:** {shop_type}
+        **تحليل السياق:** {context_analysis}
 
-        المطلوب: 3 خطوات عملية وسريعة لمعالجة المشكلة أو تحسين الخدمة.
+        **متطلبات النصائح:**
+        1. **عملية وقابلة للتنفيذ فوراً** - خطوات يمكن تطبيقها خلال أيام قليلة
+        2. **مرتبطة بنشاط {shop_type}** - تركز على الجوانب المتعلقة بنوع المتجر
+        3. **مرتبة حسب الأولوية** - الأكثر تأثيراً أولاً
+        4. **تشمل جدولة زمنية** - متى يجب تطبيق كل خطوة
+
+        **التنسيق المطلوب:**
+        ### 1. [عنوان واضح للخطوة]
+        - **الإجراء:** [وصف الخطوة بالتفصيل]
+        - **الهدف:** [ما سيحققه هذا الإجراء]
+        - **التنفيذ السريع:** [كيفية التطبيق في أقل من أسبوع]
+
+        (كرر للخطوات 2 و 3)
         """
         messages = [{"role": "user", "content": prompt}]
-        result = self.query_deepseek(messages)
+        result = self.query_deepseek(messages, max_tokens=800)  # زيادة max_tokens للنصائح الأطول
         return result if result else "لا توجد نصائح متاحة حالياً."
 
     def generate_suggested_reply(self, text, sentiment, shop_type, customer_name="العميل"):

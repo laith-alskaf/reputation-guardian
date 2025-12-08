@@ -25,7 +25,7 @@ class WebhookService(IWebhookService):
         cleaned_text = SentimentService.clean_text(dto.text)
         sentiment = SentimentService.analyze_sentiment(cleaned_text)
         toxicity = SentimentService.analyze_toxicity(cleaned_text)
-        review_type = SentimentService.classify_review(sentiment, toxicity)
+        review_type = SentimentService.classify_review(sentiment, toxicity, dto.stars, cleaned_text)
 
         # fallback للنجوم إذا النتيجة محايدة
         if sentiment == "محايد":
@@ -44,15 +44,20 @@ class WebhookService(IWebhookService):
         if quality_check['is_suspicious']:
             logging.warning(f"Suspicious review detected from {dto.email}: quality_score={quality_check['quality_score']}, flags={quality_check['flags']}")
 
+        # كشف عدم تطابق السياق
+        context_check = SentimentService.detect_context_mismatch(cleaned_text, shop_type)
+        if context_check['has_mismatch']:
+            logging.warning(f"Context mismatch detected from {dto.email}: {context_check['reasons']}")
+
         organized_feedback = self.deepseek_service.organize_customer_feedback(
-            dto.enjoy_most, dto.improve_product, dto.additional_feedback
+            dto.enjoy_most, dto.improve_product, dto.additional_feedback, shop_type
         )
 
         actionable_insights = ""
         suggested_reply = ""
         try:
             if overall_sentiment == "سلبي" or review_type in ['شكوى', 'نقد']:
-                actionable_insights = self.deepseek_service.generate_actionable_insights(dto.text, dto.improve_product, shop_type)
+                actionable_insights = self.deepseek_service.generate_actionable_insights(dto.text, dto.improve_product, shop_type, dto.stars)
 
             suggested_reply = self.deepseek_service.generate_suggested_reply(dto.text, overall_sentiment, shop_type)
         except Exception as e:
@@ -83,7 +88,8 @@ class WebhookService(IWebhookService):
                 "sentiment": sentiment,
                 "toxicity": toxicity,
                 "review_type": review_type,
-                "shop_type": shop_type
+                "shop_type": shop_type,
+                "context_check": context_check
             }
         }
 
