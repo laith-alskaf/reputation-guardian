@@ -1,6 +1,6 @@
 import requests
 import logging
-from app.config import HF_TOKEN
+from app.config import HF_TOKEN, HF_SENTIMENT_MODEL_URL
 from .sentiment_service import SentimentService
 from app.services_interfaces import IDeepSeekService
 import os
@@ -105,7 +105,7 @@ class DeepSeekService(IDeepSeekService):
         text_combined = f"{text} {improve_product} {additional_feedback}".strip()
 
         headers = {"Authorization": f"Bearer {HF_TOKEN}"}
-        url = "https://router.huggingface.co/models/CAMeL-Lab/bert-base-arabic-camelbert-da-sentiment"
+        url = HF_SENTIMENT_MODEL_URL
 
         try:
             response = requests.post(url, headers=headers, json={"inputs": text_combined})

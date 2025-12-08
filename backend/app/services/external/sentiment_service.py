@@ -2,7 +2,7 @@ import requests
 import re
 import unicodedata
 import logging
-from app.config import HF_TOKEN
+from app.config import HF_TOKEN, HF_SENTIMENT_MODEL_URL, HF_TOXICITY_MODEL_URL
 from app.services_interfaces import ISentimentService
 
 class SentimentService(ISentimentService):
@@ -22,7 +22,7 @@ class SentimentService(ISentimentService):
     @staticmethod
     def analyze_sentiment(text: str) -> str:
         headers = {"Authorization": f"Bearer {HF_TOKEN}"}
-        url = "https://router.huggingface.co/models/CAMeL-Lab/bert-base-arabic-camelbert-da-sentiment"
+        url = HF_SENTIMENT_MODEL_URL
         try:
             response = requests.post(url, headers=headers, json={"inputs": text})
             if response.status_code == 200:
@@ -46,7 +46,7 @@ class SentimentService(ISentimentService):
     def analyze_toxicity(text: str) -> str:
         headers = {"Authorization": f"Bearer {HF_TOKEN}"}
         # نستخدم الموديل متعدد اللغات لأن الموديل السابق (toxic-bert) لا يفهم العربية
-        url = "https://router.huggingface.co/models/MoritzLaurer/mDeBERTa-v3-base-mnli-xnli"
+        url = HF_TOXICITY_MODEL_URL
         
         # نحدد التصنيفات التي سيفهمها الموديل بالعربية
         toxic_label = "شتائم وكلام بذيء ومهين"
@@ -189,7 +189,7 @@ class SentimentService(ISentimentService):
         يكشف عن عدم تطابق المحتوى باستخدام مقارنة ذكية بين نوع المتجر وسياقات أخرى.
         """
         headers = {"Authorization": f"Bearer {HF_TOKEN}"}
-        url = "https://router.huggingface.co/models/MoritzLaurer/mDeBERTa-v3-base-mnli-xnli"
+        url = HF_TOXICITY_MODEL_URL
 
         # 1. تحسين القاموس ليشمل كلمات مفتاحية أكثر دقة
         shop_types_arabic = {

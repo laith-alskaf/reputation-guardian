@@ -14,6 +14,8 @@ API_URL = os.environ.get("API_URL")
 MODEL_ID = os.environ.get("MODEL_ID")
 # Hugging Face
 HF_TOKEN = os.environ.get('HF_TOKEN')
+HF_SENTIMENT_MODEL_URL = os.environ.get('HF_SENTIMENT_MODEL_URL')
+HF_TOXICITY_MODEL_URL = os.environ.get('HF_TOXICITY_MODEL_URL')
 
 # JWT
 SECRET_KEY = os.environ.get('SECRET_KEY')
