@@ -835,3 +835,189 @@ a {
     grid-template-columns: 1fr;
   }
 }
+
+/* ============================
+   Enhanced Review Cards
+   ============================ */
+
+.review-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 0;
+  margin-bottom: 2rem;
+  overflow: hidden;
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+}
+
+.review-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  border-color: var(--primary-light);
+}
+
+/* Header Section */
+.review-header {
+  padding: 1rem 1.5rem;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.review-meta {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.review-stars {
+  color: var(--warning);
+  font-size: 1.1rem;
+}
+
+.review-date {
+  font-size: 0.85rem;
+  color: var(--text-light);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.review-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.review-badge.positive { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+.review-badge.negative { background: rgba(239, 68, 68, 0.1); color: var(--error); }
+.review-badge.warning { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+.review-badge.neutral { background: rgba(148, 163, 184, 0.1); color: var(--text-secondary); }
+
+/* Body Section */
+.review-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Section Common Styles */
+.review-section {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  position: relative;
+}
+
+.review-section h4 {
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  padding-bottom: 0.5rem;
+}
+
+.review-section h4 i {
+  color: var(--primary);
+}
+
+/* Specific Section Styles */
+.customer-voice {
+  background: white;
+  border-right: 4px solid var(--text-secondary);
+}
+
+.ai-analysis {
+  background: #f8fafc;
+  border-right: 4px solid var(--info);
+}
+
+.ai-solutions {
+  background: #f0fdf4; /* Light Green */
+  border-right: 4px solid var(--success);
+  border-color: #dcfce7;
+}
+
+.ai-solutions h4 i { color: var(--success); }
+
+.ai-reply {
+  background: #eff6ff; /* Light Blue */
+  border-right: 4px solid var(--primary);
+  border-color: #dbeafe;
+}
+
+.ai-reply h4 i { color: var(--primary); }
+
+/* Markdown Content Styling */
+.markdown-content {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.8;
+}
+
+.markdown-content p {
+  margin-bottom: 0.75rem;
+}
+
+.markdown-content ul, .markdown-content ol {
+  margin-bottom: 0.75rem;
+  padding-right: 1.5rem;
+}
+
+.markdown-content li {
+  margin-bottom: 0.25rem;
+}
+
+.markdown-content strong {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.markdown-content h3 {
+  font-size: 1.1rem;
+  margin: 1rem 0 0.5rem;
+  color: var(--text-primary);
+}
+
+/* Actions */
+.review-actions {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-copy {
+  background: white;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: var(--transition);
+}
+
+.btn-copy:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.btn-copy.copied {
+  background: var(--success);
+  border-color: var(--success);
+  color: white;
+}

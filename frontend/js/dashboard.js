@@ -50,6 +50,27 @@ const DashboardManager = {
     this.updateRecentReviews(reviews);
     this.updateShopInfo(shopInfo);
     this.updateLastUpdated(lastUpdated);
+    this.updateQRSection(data);
+  },
+
+  updateQRSection(data) {
+    const container = document.getElementById('qrDisplay');
+    if (!container) return;
+
+    if (data.qr_code) {
+      this.displayGeneratedQR({ qr_code: data.qr_code });
+    } else {
+      // Show "Generate" state if no QR code exists
+      container.innerHTML = `
+        <div class="qr-placeholder">
+          <i class="fas fa-qrcode" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 1rem;"></i>
+          <p>لم يتم إنشاء رمز QR بعد</p>
+          <button class="btn btn-primary mt-3" onclick="DashboardManager.generateNewQR()">
+            <i class="fas fa-plus"></i> إنشاء رمز QR
+          </button>
+        </div>
+      `;
+    }
   },
 
   updateMetrics(m) {
@@ -83,42 +104,102 @@ const DashboardManager = {
 
     const cards = reviews.map((r) => {
       const text = r.text || r.original_fields?.text || '';
+      const improveProduct = r.original_fields?.improve_product || '';
       const type = r.review_type || r.technical_analysis?.review_type || 'محايد';
+      const sentiment = r.overall_sentiment || r.technical_analysis?.sentiment || 'محايد';
       const typeClass = this.getReviewTypeClass(type);
       const stars = '⭐'.repeat(r.stars || 0);
       const date = window.UI.Utils.formatDate(r.timestamp);
 
+      // Markdown parsing with DOMPurify sanitization
+      const parseMarkdown = (content) => {
+        if (!content) return '';
+        const rawHtml = marked.parse(content);
+        return DOMPurify.sanitize(rawHtml);
+      };
+
+      const safeText = DOMPurify.sanitize(text);
+      const safeImproveProduct = DOMPurify.sanitize(improveProduct);
+      const organizedFeedbackHtml = parseMarkdown(r.organized_feedback);
+      const solutionsHtml = parseMarkdown(r.solutions);
+      const suggestedReplyHtml = parseMarkdown(r.suggested_reply);
+
       return `
         <div class="review-card">
           <div class="review-header">
-            <div class="review-stars">${stars}</div>
-            <div class="review-date">${date}</div>
+            <div class="review-meta">
+              <div class="review-stars" title="${r.stars} نجوم">${stars}</div>
+              <span class="review-badge ${typeClass}">${this.getReviewTypeLabel(type)}</span>
+            </div>
+            <div class="review-date">
+              <i class="far fa-clock"></i> ${date}
+            </div>
           </div>
-          <div class="review-text">${window.UI.Utils.truncate(text, 160)}</div>
-          <div class="review-type ${typeClass}">${this.getReviewTypeLabel(type)}</div>
+          
+          <div class="review-body">
+            <!-- Customer Voice -->
+            <div class="review-section customer-voice">
+              <h4><i class="fas fa-user"></i> صوت العميل</h4>
+              <div class="original-text">${safeText}</div>
+              ${safeImproveProduct ? `<p class="mt-2"><small><strong>اقتراح تحسين:</strong> ${safeImproveProduct}</small></p>` : ''}
+            </div>
 
-          ${r.solutions ? `
-          <div class="review-solution mt-3">
-            <strong>الحل المقترح:</strong>
-            <p>${window.UI.Utils.truncate(r.solutions, 300)}</p>
-          </div>` : ''}
+            <!-- Organized Feedback (AI) -->
+            ${organizedFeedbackHtml ? `
+            <div class="review-section ai-analysis">
+              <h4><i class="fas fa-robot"></i> تحليل الذكاء الاصطناعي</h4>
+              <div class="markdown-content">${organizedFeedbackHtml}</div>
+            </div>` : ''}
 
-          ${r.suggested_reply ? `
-          <div class="review-solution mt-3">
-            <strong>الرد المقترح:</strong>
-            <p>${window.UI.Utils.truncate(r.suggested_reply, 300)}</p>
-          </div>` : ''}
+            <!-- Solutions (AI) -->
+            ${solutionsHtml ? `
+            <div class="review-section ai-solutions">
+              <h4><i class="fas fa-lightbulb"></i> مقترحات وحلول عملية</h4>
+              <div class="markdown-content">${solutionsHtml}</div>
+            </div>` : ''}
 
-          ${r.organized_feedback ? `
-          <div class="review-solution mt-3">
-            <strong>ملخص آراء العميل:</strong>
-            <p>${r.organized_feedback}</p>
-          </div>` : ''}
+            <!-- Suggested Reply (AI) -->
+            ${suggestedReplyHtml ? `
+            <div class="review-section ai-reply">
+              <h4><i class="fas fa-reply"></i> الرد المقترح</h4>
+              <div class="markdown-content" id="reply-${r._id}">${suggestedReplyHtml}</div>
+              <div class="review-actions">
+                <button class="btn-copy" onclick="DashboardManager.copyReply('reply-${r._id}', this)">
+                  <i class="far fa-copy"></i> نسخ الرد
+                </button>
+              </div>
+            </div>` : ''}
+          </div>
         </div>
       `;
     }).join('');
 
     container.innerHTML = cards;
+  },
+
+  copyReply(elementId, btn) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    
+    // Create a temporary textarea to copy the text content (stripped of HTML tags for clean pasting)
+    // Or copy HTML if needed? Usually text is better for pasting into input fields.
+    // However, the suggested reply is Markdown rendered to HTML.
+    // The user might want the raw text or the formatted text.
+    // Let's copy the text content.
+    
+    const textToCopy = el.innerText;
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-check"></i> تم النسخ';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.classList.remove('copied');
+      }, 2000);
+    }).catch(err => {
+      console.error('Failed to copy:', err);
+      window.UI.Toast.show('فشل النسخ', 'error');
+    });
   },
 
   updateShopInfo(info) {
