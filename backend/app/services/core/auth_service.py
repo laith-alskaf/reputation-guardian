@@ -20,7 +20,7 @@ class AuthService(IAuthService):
             "shop_type": shop_type,
             "exp": datetime.datetime.now(timezone.utc) + datetime.timedelta(days=30)
         }, SECRET_KEY, algorithm="HS256")
-        return {"token": token, "shop_id": shop_id, "shop_type": shop_type}
+        return {"token": token, "shop_id": shop_id, "shop_type": shop_type ,"shop_name":shop_name}
 
     def login(self, email, password):
         user = self.user_model.find_by_email(email)
@@ -32,6 +32,6 @@ class AuthService(IAuthService):
             "shop_type": user.get("shop_type", ""),
             "exp": datetime.datetime.now(timezone.utc) + datetime.timedelta(days=30)
         }, SECRET_KEY, algorithm="HS256")
-        return {"token": token, "shop_id": str(user["_id"]), "shop_type": user.get("shop_type", "")}
+        return {"token": token, "shop_id": str(user["_id"]), "shop_type": user.get("shop_type", ""),"shop_name":user.get("shop_name", "")}
     
     
