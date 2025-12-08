@@ -3,408 +3,283 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="نظام حارس السمعة - نظام ذكي لإدارة تقييمات العملاء باستخدام الذكاء الاصطناعي. احصل على تقييمات صادقة ومفيدة مع تحليلات شاملة وإشعارات فورية.">
-  <meta name="keywords" content="إدارة التقييمات, ذكاء اصطناعي, تقييمات العملاء, QR codes, تحليل المشاعر, إدارة السمعة">
-  <meta name="author" content="حارس السمعة">
-  <meta name="robots" content="index, follow">
-
-  <!-- Open Graph / Facebook -->
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="حارس السمعة - نظام إدارة تقييمات العملاء">
-  <meta property="og:description" content="نظام ذكي لإدارة تقييمات العملاء باستخدام الذكاء الاصطناعي">
-  <meta property="og:image" content="https://reputation-guardian.vercel.app/images/og-image.png">
-
-  <!-- Twitter -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="حارس السمعة - نظام إدارة تقييمات العملاء">
-  <meta name="twitter:description" content="نظام ذكي لإدارة تقييمات العملاء باستخدام الذكاء الاصطناعي">
-
-  <link rel="canonical" href="https://reputation-guardian.vercel.app">
-  <link rel="icon" type="image/x-icon" href="/favicon.ico">
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-  <link rel="manifest" href="manifest.json">
-
-  <title>حارس السمعة - نظام إدارة تقييمات العملاء</title>
-
+  <title>حارس السمعة | نظام إدارة تقييمات العملاء الذكي</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Styles -->
   <link rel="stylesheet" href="css/style.css">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
+  <meta name="description" content="نظام حارس السمعة - عزز أعمالك باستخدام الذكاء الاصطناعي لإدارة تقييمات العملاء وتحسين السمعة الرقمية.">
   <meta name="theme-color" content="#2563eb">
 </head>
 <body>
-  <div class="container">
-    <!-- Navigation -->
-    <nav class="navbar">
+
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
       <div class="nav-brand">
-        <i class="fas fa-shield-alt"></i>
+        <i class="fas fa-shield-halved"></i>
         <span>حارس السمعة</span>
       </div>
 
-      <!-- روابط الضيف -->
+      <!-- Desktop Menu -->
       <div class="nav-links" id="navLinks">
         <a href="#home" class="nav-link active">الرئيسية</a>
         <a href="#features" class="nav-link">المميزات</a>
-        <a href="#contact" class="nav-link">اتصل بنا</a>
-        <button class="btn btn-primary" onclick="showLoginModal()">تسجيل الدخول</button>
-        <button class="btn btn-outline" onclick="showRegisterModal()">إنشاء حساب</button>
+        <a href="#contact" class="nav-link">تواصل معنا</a>
+        <div style="width: 1px; height: 24px; background: var(--border); margin: 0 0.5rem;"></div>
+        <button class="btn btn-outline" onclick="showLoginModal()">تسجيل الدخول</button>
+        <button class="btn btn-primary" onclick="showRegisterModal()">ابدأ الآن</button>
       </div>
 
-      <!-- روابط المستخدم -->
-      <div class="user-info" id="userInfo" style="display:none;">
-        <span id="userName"></span>
+      <!-- User Info (Hidden by default, shown when logged in) -->
+      <div class="user-info" id="userInfo" style="display:none; align-items: center; gap: 1rem;">
+        <span id="userName" style="font-weight: 600; color: var(--primary);"></span>
         <button class="btn btn-primary btn-sm" onclick="window.location.href='dashboard.html'">لوحة التحكم</button>
         <button class="btn btn-outline btn-sm" onclick="AuthManager.logout()">خروج</button>
       </div>
 
-      <!-- Hamburger Menu -->
+      <!-- Mobile Toggle -->
       <div class="hamburger" id="hamburger" onclick="toggleMobileMenu()">
         <span></span>
         <span></span>
         <span></span>
       </div>
-    </nav>
-
-    <!-- Mobile Menu -->
-    <div class="mobile-menu" id="mobileMenu">
-      <a href="#home" class="nav-link" onclick="closeMobileMenu()">الرئيسية</a>
-      <a href="#features" class="nav-link" onclick="closeMobileMenu()">المميزات</a>
-      <a href="#contact" class="nav-link" onclick="closeMobileMenu()">اتصل بنا</a>
-      <button class="btn btn-primary btn-block" onclick="showLoginModal(); closeMobileMenu()">تسجيل الدخول</button>
-      <button class="btn btn-outline btn-block" onclick="showRegisterModal(); closeMobileMenu()">إنشاء حساب</button>
     </div>
+  </nav>
 
-    <!-- Hero -->
-    <section id="home" class="hero">
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#home" class="nav-link" onclick="closeMobileMenu()">الرئيسية</a>
+    <a href="#features" class="nav-link" onclick="closeMobileMenu()">المميزات</a>
+    <a href="#contact" class="nav-link" onclick="closeMobileMenu()">تواصل معنا</a>
+    <div style="padding: 1rem;">
+      <button class="btn btn-outline btn-block mb-3" onclick="showLoginModal(); closeMobileMenu()">تسجيل الدخول</button>
+      <button class="btn btn-primary btn-block" onclick="showRegisterModal(); closeMobileMenu()">ابدأ الآن مجاناً</button>
+    </div>
+  </div>
+
+  <!-- Hero Section -->
+  <section id="home" class="hero">
+    <div class="container">
       <div class="hero-content">
-        <h1 class="hero-title">
-          <i class="fas fa-star"></i>
-          نظام ذكي لإدارة تقييمات عملائك
-        </h1>
+        <h1>حول تقييمات عملائك إلى<br>قصص نجاح حقيقية</h1>
         <p class="hero-subtitle">
-          احصل على تقييمات صادقة ومفيدة من عملائك باستخدام تقنيات الذكاء الاصطناعي المتطورة
+          نظام ذكي متكامل مدعوم بالذكاء الاصطناعي لإدارة سمعتك الرقمية، تحليل آراء العملاء، وزيادة المبيعات من خلال الثقة.
         </p>
         <div class="hero-buttons">
           <button class="btn btn-primary btn-lg" onclick="showRegisterModal()">
-            <i class="fas fa-rocket"></i> ابدأ الآن مجاناً
+            <i class="fas fa-rocket"></i> جرب مجاناً
           </button>
-          <button class="btn btn-outline btn-lg" onclick="scrollToFeatures()">
-            <i class="fas fa-info-circle"></i> اعرف المزيد
+          <button class="btn btn-outline btn-lg" onclick="document.getElementById('features').scrollIntoView()">
+            <i class="fas fa-play-circle"></i> كيف يعمل؟
           </button>
         </div>
       </div>
 
       <div class="hero-image">
         <div class="hero-placeholder">
-          <i class="fas fa-chart-line"></i>
-          <p>لوحة تحكم تفاعلية</p>
+          <i class="fas fa-chart-pie" style="font-size: 5rem; color: var(--primary); margin-bottom: 1rem;"></i>
+          <h3>لوحة تحكم تفاعلية</h3>
+          <p>تحليلات فورية ودقيقة لأداء أعمالك</p>
+          <div style="margin-top: 1.5rem; display: flex; gap: 1rem; justify-content: center;">
+            <div style="height: 8px; width: 60px; background: var(--border); border-radius: 4px;"></div>
+            <div style="height: 8px; width: 30px; background: var(--success); border-radius: 4px;"></div>
+          </div>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- Features -->
-    <section id="features" class="features">
+  <!-- Features Section -->
+  <section id="features" class="features">
+    <div class="container">
       <div class="section-header">
         <h2>لماذا تختار حارس السمعة؟</h2>
-        <p>نظام شامل يجمع بين سهولة الاستخدام والتقنيات المتطورة</p>
+        <p>مجموعة متكاملة من الأدوات المصممة خصيصاً لنمو أعمالك</p>
       </div>
 
       <div class="features-grid">
         <div class="feature-card">
           <div class="feature-icon"><i class="fas fa-qrcode"></i></div>
           <h3>رموز QR ذكية</h3>
-          <p>أنشئ رموز QR مخصصة ترتبط مباشرة بنموذج التقييم الخاص بمتجرك</p>
+          <p>شجع عملاءك على التقييم بسهولة تامة عبر مسح رمز QR مخصص لمتجرك.</p>
         </div>
 
         <div class="feature-card">
           <div class="feature-icon"><i class="fas fa-brain"></i></div>
-          <h3>ذكاء اصطناعي متطور</h3>
-          <p>DeepSeek AI يحلل التقييمات ويولد حلول مخصصة لتحسين أعمالك</p>
+          <h3>تحليل بالذكاء الاصطناعي</h3>
+          <p>افهم مشاعر عملائك بدقة. يقوم نظامنا بتحليل النصوص واكتشاف المشاكل تلقائياً.</p>
         </div>
 
         <div class="feature-card">
-          <div class="feature-icon"><i class="fas fa-chart-bar"></i></div>
-          <h3>تحليلات شاملة</h3>
-          <p>احصل على إحصائيات مفصلة وتحليلات زمنية لأداء متجرك</p>
+          <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+          <h3>تقارير تفصيلية</h3>
+          <p>راقب أداء فروعك وموظفيك من خلال لوحة تحكم شاملة وسهلة القراءة.</p>
         </div>
 
         <div class="feature-card">
           <div class="feature-icon"><i class="fas fa-bell"></i></div>
-          <h3>إشعارات فورية</h3>
-          <p>إشعارات فورية لكل تقييم جديد مع الحلول المقترحة</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon"><i class="fas fa-language"></i></div>
-          <h3>دعم العربية</h3>
-          <p>نظام يفهم اللهجات العربية ويتعامل معها</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
-          <h3>أمان وحماية</h3>
-          <p>تشفير متقدم ومعايير أمان عالية</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Contact -->
-    <section id="contact" class="contact">
-      <div class="container">
-        <div class="section-header">
-          <h2>تواصل معنا</h2>
-          <p>نحن هنا لمساعدتك في تطوير أعمالك وتحسين تجربتك مع عملائك</p>
-        </div>
-
-        <div class="contact-grid">
-          <!-- Contact Info Cards -->
-          <div class="contact-info-cards">
-            <div class="info-card">
-              <div class="card-icon">
-                <i class="fas fa-envelope"></i>
-              </div>
-              <div class="card-content">
-                <h3>البريد الإلكتروني</h3>
-                <p>Laithalskaf@gmail.com</p>
-                <a href="mailto:laithalskaf@gmail.com" class="card-link">
-                  <i class="fas fa-external-link-alt"></i> أرسل بريد إلكتروني
-                </a>
-              </div>
-            </div>
-
-            <div class="info-card">
-              <div class="card-icon">
-                <i class="fas fa-globe"></i>
-              </div>
-              <div class="card-content">
-                <h3>الموقع الإلكتروني</h3>
-                <p>Portfolio</p>
-                <a href="https://laith-alskaf.github.io/portfolio/" target="_blank" class="card-link">
-                  <i class="fas fa-external-link-alt"></i> زور الموقع
-                </a>
-              </div>
-            </div>
-
-            <div class="info-card">
-              <div class="card-icon">
-                <i class="fas fa-phone"></i>
-              </div>
-              <div class="card-content">
-                <h3>الهاتف</h3>
-                <p>+963 982 055 788</p>
-                <a href="tel:+963982055788" class="card-link">
-                  <i class="fas fa-phone"></i> اتصل الآن
-                </a>
-              </div>
-            </div>
-
-            <div class="info-card">
-              <div class="card-icon">
-                <i class="fab fa-whatsapp"></i>
-              </div>
-              <div class="card-content">
-                <h3>واتساب</h3>
-                <p>دردشة فورية</p>
-                <a href="https://wa.me/963982055788" target="_blank" class="card-link whatsapp">
-                  <i class="fab fa-whatsapp"></i> واتساب
-                </a>
-              </div>
-            </div>
-          </div>
-
-          <!-- Contact Form -->
-          <div class="contact-form-container">
-            <div class="form-header">
-              <h3><i class="fas fa-paper-plane"></i> أرسل لنا رسالة</h3>
-              <p>نحن نقدر تواصلك ونسعد بمساعدتك</p>
-            </div>
-
-            <form id="contactForm" class="contact-form">
-              <div class="form-group">
-                <label for="contactName">
-                  <i class="fas fa-user"></i> الاسم الكامل
-                </label>
-                <input type="text" id="contactName" name="name" required placeholder="أدخل اسمك الكامل">
-              </div>
-
-              <div class="form-group">
-                <label for="contactEmail">
-                  <i class="fas fa-envelope"></i> البريد الإلكتروني
-                </label>
-                <input type="email" id="contactEmail" name="email" required placeholder="name@example.com">
-              </div>
-
-              <div class="form-group">
-                <label for="contactSubject">
-                  <i class="fas fa-tag"></i> الموضوع
-                </label>
-                <input type="text" id="contactSubject" name="subject" required placeholder="ما هو موضوع رسالتك؟">
-              </div>
-
-              <div class="form-group">
-                <label for="contactMessage">
-                  <i class="fas fa-comment"></i> الرسالة
-                </label>
-                <textarea id="contactMessage" name="message" required rows="5" placeholder="اكتب رسالتك هنا... سنكون سعيدين بالرد عليك"></textarea>
-              </div>
-
-              <button type="submit" id="contactSubmitBtn" class="btn btn-primary btn-block">
-                <i class="fas fa-paper-plane"></i>
-                <span>إرسال الرسالة</span>
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-      <div class="container">
-
-        <!-- Main Footer Content -->
-        <div class="footer-main">
-          <div class="footer-content">
-            <!-- Brand Section -->
-            <div class="footer-section brand-section">
-              <div class="brand-header">
-                <div class="brand-logo">
-                  <i class="fas fa-shield-alt"></i>
-                </div>
-                <div class="brand-info">
-                  <h3>حارس السمعة</h3>
-                  <p>نظام ذكي لإدارة تقييمات العملاء</p>
-                </div>
-              </div>
-              <p class="brand-tagline">نحن نساعد أصحاب الأعمال في بناء سمعة قوية من خلال تقييمات عملائهم</p>
-            </div>
-
-            <!-- Quick Links -->
-            <div class="footer-section links-section">
-              <h4><i class="fas fa-link"></i> روابط سريعة</h4>
-              <ul class="footer-nav">
-                <li><a href="#home"><i class="fas fa-home"></i> الرئيسية</a></li>
-                <li><a href="#features"><i class="fas fa-star"></i> المميزات</a></li>
-                <li><a href="#contact"><i class="fas fa-envelope"></i> اتصل بنا</a></li>
-                <li><a href="#" onclick="showLoginModal()"><i class="fas fa-sign-in-alt"></i> تسجيل الدخول</a></li>
-                <li><a href="#" onclick="showRegisterModal()"><i class="fas fa-user-plus"></i> إنشاء حساب</a></li>
-                <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> لوحة التحكم</a></li>
-              </ul>
-            </div>
-
-            <!-- Developer Section -->
-            <div class="footer-section developer-section">
-              <h4><i class="fas fa-code"></i> المطور</h4>
-              <div class="developer-card">
-                <div class="developer-avatar">
-                  <i class="fas fa-user-tie"></i>
-                </div>
-                <div class="developer-info">
-                  <h5>المهندس ليث السكاف</h5>
-                  <p>مطور ومصمم التطبيق</p>
-                  <div class="developer-contact">
-                    <a href="tel:+963982055788" class="contact-btn phone">
-                      <i class="fas fa-phone"></i> +963 982 055 788
-                    </a>
-                    <a href="https://wa.me/963982055788" target="_blank" class="contact-btn whatsapp">
-                      <i class="fab fa-whatsapp"></i> واتساب
-                    </a>
-                    <a href="mailto:laithalskaf@gmail.com" class="contact-btn email">
-                      <i class="fas fa-envelope"></i> البريد
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Social Section -->
-            <div class="footer-section social-section">
-              <h4><i class="fas fa-share-alt"></i> تابعنا</h4>
-              <p>تابع آخر الأخبار والتحديثات</p>
-              <div class="social-grid">
-                <a href="https://github.com/laith-alskaf/reputation-guardian" target="_blank" class="social-link github">
-                  <i class="fab fa-github"></i>
-                  <span>GitHub</span>
-                </a>
-                <a href="https://wa.me/963982055788" target="_blank" class="social-link whatsapp">
-                  <i class="fab fa-whatsapp"></i>
-                  <span>واتساب</span>
-                </a>
-                <a href="https://www.linkedin.com/in/laith-alskaf" target="_blank" class="social-link linkedin">
-                  <i class="fab fa-linkedin"></i>
-                  <span>LinkedIn</span>
-                </a>
-                <a href="https://twitter.com/laith_alskaf" target="_blank" class="social-link twitter">
-                  <i class="fab fa-twitter"></i>
-                  <span>Twitter</span>
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Footer Bottom -->
-        <div class="footer-bottom">
-          <div class="footer-copyright">
-            <p>&copy; 2025 <strong>حارس السمعة</strong>. جميع الحقوق محفوظة.</p>
-            <p>تم التطوير بـ <i class="fas fa-heart text-red"></i> من قبل <strong>المهندس ليث السكاف</strong></p>
-          </div>
-
-          <div class="footer-bottom-links">
-            <a href="#"><i class="fas fa-shield-alt"></i> سياسة الخصوصية</a>
-            <a href="#"><i class="fas fa-file-contract"></i> الشروط والأحكام</a>
-            <a href="#contact"><i class="fas fa-envelope"></i> اتصل بنا</a>
-          </div>
-        </div>
-      </div>
-    </footer>
-
-    <!-- Login Modal -->
-    <div id="loginModal" class="modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>تسجيل الدخول</h3>
-          <span class="modal-close" onclick="closeModal('loginModal')">&times;</span>
-        </div>
-        <form id="loginForm" class="auth-form">
-          <div class="form-group">
-            <label for="loginEmail">البريد الإلكتروني</label>
-            <input type="email" id="loginEmail" name="email" required placeholder="name@example.com">
-          </div>
-          <div class="form-group">
-            <label for="loginPassword">كلمة المرور</label>
-            <input type="password" id="loginPassword" name="password" required placeholder="••••••••">
-          </div>
-          <button type="submit" id="loginSubmitBtn" class="btn btn-primary btn-block">
-            <i class="fas fa-sign-in-alt"></i> دخول
-          </button>
-        </form>
-        <div class="modal-footer">
-          <p>ليس لديك حساب؟ <a href="#" onclick="switchToRegister()">إنشاء حساب جديد</a></p>
+          <h3>تنبيهات فورية</h3>
+          <p>استلم إشعارات فورية عند وجود تقييم سلبي لتتمكن من حله قبل تفاقمه.</p>
         </div>
       </div>
     </div>
+  </section>
 
-    <!-- Register Modal -->
-    <div id="registerModal" class="modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>إنشاء حساب جديد</h3>
-          <span class="modal-close" onclick="closeModal('registerModal')">&times;</span>
+  <!-- Contact Section -->
+  <section id="contact" class="contact">
+    <div class="container">
+      <div class="contact-grid">
+        <div class="contact-info-cards">
+          <div>
+            <h2>تواصل معنا</h2>
+            <p style="color: rgba(255,255,255,0.8);">نحن هنا لمساعدتك في أي وقت. لا تتردد في طرح استفساراتك.</p>
+          </div>
+          
+          <div class="info-card">
+            <i class="fas fa-envelope"></i>
+            <div>
+              <h3>البريد الإلكتروني</h3>
+              <p style="color: rgba(255,255,255,0.8);">Laithalskaf@gmail.com</p>
+            </div>
+          </div>
+          
+          <div class="info-card">
+            <i class="fas fa-phone"></i>
+            <div>
+              <h3>الهاتف</h3>
+              <p style="color: rgba(255,255,255,0.8);">+963 982 055 788</p>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <i class="fab fa-whatsapp"></i>
+            <div>
+              <h3>واتساب</h3>
+              <a href="https://wa.me/963982055788" target="_blank" style="color: white; text-decoration: underline;">ابدأ المحادثة</a>
+            </div>
+          </div>
         </div>
-        <form id="registerForm" class="auth-form">
-          <div class="form-group">
-            <label for="registerEmail">البريد الإلكتروني</label>
-            <input type="email" id="registerEmail" name="email" required placeholder="name@example.com">
+
+        <div class="contact-form-container">
+          <form id="contactForm">
+            <div class="form-group">
+              <label>الاسم الكامل</label>
+              <input type="text" placeholder="أدخل اسمك هنا">
+            </div>
+            <div class="form-group">
+              <label>البريد الإلكتروني</label>
+              <input type="email" placeholder="example@email.com">
+            </div>
+            <div class="form-group">
+              <label>الرسالة</label>
+              <textarea rows="4" placeholder="كيف يمكننا مساعدتك؟"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">إرسال الرسالة</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-main">
+        <div>
+          <div class="nav-brand" style="margin-bottom: 1rem; color: white;">
+            <i class="fas fa-shield-halved"></i>
+            <span>حارس السمعة</span>
           </div>
-          <div class="form-group">
-            <label for="registerPassword">كلمة المرور</label>
-            <input type="password" id="registerPassword" name="password" required minlength="6" placeholder="على الأقل 6 أحرف">
+          <p style="color: var(--text-light); max-width: 300px;">
+            الشريك الأمثل لإدارة وتطوير سمعة علامتك التجارية باستخدام أحدث تقنيات الذكاء الاصطناعي.
+          </p>
+        </div>
+
+        <div>
+          <h4>روابط سريعة</h4>
+          <ul class="footer-nav">
+            <li><a href="#home">الرئيسية</a></li>
+            <li><a href="#features">المميزات</a></li>
+            <li><a href="#contact">اتصل بنا</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4>قانوني</h4>
+          <ul class="footer-nav">
+            <li><a href="#">سياسة الخصوصية</a></li>
+            <li><a href="#">شروط الاستخدام</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4>تابعنا</h4>
+          <div class="social-links">
+            <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+            <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+            <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
           </div>
-          <div class="form-group">
-            <label for="shopName">اسم المتجر</label>
-            <input type="text" id="shopName" name="shop_name" required placeholder="مثال: عمار للإلكترونيات">
-          </div>
-          <div class="form-group">
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2025 حارس السمعة. جميع الحقوق محفوظة.</p>
+        <p>تم التطوير بواسطة <a href="#" style="color: white; font-weight: bold;">المهندس ليث السكاف</a></p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Auth Modals -->
+  <div id="loginModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>تسجيل الدخول</h3>
+        <span class="modal-close" onclick="closeModal('loginModal')">&times;</span>
+      </div>
+      <form id="loginForm" class="auth-form">
+        <div class="form-group">
+          <label>البريد الإلكتروني</label>
+          <input type="email" id="loginEmail" name="email" required>
+        </div>
+        <div class="form-group">
+          <label>كلمة المرور</label>
+          <input type="password" id="loginPassword" name="password" required>
+        </div>
+        <button type="submit" id="loginSubmitBtn" class="btn btn-primary btn-block">دخول</button>
+      </form>
+      <div style="margin-top: 1rem; text-align: center;">
+        <p>ليس لديك حساب؟ <a href="#" onclick="switchToRegister()" style="color: var(--primary);">إنشاء حساب جديد</a></p>
+      </div>
+    </div>
+  </div>
+
+  <div id="registerModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>إنشاء حساب جديد</h3>
+        <span class="modal-close" onclick="closeModal('registerModal')">&times;</span>
+      </div>
+      <form id="registerForm" class="auth-form">
+        <div class="form-group">
+          <label>البريد الإلكتروني</label>
+          <input type="email" id="registerEmail" name="email" required>
+        </div>
+        <div class="form-group">
+          <label>كلمة المرور</label>
+          <input type="password" id="registerPassword" name="password" required>
+        </div>
+        <div class="form-group">
+          <label>اسم المتجر</label>
+          <input type="text" id="shopName" name="shop_name" required>
+        </div>
+        <div class="form-group">
             <label for="shopType">نوع المتجر</label>
             <select id="shopType" name="shop_type" required>
               <option value="">اختر نوع المتجر</option>
@@ -429,28 +304,23 @@
               <option value="محل أثاث">محل أثاث</option>
               <option value="آخر">آخر</option>
             </select>
-          </div>
-
-          <button type="submit" id="registerSubmitBtn" class="btn btn-primary btn-block">
-            <i class="fas fa-user-plus"></i> إنشاء الحساب
-          </button>
-        </form>
-        <div class="modal-footer">
-          <p>لديك حساب بالفعل؟ <a href="#" onclick="switchToLogin()">تسجيل الدخول</a></p>
         </div>
-      </div>
-    </div>
-
-    <!-- Toast -->
-    <div id="messageToast" class="toast">
-      <div class="toast-content">
-        <i class="fas fa-check-circle"></i>
-        <span id="messageText"></span>
+        <button type="submit" id="registerSubmitBtn" class="btn btn-primary btn-block">إنشاء الحساب</button>
+      </form>
+      <div style="margin-top: 1rem; text-align: center;">
+        <p>لديك حساب بالفعل؟ <a href="#" onclick="switchToLogin()" style="color: var(--primary);">تسجيل الدخول</a></p>
       </div>
     </div>
   </div>
 
-  <!-- Scripts -->
+  <!-- Toast Notification -->
+  <div id="messageToast" class="toast">
+    <div class="toast-content">
+      <i class="fas fa-check-circle"></i>
+      <span id="messageText"></span>
+    </div>
+  </div>
+
   <script src="js/config.js"></script>
   <script src="js/api.js"></script>
   <script src="js/ui.js"></script>
