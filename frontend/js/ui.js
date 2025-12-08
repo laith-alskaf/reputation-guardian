@@ -26,24 +26,52 @@ const ToastManager = {
     const toast = document.getElementById('messageToast');
     const text = document.getElementById('messageText');
     const icon = toast.querySelector('i');
-    text.textContent = message;
 
+    // Clear existing progress bar
+    const existingProgress = toast.querySelector('.toast-progress');
+    if (existingProgress) existingProgress.remove();
+
+    text.textContent = message;
     toast.className = 'toast';
+
     if (type === 'error') {
       toast.classList.add('error');
       icon.className = 'fas fa-exclamation-triangle';
     } else if (type === 'warning') {
+      toast.classList.add('warning');
       icon.className = 'fas fa-exclamation-circle';
     } else {
+      toast.classList.add('success');
       icon.className = 'fas fa-check-circle';
     }
 
+    // Add progress bar
+    const progressBar = document.createElement('div');
+    progressBar.className = 'toast-progress';
+    toast.appendChild(progressBar);
+
+    // Show toast with animation
     toast.classList.add('show');
+
+    // Auto hide after duration
     setTimeout(() => this.hide(), duration);
+
+    // Allow manual close on click
+    toast.addEventListener('click', () => this.hide());
   },
   hide() {
     const toast = document.getElementById('messageToast');
-    toast.classList.remove('show');
+    if (!toast.classList.contains('show')) return;
+
+    // Add hide animation
+    toast.classList.add('hide');
+
+    // Remove from DOM after animation
+    setTimeout(() => {
+      toast.classList.remove('show', 'hide');
+      const progressBar = toast.querySelector('.toast-progress');
+      if (progressBar) progressBar.remove();
+    }, 400); // Match CSS transition duration
   }
 };
 
