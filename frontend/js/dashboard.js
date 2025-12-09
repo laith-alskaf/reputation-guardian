@@ -146,11 +146,12 @@ const DashboardManager = {
       const suggestedReplyHtml = parseMarkdown(r.suggested_reply);
 
       return `
-        <div class="review-card ${sentimentClass} ${mismatchClass} animate-float-up"
+        <div class="review-card ${sentimentClass} ${mismatchClass} animate-float-up collapsed"
              data-sentiment="${sentiment}"
              data-type="${type}"
              data-stars="${r.stars || 0}"
-             data-mismatch="${!contextMatch}">
+             data-mismatch="${!contextMatch}"
+             onclick="DashboardManager.toggleReviewCard(this)">
 
           <div class="review-header">
             <div class="review-meta">
@@ -162,6 +163,7 @@ const DashboardManager = {
             </div>
             <div class="review-date">
               <i class="far fa-clock"></i> ${date}
+              <i class="fas fa-chevron-down card-arrow"></i>
             </div>
           </div>
 
@@ -171,92 +173,65 @@ const DashboardManager = {
             <span>هذا التقييم قد يكون عن متجر آخر أو خطأ في التصنيف</span>
           </div>` : ''}
 
-          <!-- Review Control Buttons -->
-          <div class="review-controls">
-            <button class="control-btn active" data-section="customer-voice" onclick="DashboardManager.toggleReviewSection(this)">
-              <i class="fas fa-user"></i> عرض التفاصيل الأصلية
-              <i class="fas fa-chevron-down arrow-icon"></i>
-            </button>
-            ${organizedFeedbackHtml ? `
-            <button class="control-btn" data-section="ai-analysis" onclick="DashboardManager.toggleReviewSection(this)">
-              <i class="fas fa-robot"></i> عرض تحليل الذكاء الاصطناعي
-              <i class="fas fa-chevron-down arrow-icon"></i>
-            </button>` : ''}
-            ${solutionsHtml ? `
-            <button class="control-btn" data-section="ai-solutions" onclick="DashboardManager.toggleReviewSection(this)">
-              <i class="fas fa-lightbulb"></i> عرض المقترحات
-              <i class="fas fa-chevron-down arrow-icon"></i>
-            </button>` : ''}
-            ${suggestedReplyHtml ? `
-            <button class="control-btn" data-section="ai-reply" onclick="DashboardManager.toggleReviewSection(this)">
-              <i class="fas fa-reply"></i> عرض الرد المقترح
-              <i class="fas fa-chevron-down arrow-icon"></i>
-            </button>` : ''}
-          </div>
+          <div class="review-expanded">
+            <!-- Content Switcher Buttons -->
+            <div class="content-switcher">
+              <button class="switcher-btn active" data-content="original" onclick="DashboardManager.switchReviewContent(this, event)">
+                <i class="fas fa-user"></i> التفاصيل الأصلية
+              </button>
+              ${organizedFeedbackHtml ? `
+              <button class="switcher-btn" data-content="ai-analysis" onclick="DashboardManager.switchReviewContent(this, event)">
+                <i class="fas fa-robot"></i> تحليل الذكاء الاصطناعي
+              </button>` : ''}
+              ${solutionsHtml ? `
+              <button class="switcher-btn" data-content="solutions" onclick="DashboardManager.switchReviewContent(this, event)">
+                <i class="fas fa-lightbulb"></i> المقترحات
+              </button>` : ''}
+              ${suggestedReplyHtml ? `
+              <button class="switcher-btn" data-content="reply" onclick="DashboardManager.switchReviewContent(this, event)">
+                <i class="fas fa-reply"></i> الرد المقترح
+              </button>` : ''}
+            </div>
 
-          <div class="review-body">
-            <!-- Customer Voice -->
-            <div class="review-section customer-voice">
-              <div class="section-header">
-                <h4><i class="fas fa-user"></i> صوت العميل</h4>
-              </div>
-              <div class="section-content">
+            <!-- Dynamic Content Area -->
+            <div class="review-content">
+              <!-- Original Details -->
+              <div class="content-panel original active">
                 <div class="customer-contact">
                   ${r.email ? `<p class="contact-item"><i class="fas fa-envelope"></i> <a href="mailto:${r.email}">${r.email}</a></p>` : ''}
                   ${r.phone ? `<p class="contact-item"><i class="fas fa-phone"></i> <a href="tel:${r.phone}">${r.phone}</a></p>` : ''}
                 </div>
                 <div class="original-text">"${safeText}"</div>
-
-                <div class="original-fields-toggle">
-                  <button class="btn-text btn-sm" onclick="DashboardManager.toggleOriginalDetails(this)">
-                     عرض التفاصيل الأصلية <i class="fas fa-chevron-down"></i>
-                  </button>
-                  <div class="original-fields-content">
-                    ${original.enjoy_most ? `<p><strong>أكثر ما أعجبني:</strong> ${DOMPurify.sanitize(original.enjoy_most)}</p>` : ''}
-                    ${original.improve_product ? `<p><strong>أقترح تحسين:</strong> ${DOMPurify.sanitize(original.improve_product)}</p>` : ''}
-                    ${original.additional_feedback ? `<p><strong>ملاحظات إضافية:</strong> ${DOMPurify.sanitize(original.additional_feedback)}</p>` : ''}
-                  </div>
+                <div class="original-fields">
+                  ${original.enjoy_most ? `<p><strong>أكثر ما أعجبني:</strong> ${DOMPurify.sanitize(original.enjoy_most)}</p>` : ''}
+                  ${original.improve_product ? `<p><strong>أقترح تحسين:</strong> ${DOMPurify.sanitize(original.improve_product)}</p>` : ''}
+                  ${original.additional_feedback ? `<p><strong>ملاحظات إضافية:</strong> ${DOMPurify.sanitize(original.additional_feedback)}</p>` : ''}
                 </div>
               </div>
-            </div>
 
-            <!-- Organized Feedback (AI) -->
-            ${organizedFeedbackHtml ? `
-            <div class="review-section ai-analysis collapsed">
-              <div class="section-header">
-                <h4><i class="fas fa-robot"></i> تحليل الذكاء الاصطناعي</h4>
-              </div>
-              <div class="section-content">
+              <!-- AI Analysis -->
+              ${organizedFeedbackHtml ? `
+              <div class="content-panel ai-analysis">
                 <div class="markdown-content">${organizedFeedbackHtml}</div>
-              </div>
-            </div>` : ''}
+              </div>` : ''}
 
-            <!-- Solutions (AI) -->
-            ${solutionsHtml ? `
-            <div class="review-section ai-solutions collapsed">
-              <div class="section-header">
-                <h4><i class="fas fa-lightbulb"></i> مقترحات وحلول عملية</h4>
-              </div>
-              <div class="section-content">
+              <!-- Solutions -->
+              ${solutionsHtml ? `
+              <div class="content-panel solutions">
                 <div class="markdown-content">${solutionsHtml}</div>
-              </div>
-            </div>` : ''}
+              </div>` : ''}
 
-            <!-- Suggested Reply (AI) -->
-            ${suggestedReplyHtml ? `
-            <div class="review-section ai-reply collapsed">
-              <div class="section-header">
-                <h4><i class="fas fa-reply"></i> الرد المقترح</h4>
-              </div>
-              <div class="section-content">
+              <!-- Suggested Reply -->
+              ${suggestedReplyHtml ? `
+              <div class="content-panel reply">
                 <div class="markdown-content" id="reply-${r._id}">${suggestedReplyHtml}</div>
                 <div class="review-actions">
                   <button class="btn-copy" onclick="DashboardManager.copyReply('reply-${r._id}', this)">
                     <i class="far fa-copy"></i> نسخ الرد
                   </button>
                 </div>
-              </div>
-            </div>` : ''}
+              </div>` : ''}
+            </div>
           </div>
         </div>
       `;
@@ -284,51 +259,59 @@ const DashboardManager = {
     });
   },
 
-  toggleReviewSection(btn) {
-    const sectionName = btn.dataset.section;
-    const reviewCard = btn.closest('.review-card');
-    const reviewBody = reviewCard.querySelector('.review-body');
-    const targetSection = reviewBody.querySelector(`.review-section.${sectionName}`);
-    const allSections = reviewBody.querySelectorAll('.review-section');
-    const allButtons = reviewCard.querySelectorAll('.control-btn');
+  toggleReviewCard(cardElement) {
+    const isCollapsed = cardElement.classList.contains('collapsed');
+    const allCards = document.querySelectorAll('.review-card');
 
-    if (!targetSection) return;
-
-    // Close all sections in this review card
-    allSections.forEach(section => {
-      if (section !== targetSection) {
-        section.classList.add('collapsed');
+    // Close all other cards
+    allCards.forEach(card => {
+      if (card !== cardElement) {
+        card.classList.add('collapsed');
+        const arrow = card.querySelector('.card-arrow');
+        if (arrow) arrow.style.transform = 'rotate(0deg)';
       }
     });
 
-    // Reset all button states
-    allButtons.forEach(button => {
-      button.classList.remove('active');
-    });
-
-    // Toggle the target section
-    const isCollapsed = targetSection.classList.contains('collapsed');
+    // Toggle this card
     if (isCollapsed) {
-      targetSection.classList.remove('collapsed');
-      btn.classList.add('active');
+      cardElement.classList.remove('collapsed');
+      const arrow = cardElement.querySelector('.card-arrow');
+      if (arrow) arrow.style.transform = 'rotate(180deg)';
     } else {
-      targetSection.classList.add('collapsed');
-      // No button should be active when all are collapsed
+      cardElement.classList.add('collapsed');
+      const arrow = cardElement.querySelector('.card-arrow');
+      if (arrow) arrow.style.transform = 'rotate(0deg)';
     }
   },
 
-  toggleOriginalDetails(btn) {
-    const container = btn.nextElementSibling;
-    if (!container) return;
+  switchReviewContent(btn, event) {
+    event.stopPropagation(); // Prevent card toggle
 
-    const isExpanded = container.classList.contains('show');
-    if (isExpanded) {
-      container.classList.remove('show');
-      btn.querySelector('i').className = 'fas fa-chevron-down';
-    } else {
-      container.classList.add('show');
-      btn.querySelector('i').className = 'fas fa-chevron-up';
-    }
+    const contentType = btn.dataset.content;
+    const reviewCard = btn.closest('.review-card');
+    const contentArea = reviewCard.querySelector('.review-content');
+    const allButtons = reviewCard.querySelectorAll('.switcher-btn');
+    const allPanels = contentArea.querySelectorAll('.content-panel');
+
+    // Update button states
+    allButtons.forEach(button => button.classList.remove('active'));
+    btn.classList.add('active');
+
+    // Switch content with animation
+    allPanels.forEach(panel => {
+      if (panel.classList.contains(contentType)) {
+        panel.classList.add('active');
+        // Trigger animation
+        setTimeout(() => {
+          panel.style.opacity = '1';
+          panel.style.transform = 'translateX(0)';
+        }, 50);
+      } else {
+        panel.classList.remove('active');
+        panel.style.opacity = '0';
+        panel.style.transform = 'translateX(-20px)';
+      }
+    });
   },
 
   updateShopInfo(info) {
