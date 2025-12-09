@@ -146,12 +146,12 @@ const DashboardManager = {
       const suggestedReplyHtml = parseMarkdown(r.suggested_reply);
 
       return `
-        <div class="review-card ${sentimentClass} ${mismatchClass} animate-float-up" 
-             data-sentiment="${sentiment}" 
-             data-type="${type}" 
+        <div class="review-card ${sentimentClass} ${mismatchClass} animate-float-up"
+             data-sentiment="${sentiment}"
+             data-type="${type}"
              data-stars="${r.stars || 0}"
              data-mismatch="${!contextMatch}">
-             
+
           <div class="review-header">
             <div class="review-meta">
               <div class="review-stars" title="${r.stars} نجوم">${stars}</div>
@@ -171,51 +171,90 @@ const DashboardManager = {
             <span>هذا التقييم قد يكون عن متجر آخر أو خطأ في التصنيف</span>
           </div>` : ''}
 
+          <!-- Review Control Buttons -->
+          <div class="review-controls">
+            <button class="control-btn active" data-section="customer-voice" onclick="DashboardManager.toggleReviewSection(this)">
+              <i class="fas fa-user"></i> عرض التفاصيل الأصلية
+              <i class="fas fa-chevron-down arrow-icon"></i>
+            </button>
+            ${organizedFeedbackHtml ? `
+            <button class="control-btn" data-section="ai-analysis" onclick="DashboardManager.toggleReviewSection(this)">
+              <i class="fas fa-robot"></i> عرض تحليل الذكاء الاصطناعي
+              <i class="fas fa-chevron-down arrow-icon"></i>
+            </button>` : ''}
+            ${solutionsHtml ? `
+            <button class="control-btn" data-section="ai-solutions" onclick="DashboardManager.toggleReviewSection(this)">
+              <i class="fas fa-lightbulb"></i> عرض المقترحات
+              <i class="fas fa-chevron-down arrow-icon"></i>
+            </button>` : ''}
+            ${suggestedReplyHtml ? `
+            <button class="control-btn" data-section="ai-reply" onclick="DashboardManager.toggleReviewSection(this)">
+              <i class="fas fa-reply"></i> عرض الرد المقترح
+              <i class="fas fa-chevron-down arrow-icon"></i>
+            </button>` : ''}
+          </div>
+
           <div class="review-body">
             <!-- Customer Voice -->
-            <div class="review-section customer-voice">
-              <h4><i class="fas fa-user"></i> صوت العميل</h4>
-              <div class="customer-contact">
-                ${r.email ? `<p class="contact-item"><i class="fas fa-envelope"></i> <a href="mailto:${r.email}">${r.email}</a></p>` : ''}
-                ${r.phone ? `<p class="contact-item"><i class="fas fa-phone"></i> <a href="tel:${r.phone}">${r.phone}</a></p>` : ''}
+            <div class="review-section customer-voice collapsed">
+              <div class="section-header">
+                <h4><i class="fas fa-user"></i> صوت العميل</h4>
               </div>
-              <div class="original-text">"${safeText}"</div>
-              
-              <div class="original-fields-toggle">
-                <button class="btn-text btn-sm" onclick="this.nextElementSibling.classList.toggle('show')">
-                   عرض التفاصيل الأصلية <i class="fas fa-chevron-down"></i>
-                </button>
-                <div class="original-fields-content">
-                  ${original.enjoy_most ? `<p><strong>أكثر ما أعجبني:</strong> ${DOMPurify.sanitize(original.enjoy_most)}</p>` : ''}
-                  ${original.improve_product ? `<p><strong>أقترح تحسين:</strong> ${DOMPurify.sanitize(original.improve_product)}</p>` : ''}
-                  ${original.additional_feedback ? `<p><strong>ملاحظات إضافية:</strong> ${DOMPurify.sanitize(original.additional_feedback)}</p>` : ''}
+              <div class="section-content">
+                <div class="customer-contact">
+                  ${r.email ? `<p class="contact-item"><i class="fas fa-envelope"></i> <a href="mailto:${r.email}">${r.email}</a></p>` : ''}
+                  ${r.phone ? `<p class="contact-item"><i class="fas fa-phone"></i> <a href="tel:${r.phone}">${r.phone}</a></p>` : ''}
+                </div>
+                <div class="original-text">"${safeText}"</div>
+
+                <div class="original-fields-toggle">
+                  <button class="btn-text btn-sm" onclick="DashboardManager.toggleOriginalDetails(this)">
+                     عرض التفاصيل الأصلية <i class="fas fa-chevron-down"></i>
+                  </button>
+                  <div class="original-fields-content">
+                    ${original.enjoy_most ? `<p><strong>أكثر ما أعجبني:</strong> ${DOMPurify.sanitize(original.enjoy_most)}</p>` : ''}
+                    ${original.improve_product ? `<p><strong>أقترح تحسين:</strong> ${DOMPurify.sanitize(original.improve_product)}</p>` : ''}
+                    ${original.additional_feedback ? `<p><strong>ملاحظات إضافية:</strong> ${DOMPurify.sanitize(original.additional_feedback)}</p>` : ''}
+                  </div>
                 </div>
               </div>
             </div>
 
             <!-- Organized Feedback (AI) -->
             ${organizedFeedbackHtml ? `
-            <div class="review-section ai-analysis">
-              <h4><i class="fas fa-robot"></i> تحليل الذكاء الاصطناعي</h4>
-              <div class="markdown-content">${organizedFeedbackHtml}</div>
+            <div class="review-section ai-analysis collapsed">
+              <div class="section-header">
+                <h4><i class="fas fa-robot"></i> تحليل الذكاء الاصطناعي</h4>
+              </div>
+              <div class="section-content">
+                <div class="markdown-content">${organizedFeedbackHtml}</div>
+              </div>
             </div>` : ''}
 
             <!-- Solutions (AI) -->
             ${solutionsHtml ? `
-            <div class="review-section ai-solutions">
-              <h4><i class="fas fa-lightbulb"></i> مقترحات وحلول عملية</h4>
-              <div class="markdown-content">${solutionsHtml}</div>
+            <div class="review-section ai-solutions collapsed">
+              <div class="section-header">
+                <h4><i class="fas fa-lightbulb"></i> مقترحات وحلول عملية</h4>
+              </div>
+              <div class="section-content">
+                <div class="markdown-content">${solutionsHtml}</div>
+              </div>
             </div>` : ''}
 
             <!-- Suggested Reply (AI) -->
             ${suggestedReplyHtml ? `
-            <div class="review-section ai-reply">
-              <h4><i class="fas fa-reply"></i> الرد المقترح</h4>
-              <div class="markdown-content" id="reply-${r._id}">${suggestedReplyHtml}</div>
-              <div class="review-actions">
-                <button class="btn-copy" onclick="DashboardManager.copyReply('reply-${r._id}', this)">
-                  <i class="far fa-copy"></i> نسخ الرد
-                </button>
+            <div class="review-section ai-reply collapsed">
+              <div class="section-header">
+                <h4><i class="fas fa-reply"></i> الرد المقترح</h4>
+              </div>
+              <div class="section-content">
+                <div class="markdown-content" id="reply-${r._id}">${suggestedReplyHtml}</div>
+                <div class="review-actions">
+                  <button class="btn-copy" onclick="DashboardManager.copyReply('reply-${r._id}', this)">
+                    <i class="far fa-copy"></i> نسخ الرد
+                  </button>
+                </div>
               </div>
             </div>` : ''}
           </div>
@@ -229,7 +268,7 @@ const DashboardManager = {
   copyReply(elementId, btn) {
     const el = document.getElementById(elementId);
     if (!el) return;
-    
+
     const textToCopy = el.innerText;
     navigator.clipboard.writeText(textToCopy).then(() => {
       const originalText = btn.innerHTML;
@@ -243,6 +282,53 @@ const DashboardManager = {
       console.error('Failed to copy:', err);
       window.UI.Toast.show('فشل النسخ', 'error');
     });
+  },
+
+  toggleReviewSection(btn) {
+    const sectionName = btn.dataset.section;
+    const reviewCard = btn.closest('.review-card');
+    const reviewBody = reviewCard.querySelector('.review-body');
+    const targetSection = reviewBody.querySelector(`.review-section.${sectionName}`);
+    const allSections = reviewBody.querySelectorAll('.review-section');
+    const allButtons = reviewCard.querySelectorAll('.control-btn');
+
+    if (!targetSection) return;
+
+    // Close all sections in this review card
+    allSections.forEach(section => {
+      if (section !== targetSection) {
+        section.classList.add('collapsed');
+      }
+    });
+
+    // Reset all button states
+    allButtons.forEach(button => {
+      button.classList.remove('active');
+    });
+
+    // Toggle the target section
+    const isCollapsed = targetSection.classList.contains('collapsed');
+    if (isCollapsed) {
+      targetSection.classList.remove('collapsed');
+      btn.classList.add('active');
+    } else {
+      targetSection.classList.add('collapsed');
+      // No button should be active when all are collapsed
+    }
+  },
+
+  toggleOriginalDetails(btn) {
+    const container = btn.nextElementSibling;
+    if (!container) return;
+
+    const isExpanded = container.classList.contains('show');
+    if (isExpanded) {
+      container.classList.remove('show');
+      btn.querySelector('i').className = 'fas fa-chevron-down';
+    } else {
+      container.classList.add('show');
+      btn.querySelector('i').className = 'fas fa-chevron-up';
+    }
   },
 
   updateShopInfo(info) {
