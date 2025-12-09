@@ -1506,3 +1506,72 @@ a {
     transform: translateY(0);
   }
 }
+
+/* ============================
+   Enhanced Animation System
+   ============================ */
+
+/* Staggered Entrance for Review Sections */
+@keyframes fadeInUpStagger {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.review-body .review-section {
+  animation: fadeInUpStagger 0.6s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  will-change: transform, opacity;
+}
+
+/* Stagger Delays */
+.review-body .review-section:nth-child(1) { animation-delay: 0.1s; }
+.review-body .review-section:nth-child(2) { animation-delay: 0.2s; }
+.review-body .review-section:nth-child(3) { animation-delay: 0.3s; }
+.review-body .review-section:nth-child(4) { animation-delay: 0.4s; }
+
+/* Smoother Content Reveal */
+@keyframes contentReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px);
+    filter: blur(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.section-content {
+  animation: contentReveal 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Enhanced Focus States for Sections */
+.review-section:not(.collapsed) {
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  border-color: var(--primary-light);
+  transform: scale(1.005);
+  z-index: 10;
+}
+
+.review-section {
+  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .review-body .review-section {
+    animation-duration: 0.5s;
+  }
+  
+  /* Reset scale on mobile to prevent overflow/zoom issues */
+  .review-section:not(.collapsed) {
+    transform: scale(1);
+  }
+}

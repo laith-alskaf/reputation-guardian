@@ -196,7 +196,7 @@ const DashboardManager = {
 
           <div class="review-body">
             <!-- Customer Voice -->
-            <div class="review-section customer-voice collapsed">
+            <div class="review-section customer-voice">
               <div class="section-header">
                 <h4><i class="fas fa-user"></i> صوت العميل</h4>
               </div>
