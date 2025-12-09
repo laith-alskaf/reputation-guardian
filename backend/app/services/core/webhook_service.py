@@ -3,6 +3,8 @@ from app.models.user import UserModel
 from app.models.review import ReviewModel
 from app.services.external import SentimentService, DeepSeekService, NotificationService
 from app.services_interfaces import IWebhookService
+from app.dto.analysis_result_dto import AnalysisResultDTO
+
 class WebhookService(IWebhookService):
     def __init__(self):
         self.user_model = UserModel()
@@ -14,101 +16,92 @@ class WebhookService(IWebhookService):
         if not dto.email or not dto.text or not dto.shop_id:
             raise ValueError("Missing required fields: email, text, shop_id")
 
+        # 1. Check Duplicates
         existing_review = self.review_model.find_existing_review(dto.email, dto.shop_id)
         if existing_review:
             raise LookupError("لقد قمت بإرسال تقييم لهذا المتجر مسبقاً")
 
+        # 2. Get Shop Info
         owner = self.user_model.find_by_id(dto.shop_id)
         shop_type = owner.get('shop_type', 'عام') if owner else 'عام'
 
-        # تحليل النص
-        cleaned_text = SentimentService.clean_text(dto.text)
-        sentiment = SentimentService.analyze_sentiment(cleaned_text)
-        toxicity = SentimentService.analyze_toxicity(cleaned_text)
-        review_type = SentimentService.classify_review(sentiment, toxicity, dto.stars, cleaned_text)
-
-        # fallback للنجوم إذا النتيجة محايدة
-        if sentiment == "محايد":
-            if dto.stars <= 2:
-                sentiment = "سلبي"
-            elif dto.stars >= 4:
-                sentiment = "إيجابي"
-
-        overall_sentiment = self.deepseek_service.determine_overall_sentiment(
-            dto.stars, dto.text, dto.improve_product, dto.additional_feedback
+        # 3. Comprehensive AI Analysis (One Shot)
+        analysis_result = self.deepseek_service.analyze_review_holistically(
+            text=dto.text,
+            stars=dto.stars,
+            shop_type=shop_type,
+            enjoy_most=dto.enjoy_most,
+            improve_product=dto.improve_product,
+            additional_feedback=dto.additional_feedback
         )
 
-        quality_check = SentimentService.detect_review_quality(
-            dto.text, dto.enjoy_most, dto.improve_product, dto.additional_feedback
-        )
-        if quality_check['is_suspicious']:
-            logging.warning(f"Suspicious review detected from {dto.email}: quality_score={quality_check['quality_score']}, flags={quality_check['flags']}")
+        # 4. Optional: Local Validations (Safety Net)
+        if analysis_result.is_spam or analysis_result.quality_score < 0.4:
+            logging.warning(f"Low quality/Spam review detected from {dto.email}. Score: {analysis_result.quality_score}")
 
-        # كشف عدم تطابق السياق
-        context_check = SentimentService.detect_context_mismatch(cleaned_text, shop_type)
-        if context_check['has_mismatch']:
-            logging.warning(f"Context mismatch detected from {dto.email}: {context_check['reasons']}")
+        if not analysis_result.context_match:
+             logging.warning(f"Context mismatch detected for shop {dto.shop_id}")
 
-        organized_feedback = self.deepseek_service.organize_customer_feedback(
-            dto.enjoy_most, dto.improve_product, dto.additional_feedback, shop_type
-        )
-
-        actionable_insights = ""
-        suggested_reply = ""
-        try:
-            if overall_sentiment == "سلبي" or review_type in ['شكوى', 'نقد']:
-                actionable_insights = self.deepseek_service.generate_actionable_insights(dto.text, dto.improve_product, shop_type, dto.stars)
-
-            suggested_reply = self.deepseek_service.generate_suggested_reply(dto.text, overall_sentiment, shop_type)
-        except Exception as e:
-            logging.error(f"DeepSeek generation failed: {e}")
-
-        solutions = actionable_insights if actionable_insights else ""
-        if not solutions and (overall_sentiment == "سلبي" or review_type in ['شكوى', 'نقد']):
-            solutions = "بناءً على التقييم السلبي والاقتراحات المقدمة، يُنصح بمراجعة النقاط المذكورة في اقتراحات التحسين."
+        # 5. Construct Document
+        # Format organized feedback to be richer than just tags
+        themes_text = " - ".join(analysis_result.key_themes) if analysis_result.key_themes else "عام"
+        organized_feedback_text = f"📝 الملخص: {analysis_result.summary}\n🏷️ المواضيع الرئيسية: {themes_text}"
 
         review_data = {
             "email": dto.email,
             "phone": dto.phone,
             "shop_id": dto.shop_id,
             "stars": dto.stars,
-            "overall_sentiment": overall_sentiment,
-            "organized_feedback": organized_feedback,
-            "solutions": solutions,
-            "suggested_reply": suggested_reply,
+            
+            # High-level data
+            "overall_sentiment": analysis_result.sentiment,
+            "category": analysis_result.category,
+            "summary": analysis_result.summary,
+            
+            # Detailed content
+            "organized_feedback": organized_feedback_text,
+            "solutions": "\n".join(analysis_result.actionable_insights),
+            "suggested_reply": analysis_result.suggested_reply,
+            
+            # Metadata
+            "quality_score": analysis_result.quality_score,
+            "is_spam": analysis_result.is_spam,
+            "context_match": analysis_result.context_match,
+
             "original_fields": {
                 "text": dto.text,
                 "phone": dto.phone,
                 "enjoy_most": dto.enjoy_most,
                 "improve_product": dto.improve_product,
                 "additional_feedback": dto.additional_feedback
-            },
-            "technical_analysis": {
-                "cleaned_text": cleaned_text,
-                "sentiment": sentiment,
-                "toxicity": toxicity,
-                "review_type": review_type,
-                "shop_type": shop_type,
-                "context_check": context_check
             }
         }
 
+        # 6. Persist
         review_id = self.review_model.create_review(review_data)
         logging.info(f"Review saved: {review_id}")
 
+        # 7. Notify Owner
         if owner:
-            message = f"تقييم جديد: {'⭐' * dto.stars}\n\"{dto.text}\"\nالنوع: {review_type}"
-            if solutions:
-                message += f"\n\n💡 الحل المقترح:\n{solutions}"
-
-            try:
-                if owner.get('device_token'):
-                    self.notification_service.send_fcm_notification(owner['device_token'], message)
-                elif owner.get('telegram_chat_id'):
-                    self.notification_service.send_telegram_notification(owner['telegram_chat_id'], message)
-                else:
-                    logging.warning(f"No notification channel found for shop owner {dto.shop_id}")
-            except Exception as e:
-                logging.error(f"Notification failed: {e}")
+            self._send_notification(owner, dto, analysis_result)
 
         return {"review_id": review_id}
+
+    def _send_notification(self, owner, dto, analysis: AnalysisResultDTO):
+        message = f"تقييم جديد: {'⭐' * dto.stars}\n\"{dto.text}\"\nالنوع: {analysis.category}"
+        
+        # Add insights if negative or complaint
+        if analysis.sentiment == 'سلبي' or analysis.category in ['شكوى', 'نقد']:
+             if analysis.actionable_insights:
+                 solutions_text = "\n- ".join(analysis.actionable_insights[:2]) # Top 2 insights
+                 message += f"\n\n💡 نصيحة سريعة:\n- {solutions_text}"
+
+        try:
+            if owner.get('device_token'):
+                self.notification_service.send_fcm_notification(owner['device_token'], message)
+            elif owner.get('telegram_chat_id'):
+                self.notification_service.send_telegram_notification(owner['telegram_chat_id'], message)
+            else:
+                logging.warning(f"No notification channel found for shop owner {dto.shop_id}")
+        except Exception as e:
+            logging.error(f"Notification failed: {e}")

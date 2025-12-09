@@ -3,3 +3,5 @@ __pycache__
 package.json
 app.log
 README2.md
+deepseek_old.py
+webhook_old.py
