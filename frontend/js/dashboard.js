@@ -28,7 +28,14 @@ const DashboardManager = {
   async loadDashboardData() {
     try {
       window.UI.Loading.show('dashboardContainer');
-      const data = await window.API.dashboard.getDashboard();
+      const response = await window.API.dashboard.getDashboard();
+      // API returns { data: { metrics: ..., recent_reviews: ... }, ... }
+      // But API.dashboard.getDashboard() might already return response.data if using axios interceptor
+      // Let's assume it returns the full response based on common patterns, or just the data.
+      // Based on dashboard.js logic: const data = await window.API.dashboard.getDashboard();
+      // and then renderDashboard(data).
+      // If the API wrapper returns the json body directly:
+      const data = response.data || response; 
       this.renderDashboard(data);
       window.UI.Toast.show('تم تحديث البيانات بنجاح', 'success');
     } catch (e) {
@@ -103,19 +110,28 @@ const DashboardManager = {
     }
 
     const cards = reviews.map((r) => {
-      const text = r.text || r.original_fields?.text || '';
-      const improveProduct = r.original_fields?.improve_product || '';
-      const type = r.review_type || r.technical_analysis?.review_type || 'محايد';
-      const sentiment = r.overall_sentiment || r.technical_analysis?.sentiment || 'محايد';
+      // Data normalization
+      const original = r.original_fields || {};
+      const text = r.text || original.text || '';
+      // const improveProduct = r.improve_product || original.improve_product || ''; // Not used directly in display logic below, kept in original text display
+      
+      const type = r.category || r.review_type || 'عام';
+      const sentiment = r.overall_sentiment || 'محايد';
+      
       const typeClass = this.getReviewTypeClass(type);
       const sentimentClass = this.getSentimentClass(sentiment);
+      
       const stars = '⭐'.repeat(r.stars || 0);
       const date = window.UI.Utils.formatDate(r.timestamp);
 
-      // كشف mismatch من البيانات الجديدة
-      const contextCheck = r.technical_analysis?.context_check || {};
-      const hasMismatch = contextCheck.has_mismatch || false;
-      const mismatchClass = hasMismatch ? 'mismatch' : 'valid';
+      // Mismatch check
+      const contextMatch = r.context_match !== false; // Default true if undefined
+      const mismatchClass = !contextMatch ? 'mismatch' : '';
+
+      // Quality Score
+      const qualityScore = r.quality_score !== undefined ? Math.round(r.quality_score * 100) : null;
+      const qualityBadge = qualityScore !== null ? 
+        `<span class="quality-badge ${qualityScore < 50 ? 'low' : 'high'}" title="جودة التقييم">${qualityScore}% جودة</span>` : '';
 
       // Markdown parsing with DOMPurify sanitization
       const parseMarkdown = (content) => {
@@ -125,26 +141,31 @@ const DashboardManager = {
       };
 
       const safeText = DOMPurify.sanitize(text);
-      const safeImproveProduct = DOMPurify.sanitize(improveProduct);
       const organizedFeedbackHtml = parseMarkdown(r.organized_feedback);
       const solutionsHtml = parseMarkdown(r.solutions);
       const suggestedReplyHtml = parseMarkdown(r.suggested_reply);
 
       return `
-        <div class="review-card ${sentimentClass} ${mismatchClass}" data-sentiment="${sentiment}" data-type="${type}" data-mismatch="${hasMismatch}">
+        <div class="review-card ${sentimentClass} ${mismatchClass} animate-float-up" 
+             data-sentiment="${sentiment}" 
+             data-type="${type}" 
+             data-stars="${r.stars || 0}"
+             data-mismatch="${!contextMatch}">
+             
           <div class="review-header">
             <div class="review-meta">
               <div class="review-stars" title="${r.stars} نجوم">${stars}</div>
-              <span class="review-badge ${typeClass}">${this.getReviewTypeLabel(type)}</span>
+              <span class="review-badge ${typeClass}">${type}</span>
               <span class="sentiment-badge ${sentimentClass}">${this.getSentimentLabel(sentiment)}</span>
-              ${hasMismatch ? `<span class="mismatch-badge" title="${contextCheck.reasons?.join(', ') || 'قد يكون التقييم عن متجر آخر'}">⚠️ غير متطابق</span>` : ''}
+              ${qualityBadge}
+              ${!contextMatch ? `<span class="mismatch-badge" title="قد يكون التقييم عن متجر آخر">⚠️ غير متطابق</span>` : ''}
             </div>
             <div class="review-date">
               <i class="far fa-clock"></i> ${date}
             </div>
           </div>
 
-          ${hasMismatch ? `
+          ${!contextMatch ? `
           <div class="mismatch-notice">
             <i class="fas fa-exclamation-triangle"></i>
             <span>هذا التقييم قد يكون عن متجر آخر أو خطأ في التصنيف</span>
@@ -158,8 +179,18 @@ const DashboardManager = {
                 ${r.email ? `<p class="contact-item"><i class="fas fa-envelope"></i> <a href="mailto:${r.email}">${r.email}</a></p>` : ''}
                 ${r.phone ? `<p class="contact-item"><i class="fas fa-phone"></i> <a href="tel:${r.phone}">${r.phone}</a></p>` : ''}
               </div>
-              <div class="original-text">${safeText}</div>
-              ${safeImproveProduct ? `<p class="mt-2"><small><strong>اقتراح تحسين:</strong> ${safeImproveProduct}</small></p>` : ''}
+              <div class="original-text">"${safeText}"</div>
+              
+              <div class="original-fields-toggle">
+                <button class="btn-text btn-sm" onclick="this.nextElementSibling.classList.toggle('show')">
+                   عرض التفاصيل الأصلية <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="original-fields-content">
+                  ${original.enjoy_most ? `<p><strong>أكثر ما أعجبني:</strong> ${DOMPurify.sanitize(original.enjoy_most)}</p>` : ''}
+                  ${original.improve_product ? `<p><strong>أقترح تحسين:</strong> ${DOMPurify.sanitize(original.improve_product)}</p>` : ''}
+                  ${original.additional_feedback ? `<p><strong>ملاحظات إضافية:</strong> ${DOMPurify.sanitize(original.additional_feedback)}</p>` : ''}
+                </div>
+              </div>
             </div>
 
             <!-- Organized Feedback (AI) -->
@@ -199,12 +230,6 @@ const DashboardManager = {
     const el = document.getElementById(elementId);
     if (!el) return;
     
-    // Create a temporary textarea to copy the text content (stripped of HTML tags for clean pasting)
-    // Or copy HTML if needed? Usually text is better for pasting into input fields.
-    // However, the suggested reply is Markdown rendered to HTML.
-    // The user might want the raw text or the formatted text.
-    // Let's copy the text content.
-    
     const textToCopy = el.innerText;
     navigator.clipboard.writeText(textToCopy).then(() => {
       const originalText = btn.innerHTML;
@@ -234,8 +259,10 @@ const DashboardManager = {
   updateUserName: async function () {
     try {
       const profile = await window.API.dashboard.getProfile();
+      // Adjust based on profile response structure if needed
+      const data = profile.data || profile;
       const el = document.getElementById('userName');
-      if (el && profile) el.textContent = profile.shop_name || profile.email || 'المستخدم';
+      if (el && data) el.textContent = data.shop_name || data.email || 'المستخدم';
     } catch (e) {
       console.warn('Failed to load profile:', e);
     }
@@ -254,23 +281,53 @@ const DashboardManager = {
     const generateQRBtn = document.getElementById('generateQR');
     if (generateQRBtn) generateQRBtn.addEventListener('click', () => this.generateNewQR());
 
-    const reviewFilter = document.getElementById('reviewFilter');
-    if (reviewFilter) reviewFilter.addEventListener('change', (e) => this.filterReviews(e.target.value, 'type'));
-
-    const sentimentFilter = document.getElementById('sentimentFilter');
-    if (sentimentFilter) sentimentFilter.addEventListener('change', (e) => this.filterReviews(e.target.value, 'sentiment'));
-
-    const mismatchFilter = document.getElementById('mismatchFilter');
-    if (mismatchFilter) mismatchFilter.addEventListener('change', (e) => this.filterReviews(e.target.value, 'mismatch'));
+    // Unified filter handler
+    const filters = ['reviewFilter', 'sentimentFilter', 'mismatchFilter', 'starsFilter'];
+    filters.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('change', () => this.applyFilters());
+    });
+  },
+  
+  applyFilters() {
+     const typeVal = document.getElementById('reviewFilter')?.value;
+     const sentimentVal = document.getElementById('sentimentFilter')?.value;
+     const mismatchVal = document.getElementById('mismatchFilter')?.value;
+     const starsVal = document.getElementById('starsFilter')?.value;
+     
+     const cards = document.querySelectorAll('.review-card');
+     
+     cards.forEach(card => {
+       let show = true;
+       
+       if (typeVal && card.dataset.type !== typeVal) show = false;
+       if (sentimentVal && card.dataset.sentiment !== sentimentVal) show = false;
+       
+       if (mismatchVal) {
+         const isMismatch = card.dataset.mismatch === 'true';
+         if (mismatchVal === 'valid' && isMismatch) show = false;
+         if (mismatchVal === 'mismatch' && !isMismatch) show = false;
+       }
+       
+       if (starsVal) {
+          const stars = parseInt(card.dataset.stars);
+          if (starsVal === 'high' && stars < 4) show = false;
+          if (starsVal === 'low' && stars > 2) show = false;
+          // Exact star match if needed, but generic high/low is often better
+       }
+       
+       card.style.display = show ? 'flex' : 'none';
+     });
   },
 
   async generateNewQR() {
     try {
       window.UI.Loading.show('generateQR');
       const qrData = await window.API.qr.generateQR();
-      this.displayGeneratedQR(qrData);
+      // Handle response structure
+      const data = qrData.data || qrData;
+      this.displayGeneratedQR(data);
       window.UI.Toast.show('تم إنشاء رمز QR بنجاح', 'success');
-      // استخدام setTimeout بدون eval
       setTimeout(() => this.reloadDashboard(), 800);
     } catch (e) {
       console.error('QR generation failed:', e);
@@ -280,7 +337,6 @@ const DashboardManager = {
     }
   },
 
-  // Helper function for setTimeout to avoid eval
   reloadDashboard() {
     this.loadDashboardData();
   },
@@ -289,7 +345,7 @@ const DashboardManager = {
     const container = document.getElementById('qrDisplay');
     if (!container || !qrData.qr_code) return;
     container.innerHTML = `
-      <div class="qr-success">
+      <div class="qr-success animate-scale-bounce">
         <img src="data:image/png;base64,${qrData.qr_code}" alt="Generated QR Code" class="qr-image">
         <div class="qr-info">
           <p><strong>تم إنشاء رمز QR جديد بنجاح!</strong></p>
@@ -309,56 +365,11 @@ const DashboardManager = {
     link.click();
   },
 
-  filterReviews(value, filterType) {
-    const cards = document.querySelectorAll('.review-card');
-
-    cards.forEach((card) => {
-      let show = true;
-
-      // فلترة حسب النوع (type)
-      if (filterType === 'type' && value) {
-        const typeMap = { 'إيجابي': 'positive', 'نقد': 'warning', 'شكوى': 'negative' };
-        const badge = card.querySelector('.review-badge');
-        const currentTypeClass = badge ? badge.className.split(' ').find(c => c !== 'review-badge') : '';
-        show = show && (typeMap[value] === currentTypeClass);
-      }
-
-      // فلترة حسب المشاعر (sentiment)
-      if (filterType === 'sentiment' && value) {
-        const sentiment = card.getAttribute('data-sentiment');
-        show = show && (sentiment === value);
-      }
-
-      // فلترة حسب التطابق (mismatch)
-      if (filterType === 'mismatch' && value) {
-        const hasMismatch = card.getAttribute('data-mismatch') === 'true';
-        if (value === 'mismatch') {
-          show = show && hasMismatch;
-        } else if (value === 'valid') {
-          show = show && !hasMismatch;
-        }
-      }
-
-      card.style.display = show ? 'block' : 'none';
-    });
-  },
-
   getReviewTypeClass(t) {
-    switch (t) {
-      case 'إيجابي': return 'positive';
-      case 'نقد': return 'warning';
-      case 'شكوى': return 'negative';
-      default: return 'neutral';
-    }
-  },
-
-  getReviewTypeLabel(t) {
-    switch (t) {
-      case 'إيجابي': return 'إيجابي';
-      case 'نقد': return 'نقد بناء';
-      case 'شكوى': return 'شكوى';
-      default: return 'محايد';
-    }
+    // Basic mapping, can be expanded
+    if (['شكوى', 'نقد'].includes(t)) return 'negative';
+    if (['مدح', 'اقتراح', 'إيجابي'].includes(t)) return 'positive';
+    return 'neutral';
   },
 
   getSentimentClass(sentiment) {
@@ -372,10 +383,10 @@ const DashboardManager = {
 
   getSentimentLabel(sentiment) {
     switch (sentiment) {
-      case 'إيجابي': return 'تقييم إيجابي 🟢';
-      case 'سلبي': return 'تقييم سلبي 🔴';
-      case 'محايد': return 'تقييم متوسط 🟡';
-      default: return 'تقييم متوسط 🟡';
+      case 'إيجابي': return 'إيجابي 🟢';
+      case 'سلبي': return 'سلبي 🔴';
+      case 'محايد': return 'محايد 🟡';
+      default: return sentiment;
     }
   },
 
@@ -384,7 +395,8 @@ const DashboardManager = {
     // Check for new data every 30 seconds
     this.realtimeInterval = setInterval(async () => {
       try {
-        const data = await window.API.dashboard.getDashboard();
+        const response = await window.API.dashboard.getDashboard();
+        const data = response.data || response;
         this.checkForUpdates(data);
       } catch (e) {
         console.warn('Realtime update failed:', e);
@@ -477,7 +489,7 @@ const DashboardManager = {
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.innerHTML = `
-      <div class="modal-content">
+      <div class="modal-content animate-scale-bounce">
         <div class="modal-header">
           <h3>تفاصيل التقييمات ${sentiment}</h3>
           <span class="modal-close" onclick="this.closest('.modal').remove()">&times;</span>
@@ -492,7 +504,7 @@ const DashboardManager = {
               <div class="metric-label">عدد التقييمات ${sentiment}</div>
             </div>
           </div>
-          <div class="sentiment-insights">
+          <div class="sentiment-insights mt-3">
             <h4>رؤى وتوصيات:</h4>
             <ul>
               ${this.getSentimentInsights(sentiment, count)}
@@ -503,7 +515,7 @@ const DashboardManager = {
     `;
 
     document.body.appendChild(modal);
-    modal.classList.add('show');
+    setTimeout(() => modal.classList.add('show'), 10);
   },
 
   getSentimentInsights(sentiment, count) {
@@ -529,7 +541,6 @@ const DashboardManager = {
   },
 
   clearNotifications() {
-    // Simple operation, no need for loading state
     this.notifications = [];
     this.renderNotifications();
     const panel = document.getElementById('notificationsPanel');
@@ -546,7 +557,8 @@ const DashboardManager = {
   async exportData() {
     try {
       window.UI.Loading.show('exportDataBtn');
-      const data = await window.API.dashboard.getDashboard();
+      const response = await window.API.dashboard.getDashboard();
+      const data = response.data || response;
       const csvContent = this.convertToCSV(data.recent_reviews || []);
       this.downloadCSV(csvContent, `reviews-${Date.now()}.csv`);
       window.UI.Toast.show('تم تصدير البيانات بنجاح', 'success');
@@ -560,14 +572,18 @@ const DashboardManager = {
 
   convertToCSV(reviews) {
     const headers = ['التاريخ', 'النجوم', 'النوع', 'البريد', 'الهاتف', 'النص'];
-    const rows = reviews.map(review => [
-      window.UI.Utils.formatDate(review.timestamp),
-      review.stars || 0,
-      this.getReviewTypeLabel(review.review_type || 'محايد'),
-      review.email || '',
-      review.phone || '',
-      (review.text || '').replace(/"/g, '""')
-    ]);
+    const rows = reviews.map(review => {
+        const original = review.original_fields || {};
+        const text = review.text || original.text || '';
+        return [
+            window.UI.Utils.formatDate(review.timestamp),
+            review.stars || 0,
+            review.category || 'عام',
+            review.email || '',
+            review.phone || '',
+            (text).replace(/"/g, '""')
+        ];
+    });
 
     const csvContent = [headers, ...rows]
       .map(row => row.map(cell => `"${cell}"`).join(','))
@@ -588,7 +604,8 @@ const DashboardManager = {
   async generateWeeklyReport() {
     try {
       window.UI.Loading.show('weeklyReportBtn');
-      const data = await window.API.dashboard.getDashboard();
+      const response = await window.API.dashboard.getDashboard();
+      const data = response.data || response;
       const report = this.generateReportContent(data);
       this.downloadReport(report);
       window.UI.Toast.show('تم إرسال التقرير الأسبوعي', 'success');
@@ -618,9 +635,11 @@ const DashboardManager = {
 - التقييمات المحايدة: ${metrics.neutral_reviews || 0}
 
 أحدث التقييمات:
-${(data.recent_reviews || []).slice(0, 5).map(review =>
-  `- ${this.getReviewTypeLabel(review.review_type || 'محايد')}: ${window.UI.Utils.truncate(review.text || '', 50)}`
-).join('\n')}
+${(data.recent_reviews || []).slice(0, 5).map(review => {
+  const original = review.original_fields || {};
+  const text = review.text || original.text || '';
+  return `- ${review.category || 'عام'}: ${window.UI.Utils.truncate(text, 50)}`;
+}).join('\n')}
 
 تم إنشاء هذا التقرير بواسطة نظام حارس السمعة
     `.trim();
@@ -636,18 +655,16 @@ ${(data.recent_reviews || []).slice(0, 5).map(review =>
 };
 
 /**
- * رسم مخطط التقييمات باستخدام Chart.js مع animations محسنة
+ * رسم مخطط التقييمات باستخدام Chart.js
  */
 function renderReviewsChart(metrics) {
   const ctx = document.getElementById('reviewsChart');
   if (!ctx) return;
 
-  // Destroy existing chart to avoid canvas reuse error
   if (window.reviewsChart && typeof window.reviewsChart.destroy === 'function') {
     window.reviewsChart.destroy();
   }
 
-  // Hide loading and show chart
   const container = ctx.parentElement;
   const loading = container.querySelector('.loading-dots');
   if (loading) loading.style.display = 'none';
@@ -734,7 +751,6 @@ function renderReviewsChart(metrics) {
     }
   });
 
-  // Add click interaction for detailed view
   ctx.onclick = function(evt) {
     const activePoints = chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
     if (activePoints.length > 0) {
@@ -746,9 +762,7 @@ function renderReviewsChart(metrics) {
     }
   };
 
-  // Store chart reference to avoid canvas reuse
   window.reviewsChart = chart;
-
   return chart;
 }
 
