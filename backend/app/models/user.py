@@ -2,6 +2,7 @@ from bson import ObjectId
 import datetime
 from datetime import timezone
 from app.utils.db import connect_to_mongodb
+from app.utils.time_utils import get_syria_time
 import bcrypt
 
 class UserModel:
@@ -26,7 +27,7 @@ class UserModel:
             "shop_name": shop_name.strip(),
             "shop_type": shop_type,
             "device_token": (device_token or "").strip(),
-            "created_at": datetime.datetime.now(timezone.utc)
+            "created_at": get_syria_time()
         }
         result = self.collection.insert_one(user_data)
         return str(result.inserted_id)
@@ -37,5 +38,5 @@ class UserModel:
     def update_qr_code(self, shop_id, qr_base64):
         return self.collection.update_one(
             {"_id": ObjectId(shop_id)},
-            {"$set": {"qr_code": qr_base64, "qr_updated_at": datetime.datetime.now(timezone.utc)}}
+            {"$set": {"qr_code": qr_base64, "qr_updated_at": get_syria_time()}}
         )

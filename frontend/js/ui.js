@@ -209,7 +209,16 @@ const Utils = {
   formatDate(date) {
     if (!date) return '';
     const d = new Date(date);
-    return d.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    // استخدام تنسيق ميلادي صريح لضمان عدم عرض التاريخ الهجري
+    const options = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      calendar: 'gregory' // فرض التقويم الميلادي
+    };
+    return d.toLocaleDateString('ar', options);
   },
   truncate(text, max) { 
     if (!text) return ''; 

@@ -4,6 +4,7 @@ from app.models.review import ReviewModel
 from bson import ObjectId
 import datetime
 from datetime import timezone
+from app.utils.time_utils import get_syria_time
 
 class DashboardService(IDashboardService):
     def __init__(self):
@@ -75,7 +76,7 @@ class DashboardService(IDashboardService):
                 },
                 "recent_reviews": recent_reviews,
                 "qr_code": user.get('qr_code'),
-                "last_updated": datetime.datetime.now(timezone.utc).isoformat()
+                "last_updated": get_syria_time().isoformat()
             },
             "message": "تم جلب بيانات لوحة التحكم",
             "status": "success"

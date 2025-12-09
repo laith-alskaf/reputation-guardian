@@ -4,6 +4,7 @@ from app.models.user import UserModel
 from app.config import SECRET_KEY
 import jwt, datetime
 from datetime import timezone
+from app.utils.time_utils import get_syria_time
 
 class AuthService(IAuthService):
     def __init__(self):
@@ -19,7 +20,7 @@ class AuthService(IAuthService):
             "shop_id": shop_id,
             "shop_type": shop_type,
             "shop_name": shop_name,
-            "exp": datetime.datetime.now(timezone.utc) + datetime.timedelta(days=30)
+            "exp": (get_syria_time() + datetime.timedelta(days=30)).timestamp()
         }, SECRET_KEY, algorithm="HS256")
         return {"token": token, "shop_id": shop_id, "shop_type": shop_type ,"shop_name":shop_name}
 
@@ -32,7 +33,7 @@ class AuthService(IAuthService):
             "shop_id": str(user["_id"]),
             "shop_type": user.get("shop_type", ""),
             "shop_name": user.get("shop_name", ""),
-            "exp": datetime.datetime.now(timezone.utc) + datetime.timedelta(days=30)
+            "exp": (get_syria_time() + datetime.timedelta(days=30)).timestamp()
         }, SECRET_KEY, algorithm="HS256")
         return {"token": token, "shop_id": str(user["_id"]), "shop_type": user.get("shop_type", ""),"shop_name":user.get("shop_name", "")}
 
