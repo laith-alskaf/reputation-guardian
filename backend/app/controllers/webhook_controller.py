@@ -1,5 +1,5 @@
 from flask import Blueprint, request
-from app.services.core.webhook_service import WebhookService
+from app.services.core import WebhookService
 from app.utils.response import ResponseBuilder
 from app.dto.review_dto import ReviewDTO
 import logging
