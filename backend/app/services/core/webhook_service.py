@@ -46,7 +46,7 @@ class WebhookService:
                 f"Words: {profanity_check['summary']['total_censored_words']}"
             )
 
-        sentiment_analysis = self.sentiment_service.analyze_review_comprehensive(dto, shop_type)
+        sentiment_analysis = self.sentiment_service.analyze_review_comprehensive(self.sentiment_service,dto, shop_type)
 
         logging.info(f"Sentiment Analysis Result for {dto.email}: {sentiment_analysis.to_dict()}")
 
