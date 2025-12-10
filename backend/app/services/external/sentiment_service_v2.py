@@ -180,7 +180,7 @@ class SentimentService:
             flags.append('excessive_special_chars')
             quality_score -= 0.2
 
-        toxicity_score = SentimentServiceV2.analyze_toxicity(all_text)
+        toxicity_score = SentimentService.analyze_toxicity(all_text)
         if toxicity_score == "toxic":
             flags.append('high_toxicity')
             quality_score -= 0.4
@@ -287,10 +287,10 @@ class SentimentService:
 
     @staticmethod
     def analyze_review_comprehensive(dto: ReviewDTO, shop_type: str) -> SentimentAnalysisResultDTO:
-        cleaned_enjoy_most = SentimentServiceV2.clean_text(dto.enjoy_most or "")
-        cleaned_improve_product = SentimentServiceV2.clean_text(dto.improve_product or "")
-        cleaned_feedback = SentimentServiceV2.clean_text(dto.additional_feedback or "")
-        cleaned_text = SentimentServiceV2.clean_text(dto.text or "")
+        cleaned_enjoy_most = SentimentService.clean_text(dto.enjoy_most or "")
+        cleaned_improve_product = SentimentService.clean_text(dto.improve_product or "")
+        cleaned_feedback = SentimentService.clean_text(dto.additional_feedback or "")
+        cleaned_text = SentimentService.clean_text(dto.text or "")
         
         full_text_parts = [
             f"عدد النجوم: {dto.stars}" if dto.stars else "",
@@ -303,23 +303,23 @@ class SentimentService:
         if not full_text:
             full_text = cleaned_text
 
-        sentiment = SentimentServiceV2.analyze_sentiment(full_text)
-        toxicity = SentimentServiceV2.analyze_toxicity(full_text)
-        category = SentimentServiceV2.classify_review(
+        sentiment = SentimentService.analyze_sentiment(full_text)
+        toxicity = SentimentService.analyze_toxicity(full_text)
+        category = SentimentService.classify_review(
             sentiment=sentiment,
             toxicity=toxicity,
             stars=dto.stars,
             text=full_text
         )
 
-        quality_result = SentimentServiceV2.detect_review_quality(
+        quality_result = SentimentService.detect_review_quality(
             text=dto.text or "",
             enjoy_most=dto.enjoy_most or "",
             improve_product=dto.improve_product or "",
             additional_feedback=dto.additional_feedback or ""
         )
 
-        context_result = SentimentServiceV2.detect_context_mismatch(full_text, shop_type)
+        context_result = SentimentService.detect_context_mismatch(full_text, shop_type)
 
         is_spam = quality_result.get('is_suspicious', False)
         context_match = not context_result.get('has_mismatch', False)
