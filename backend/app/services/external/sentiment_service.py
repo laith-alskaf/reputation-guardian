@@ -267,15 +267,14 @@ class SentimentService:
         }
 
         try:
-            # تم إضافة timeout
-            response = requests.post(url, headers=headers, json=payload, timeout=30)
+            response = requests.post(url, headers=headers, json=payload)
 
             if response.status_code == 503:
                 logging.info("Model is loading, waiting...")
                 import time
                 time.sleep(20)
                 # إعادة محاولة الطلب بعد الانتظار
-                response = requests.post(url, headers=headers, json=payload, timeout=30)
+                response = requests.post(url, headers=headers, json=payload)
 
             if response.status_code == 200:
                 result = response.json()
@@ -324,9 +323,11 @@ class SentimentService:
         return {
             'mismatch_score': 0.0,
             'confidence': 100.0,
+            'reasons': 'لاشيء',
             'has_mismatch': False,
             'predicted_label': "Error"
-        }    @staticmethod
+        }    
+    @staticmethod
     def analyze_review_comprehensive(self,dto: ReviewDTO, shop_type: str) -> SentimentAnalysisResultDTO:
         cleaned_enjoy_most = SentimentService.clean_text(dto.enjoy_most or "")
         cleaned_improve_product = SentimentService.clean_text(dto.improve_product or "")
