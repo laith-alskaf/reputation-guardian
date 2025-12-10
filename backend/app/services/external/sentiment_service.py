@@ -327,7 +327,6 @@ class SentimentService:
             'has_mismatch': False,
             'predicted_label': "Error"
         }    
-    @staticmethod
     def analyze_review_comprehensive(self,dto: ReviewDTO, shop_type: str) -> SentimentAnalysisResultDTO:
         cleaned_enjoy_most = SentimentService.clean_text(dto.enjoy_most or "")
         cleaned_improve_product = SentimentService.clean_text(dto.improve_product or "")
