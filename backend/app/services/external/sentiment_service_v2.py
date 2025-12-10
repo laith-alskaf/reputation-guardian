@@ -7,7 +7,7 @@ from app.dto.sentiment_analysis_result_dto import SentimentAnalysisResultDTO
 from app.dto.review_dto import ReviewDTO
 from app.services.external.text_profanity_service import TextProfanityService
 
-class SentimentServiceV2:
+class SentimentService:
 
     @staticmethod
     def clean_text(text: str) -> str:

@@ -1,7 +1,7 @@
 import logging
 from app.models.user import UserModel
 from app.models.review import ReviewModel
-from app.services.external.sentiment_service_v2 import SentimentServiceV2
+from app.services.external.sentiment_service_v2 import SentimentService
 from app.services.external.deepseek_service_v2 import DeepSeekServiceV2
 from app.services.external.notification_service import NotificationService
 from app.dto.review_dto import ReviewDTO
@@ -10,7 +10,7 @@ class WebhookService:
     def __init__(self):
         self.user_model = UserModel()
         self.review_model = ReviewModel()
-        self.sentiment_service = SentimentServiceV2()
+        self.sentiment_service = SentimentService()
         self.deepseek_service = DeepSeekServiceV2()
         self.notification_service = NotificationService()
 
