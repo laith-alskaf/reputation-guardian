@@ -28,14 +28,14 @@ class DeepSeekService(IDeepSeekService):
             logging.error(f"AI Model Query Error: {e}")
             return None
 
-    def analyze_review_holistically(self, text, stars, shop_type, enjoy_most=None, improve_product=None, additional_feedback=None) -> AnalysisResultDTO:
+    def analyze_review_holistically(self,  stars, shop_type, enjoy_most=None, improve_product=None, additional_feedback=None) -> AnalysisResultDTO:
         """
         Performs a comprehensive analysis of the review using a single LLM call.
         Returns structured data including sentiment, category, insights, and reply.
         """
         
         # Combine all text inputs for context
-        full_text = f"Main Review: {text}\n"
+        full_text = f"Main Review: \n"
         if enjoy_most: full_text += f"Pros: {enjoy_most}\n"
         if improve_product: full_text += f"Cons/Improvement: {improve_product}\n"
         if additional_feedback: full_text += f"Extra: {additional_feedback}\n"

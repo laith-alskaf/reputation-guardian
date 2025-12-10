@@ -6,7 +6,7 @@ class ReviewDTO:
     email: str
     phone: Optional[str]
     shop_id: str
-    text: str
+    shop_name: str
     stars: int
     enjoy_most: Optional[str] = None
     improve_product: Optional[str] = None
@@ -20,7 +20,7 @@ class ReviewDTO:
             email=str(field_dict.get("email") or "").strip().lower(),
             phone=str(field_dict.get("phone") or "").strip(),
             shop_id=str(field_dict.get("shop_id") or "").strip(),
-            text=str(field_dict.get("enjoy_most") or "").strip(),
+            shop_name=str(field_dict.get("shop_name") or "").strip(),
             stars=int(field_dict.get("stars") or 0),
             enjoy_most=str(field_dict.get("enjoy_most") or "").strip(),
             improve_product=str(field_dict.get("improve_product") or "").strip(),

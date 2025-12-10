@@ -13,21 +13,25 @@ class WebhookService(IWebhookService):
         self.notification_service = NotificationService()
 
     def process_review(self, dto):
-        if not dto.email or not dto.text or not dto.shop_id:
-            raise ValueError("Missing required fields: email, text, shop_id")
+        if not dto.email or not dto.shop_id or not dto.shop_name :
+            raise ValueError("الحقول المطلوبة مفقودة: البريد الإلكتروني، النص، رقم المتجر، اسم المتجر")
+        owner = self.user_model.find_by_id(dto.shop_id)
+        if not owner:
+            raise LookupError("المتجر غير موجود")
+        db_shop_name = owner.get('shop_name')
+        if not db_shop_name or db_shop_name.strip().lower() != dto.shop_name.strip().lower():
+          raise LookupError("اسم المتجر غير صحيح")
 
         # 1. Check Duplicates
         existing_review = self.review_model.find_existing_review(dto.email, dto.shop_id)
         if existing_review:
             raise LookupError("لقد قمت بإرسال تقييم لهذا المتجر مسبقاً")
 
-        # 2. Get Shop Info
-        owner = self.user_model.find_by_id(dto.shop_id)
+        # 2. Get Shop Type
         shop_type = owner.get('shop_type', 'عام') if owner else 'عام'
 
         # 3. Comprehensive AI Analysis (One Shot)
         analysis_result = self.deepseek_service.analyze_review_holistically(
-            text=dto.text,
             stars=dto.stars,
             shop_type=shop_type,
             enjoy_most=dto.enjoy_most,
@@ -82,7 +86,7 @@ class WebhookService(IWebhookService):
         logging.info(f"Review saved: {review_id}")
 
         # 7. Notify Owner
-        if owner:
+        if owner and (owner.get('device_token') or owner.get('telegram_chat_id')):
             self._send_notification(owner, dto, analysis_result)
 
         return {"review_id": review_id}
