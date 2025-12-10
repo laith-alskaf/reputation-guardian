@@ -145,10 +145,10 @@ class SentimentService:
             return "إيجابي"
 
     @staticmethod
-    def detect_review_quality(text: str, enjoy_most: str, improve_product: str, additional_feedback: str) -> dict:
+    def detect_review_quality( enjoy_most: str, improve_product: str, additional_feedback: str) -> dict:
         flags = []
         quality_score = 1.0
-        all_text = f"{text} {enjoy_most} {improve_product} {additional_feedback}".strip()
+        all_text = f"{enjoy_most} {improve_product} {additional_feedback}".strip()
 
         if not all_text or len(all_text.strip()) < 3:
             return {
@@ -290,7 +290,6 @@ class SentimentService:
         cleaned_enjoy_most = SentimentService.clean_text(dto.enjoy_most or "")
         cleaned_improve_product = SentimentService.clean_text(dto.improve_product or "")
         cleaned_feedback = SentimentService.clean_text(dto.additional_feedback or "")
-        cleaned_text = SentimentService.clean_text(dto.text or "")
         
         full_text_parts = [
             f"عدد النجوم: {dto.stars}" if dto.stars else "",
@@ -313,7 +312,6 @@ class SentimentService:
         )
 
         quality_result = SentimentService.detect_review_quality(
-            text=dto.text or "",
             enjoy_most=dto.enjoy_most or "",
             improve_product=dto.improve_product or "",
             additional_feedback=dto.additional_feedback or ""
