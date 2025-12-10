@@ -73,7 +73,6 @@ class WebhookService(IWebhookService):
             "context_match": analysis_result.context_match,
 
             "original_fields": {
-                "text": dto.text,
                 "phone": dto.phone,
                 "enjoy_most": dto.enjoy_most,
                 "improve_product": dto.improve_product,
