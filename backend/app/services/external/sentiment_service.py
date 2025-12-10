@@ -3,16 +3,17 @@ import re
 import unicodedata
 import logging
 from app.config import HF_TOKEN, HF_SENTIMENT_MODEL_URL, HF_TOXICITY_MODEL_URL
-from app.services_interfaces import ISentimentService
-from backend.app.dto.review_dto import ReviewDTO
+from app.dto.sentiment_analysis_result_dto import SentimentAnalysisResultDTO
+from app.dto.review_dto import ReviewDTO
+from app.services.external.text_profanity_service import TextProfanityService
 
-class SentimentService(ISentimentService):
+class SentimentService:
 
     @staticmethod
     def clean_text(text: str) -> str:
         try:
             if not text or not isinstance(text, str):
-              return ""
+                return ""
             text = unicodedata.normalize('NFKC', text)
             text = re.sub(r'[^a-zA-Z0-9\u0660-\u0669\u0600-\u06FF\s.,!?؛؟]', '', text).strip()
             return text
@@ -21,35 +22,28 @@ class SentimentService(ISentimentService):
             return str(text) if text else ""
 
     @staticmethod
-    def analyze_sentiment(dto: ReviewDTO) -> str:
-
-        cleaned_enjoy_most = SentimentService.clean_text(dto.enjoy_most)
-        cleaned_improve_product = SentimentService.clean_text(dto.improve_product)
-        cleaned_feedback = SentimentService.clean_text(dto.additional_feedback)
-        full_text_parts = [
-            f"عدد النجوم: {dto.stars}" if dto.stars else "",
-            f"أكثر ما أعجبني: {cleaned_enjoy_most}" if cleaned_enjoy_most else "",
-            f"اقتراح للتحسين: {cleaned_improve_product}" if cleaned_improve_product else "",
-            f"ملاحظات إضافية: {cleaned_feedback}" if cleaned_feedback else ""
-        ]
-        full_text = " | ".join([part for part in full_text_parts if part]).strip()
-
-        if not full_text:
+    def analyze_sentiment(text: str) -> str:
+        if not text or not text.strip():
             return "محايد"
+
         headers = {"Authorization": f"Bearer {HF_TOKEN}"}
         url = HF_SENTIMENT_MODEL_URL
         try:
-            response = requests.post(url, headers=headers, json={"inputs": full_text})
+            response = requests.post(url, headers=headers, json={"inputs": text})
             if response.status_code == 200:
                 result = response.json()
-                
                 label = None
 
                 if isinstance(result, list) and result:
-                    label = result[0].get("label", "neutral")
-                elif isinstance(result, dict) and "labels" in result:
-                    label = result["labels"][0]
-
+                    first_element = result[0]
+                    if isinstance(first_element, list) and first_element:
+                        if isinstance(first_element[0], dict):
+                            label = first_element[0].get("label", "neutral")
+                    elif isinstance(first_element, dict): 
+                        label = first_element.get("label", "neutral")        
+                    else:          
+                            # تسجيل خطأ/تحذير إذا كانت القائمة تحتوي على عنصر غير متوقع
+                        logging.warning(f"Sentiment API returned list but first element is not a dict: {first_element}")
                 if label:
                     mapping = {
                         "positive": "إيجابي",
@@ -90,24 +84,42 @@ class SentimentService(ISentimentService):
                         "multi_label": False
                     }
                 },
-                timeout=10
             )
 
             if response.status_code == 200:
                 result = response.json()
-                labels = result.get("labels", [])
-                scores = result.get("scores", [])
 
-                if labels and scores:
-                    top_label = labels[0]
-                    top_score = scores[0]
+                if isinstance(result, list) and result and isinstance(result[0], dict):
+                    top_result = result[0]
+                    top_label = top_result.get("label")
+                    top_score = top_result.get("score")
 
-                    if top_label == toxic_label and top_score > 0.60:
-                        return "toxic"
-                    elif top_label == toxic_label and top_score <= 0.60:
-                        return "uncertain"
-                    else:
-                        return "non-toxic"
+                    if top_label and top_score is not None:
+                        if top_label == toxic_label and top_score > 0.60:
+                            return "toxic"
+                        elif top_label == toxic_label and top_score <= 0.60:
+                            return "uncertain"
+                        else:
+                            return "non-toxic"
+                
+                # ** حالة احتياطية إذا عادت الاستجابة إلى شكل القاموس (Zero-Shot Classification) **
+                elif isinstance(result, dict):
+                    labels = result.get("labels", [])
+                    scores = result.get("scores", [])
+                    
+                    if labels and scores:
+                        top_label = labels[0]
+                        top_score = scores[0]
+                        if top_label == toxic_label and top_score > 0.60:
+                            return "toxic"
+                        elif top_label == toxic_label and top_score <= 0.60:
+                            return "uncertain"
+                        else:
+                            return "non-toxic"
+                
+                else:
+                    logging.error(f"Toxicity API returned unexpected type: {type(result)}. Full result: {result}")
+
 
             elif response.status_code == 503:
                 logging.info("Model loading, skipping toxicity check")
@@ -119,19 +131,13 @@ class SentimentService(ISentimentService):
 
         return "non-toxic"
 
-
     @staticmethod
     def classify_review(sentiment: str, toxicity: str, stars: int = None, text: str = "") -> str:
-        """
-        تصنيف نوع التقييم بناءً على المشاعر، السمية، النجوم، والنص
-        """
-        # تحويل الإدخالات لضمان الاتساق
         sentiment_normalized = sentiment.lower() if sentiment else "neutral"
         is_negative_sentiment = sentiment_normalized in ["سلبي", "negative", "label_0"]
         is_positive_sentiment = sentiment_normalized in ["إيجابي", "positive", "label_1"]
         is_toxic = toxicity == "toxic"
 
-        # دمج مع النجوم إذا كانت متوفرة
         if stars is not None:
             if stars <= 2:
                 is_negative_sentiment = True
@@ -140,14 +146,12 @@ class SentimentService(ISentimentService):
                 is_negative_sentiment = False
                 is_positive_sentiment = True
 
-        # تحليل النص للكشف عن كلمات دالة على الشكاوى
         complaint_keywords = [
             "سرق", "انتزع", "خدع", "غش", "زبالة", "خري", "بخرا", "ما بنصح",
             "جربان", "كذب", "غير صادق", "سيء", "رديء", "مش حلو", "مش طيب"
         ]
         has_complaint_words = any(keyword in text.lower() for keyword in complaint_keywords)
 
-        # منطق التصنيف المحسن
         if is_negative_sentiment or has_complaint_words:
             if is_toxic or has_complaint_words:
                 return "شكوى"
@@ -156,22 +160,25 @@ class SentimentService(ISentimentService):
         elif is_positive_sentiment:
             return "إيجابي"
         else:
-            # في الحالات المحايدة، اعتمد على النجوم
             if stars is not None:
                 if stars <= 2:
                     return "نقد"
                 elif stars >= 4:
                     return "إيجابي"
-            return "إيجابي"  # افتراض إيجابي للمحايد
+            return "إيجابي"
 
     @staticmethod
-    def detect_review_quality(text: str, enjoy_most: str, improve_product: str, additional_feedback: str) -> dict:
+    def detect_review_quality( enjoy_most: str, improve_product: str, additional_feedback: str) -> dict:
         flags = []
         quality_score = 1.0
-        all_text = f"{text} {enjoy_most} {improve_product} {additional_feedback}".strip()
+        all_text = f"{enjoy_most} {improve_product} {additional_feedback}".strip()
 
         if not all_text or len(all_text.strip()) < 3:
-            return {'quality_score': 0.0, 'flags': ['empty_content'], 'is_suspicious': True}
+            return {
+                'quality_score': 0.0,
+                'flags': ['empty_content'],
+                'is_suspicious': True
+            }
 
         try:
             arabic_chars = sum(1 for c in all_text if '\u0600' <= c <= '\u06FF')
@@ -182,9 +189,11 @@ class SentimentService(ISentimentService):
                 quality_score -= 0.3
         except Exception as e:
             logging.error(f"Language detection error: {e}")
-        if total_alpha > 500:  # تقييم طويل جداً قد يكون غير طبيعي
-           flags.append('too_long')
-           quality_score -= 0.1
+
+        if total_alpha > 500:
+            flags.append('too_long')
+            quality_score -= 0.1
+
         if re.search(r'(.)\1{4,}', all_text):
             flags.append('repetitive_characters')
             quality_score -= 0.2
@@ -217,13 +226,10 @@ class SentimentService(ISentimentService):
 
     @staticmethod
     def detect_context_mismatch(text: str, shop_type: str) -> dict:
-        """
-        يكشف عن عدم تطابق المحتوى باستخدام مقارنة ذكية بين نوع المتجر وسياقات أخرى.
-        """
+        """يكتشف ما إذا كان النص غير مرتبط بالسياق التجاري المحدد."""
         headers = {"Authorization": f"Bearer {HF_TOKEN}"}
         url = HF_TOXICITY_MODEL_URL
 
-        # 1. تحسين القاموس ليشمل كلمات مفتاحية أكثر دقة
         shop_types_arabic = {
             "مطعم": "مطعم وأكل ومشروبات",
             "مقهى": "مقهى وقهوة ومشروبات",
@@ -246,11 +252,7 @@ class SentimentService(ISentimentService):
             "عام": "نشاط تجاري عام"
         }
 
-        # الحصول على التصنيف العربي المناسب (أو استخدام نفس الكلمة إذا لم توجد في القاموس)
         target_label = shop_types_arabic.get(shop_type, shop_type)
-
-        # 2. إضافة تصنيفات منافسة (إجبار الموديل على الاختيار)
-        # هذا هو السر للدقة: نعطي الموديل خيار "تعليق عام" وخيار "شيء آخر"
         general_label = "خدمة عملاء وتعامل عام ونظافة"
         other_label = "سياق آخر غير مرتبط"
 
@@ -260,61 +262,204 @@ class SentimentService(ISentimentService):
             "inputs": text,
             "parameters": {
                 "candidate_labels": candidate_labels,
-                "multi_label": False  # نريد مجموع النسب يساوي 100%
+                "multi_label": False
             }
         }
 
         try:
-            response = requests.post(url, headers=headers, json=payload)
+            # تم إضافة timeout
+            response = requests.post(url, headers=headers, json=payload, timeout=30)
 
-            # معالجة حالة "الموديل قيد التحميل" (شائعة في Hugging Face)
             if response.status_code == 503:
                 logging.info("Model is loading, waiting...")
                 import time
-                time.sleep(20)  # انتظار التحميل
-                response = requests.post(url, headers=headers, json=payload)
+                time.sleep(20)
+                # إعادة محاولة الطلب بعد الانتظار
+                response = requests.post(url, headers=headers, json=payload, timeout=30)
 
             if response.status_code == 200:
                 result = response.json()
+                labels = []
+                scores = []
+                
+                # 🛠️ التعديل لمعالجة الاستجابة كقائمة (List)
+                if isinstance(result, list):
+                    for item in result:
+                        if isinstance(item, dict) and 'label' in item and 'score' in item:
+                            labels.append(item['label'])
+                            scores.append(item['score'])
+                
+                # حالة احتياطية إذا كانت الاستجابة قاموس (Zero-Shot القياسي)
+                elif isinstance(result, dict):
+                    labels = result.get("labels", [])
+                    scores = result.get("scores", [])
+                
+                else:
+                    logging.error(f"Context API returned unexpected type: {type(result)}. Full result: {result}")
 
-                # API Zero-Shot يرجع dict يحتوي على labels و scores مرتبة
-                # { "labels": ["مطعم...", "خدمة...", "سياق آخر"], "scores": [0.8, 0.1, 0.1] }
+                if labels and scores:
+                    # يتم استخدام المنطق الأصلي الخاص بك الآن بعد استخراج labels و scores
+                    result_map = {label: score for label, score in zip(labels, scores)}
 
-                labels = result.get("labels", [])
-                scores = result.get("scores", [])
+                    target_score = result_map.get(target_label, 0)
+                    general_score = result_map.get(general_label, 0)
+                    other_score = result_map.get(other_label, 0)
 
-                # إنشاء خريطة للنتائج ليسهل التعامل معها
-                result_map = {label: score for label, score in zip(labels, scores)}
+                    valid_relevance = target_score + general_score
+                    has_mismatch = valid_relevance < 0.40
 
-                # 3. منطق التحقق الذكي
-                # نجمع نسبة "نوع المتجر" + "التعليق العام"
-                target_score = result_map.get(target_label, 0)
-                general_score = result_map.get(general_label, 0)
-                other_score = result_map.get(other_label, 0)
-
-                valid_relevance = target_score + general_score
-
-                # نعتبره mismatch فقط إذا كان "سياق آخر" هو المسيطر بقوة
-                # أو إذا كانت الصلة بالمتجر والعام ضعيفة جداً (أقل من 40%)
-                has_mismatch = valid_relevance < 0.40
-
-                return {
-                    'mismatch_score': round(other_score, 2),  # كلما زاد هذا، زاد احتمال الخطأ
-                    'confidence': round(valid_relevance * 100, 2),
-                    'reasons': [f"النص يبدو بعيداً عن سياق {shop_type} أو الخدمة العامة"] if has_mismatch else [],
-                    'has_mismatch': has_mismatch,
-                    'predicted_label': labels[0] if labels else None  # أعلى تصنيف توقعه الموديل
-                }
+                    return {
+                        'mismatch_score': round(other_score, 2),
+                        'confidence': round(valid_relevance * 100, 2),
+                        'reasons': [f"النص يبدو بعيداً عن سياق {shop_type} أو الخدمة العامة"] if has_mismatch else [],
+                        'has_mismatch': has_mismatch,
+                        'predicted_label': labels[0] if labels else None
+                    }
             else:
                 logging.error(f"HF API Error: {response.status_code} - {response.text}")
 
         except Exception as e:
             logging.error(f"Context mismatch detection error: {e}")
 
-        # Fallback في حالة الخطأ
         return {
             'mismatch_score': 0.0,
-            'confidence': 100.0,  # نفترض حسن النية عند الخطأ التقني
+            'confidence': 100.0,
             'has_mismatch': False,
             'predicted_label': "Error"
+        }    @staticmethod
+    def analyze_review_comprehensive(self,dto: ReviewDTO, shop_type: str) -> SentimentAnalysisResultDTO:
+        cleaned_enjoy_most = SentimentService.clean_text(dto.enjoy_most or "")
+        cleaned_improve_product = SentimentService.clean_text(dto.improve_product or "")
+        cleaned_feedback = SentimentService.clean_text(dto.additional_feedback or "")
+        
+        full_text_parts = [
+            f"عدد النجوم: {dto.stars}" if dto.stars else "",
+            f"أكثر ما أعجبني: {cleaned_enjoy_most}" if cleaned_enjoy_most else "",
+            f"اقتراح للتحسين: {cleaned_improve_product}" if cleaned_improve_product else "",
+            f"ملاحظات إضافية: {cleaned_feedback}" if cleaned_feedback else ""
+        ]
+        full_text = " | ".join([part for part in full_text_parts if part]).strip()
+
+        if not full_text:
+            full_text = cleaned_text
+
+        sentiment = SentimentService.analyze_sentiment(full_text)
+        toxicity = SentimentService.analyze_toxicity(full_text)
+        category = SentimentService.classify_review(
+            sentiment=sentiment,
+            toxicity=toxicity,
+            stars=dto.stars,
+            text=full_text
+        )
+
+        quality_result = SentimentService.detect_review_quality(
+            enjoy_most=dto.enjoy_most or "",
+            improve_product=dto.improve_product or "",
+            additional_feedback=dto.additional_feedback or ""
+        )
+
+        context_result = SentimentService.detect_context_mismatch(full_text, shop_type)
+
+        is_spam = quality_result.get('is_suspicious', False)
+        context_match = not context_result.get('has_mismatch', False)
+
+        return SentimentAnalysisResultDTO(
+            sentiment=sentiment,
+            toxicity=toxicity,
+            category=category,
+            quality_score=quality_result.get('quality_score', 1.0),
+            is_spam=is_spam,
+            context_match=context_match,
+            quality_flags=quality_result.get('flags', []),
+            mismatch_reasons=context_result.get('reasons', [])
+        )
+
+    @staticmethod
+    def detect_and_censor_profanity_in_review(
+        text: str = "",
+        enjoy_most: str = "",
+        improve_product: str = "",
+        additional_feedback: str = "",
+        use_hf: bool = True
+    ) -> dict:
+        result = {
+            'text': {
+                'original': text,
+                'censored': text,
+                'has_profanity': False,
+                'profanity_score': 0.0,
+                'censored_words': []
+            },
+            'enjoy_most': {
+                'original': enjoy_most,
+                'censored': enjoy_most,
+                'has_profanity': False,
+                'censored_words': []
+            },
+            'improve_product': {
+                'original': improve_product,
+                'censored': improve_product,
+                'has_profanity': False,
+                'censored_words': []
+            },
+            'additional_feedback': {
+                'original': additional_feedback,
+                'censored': additional_feedback,
+                'has_profanity': False,
+                'censored_words': []
+            },
+            'summary': {
+                'total_fields_with_profanity': 0,
+                'total_censored_words': [],
+                'has_any_profanity': False,
+                'overall_profanity_score': 0.0,
+                'method': 'hf' if use_hf else 'regex'
+            }
         }
+
+        fields = [
+            ('text', text),
+            ('enjoy_most', enjoy_most),
+            ('improve_product', improve_product),
+            ('additional_feedback', additional_feedback)
+        ]
+
+        total_censored = []
+        fields_with_profanity = 0
+        total_score = 0.0
+
+        for field_name, field_text in fields:
+            if field_text and field_text.strip():
+                if use_hf and field_name == 'text':
+                    profanity_details = TextProfanityService.detect_profanity_with_hf(field_text)
+                    has_profanity = profanity_details['has_profanity']
+                    profanity_score = profanity_details['profanity_score']
+                else:
+                    profanity_details = TextProfanityService._detect_profanity_with_patterns(field_text)
+                    has_profanity = profanity_details['has_profanity']
+                    profanity_score = profanity_details['profanity_score']
+
+                censored_text, censored_words = TextProfanityService.censor_profanity(
+                    field_text,
+                    censor_char='*',
+                    method='word'
+                )
+
+                result[field_name]['censored'] = censored_text
+                result[field_name]['has_profanity'] = has_profanity
+                result[field_name]['profanity_score'] = profanity_score
+                result[field_name]['censored_words'] = censored_words
+
+                if has_profanity:
+                    fields_with_profanity += 1
+                    total_score += profanity_score
+
+                total_censored.extend(censored_words)
+
+        result['summary']['total_fields_with_profanity'] = fields_with_profanity
+        result['summary']['total_censored_words'] = list(set(total_censored))
+        result['summary']['has_any_profanity'] = fields_with_profanity > 0
+        if fields_with_profanity > 0:
+            result['summary']['overall_profanity_score'] = round(total_score / fields_with_profanity, 3)
+
+        return result
