@@ -95,6 +95,25 @@ const DashboardManager = {
       const response = await window.API.dashboard.getDashboard();
       const data = response.data || response;
 
+      // Handle QR code logic
+      let qrCode = data.qr_code;
+
+      // If QR code is missing or invalid base64, try to fetch/generate it
+      if (!qrCode && data.shop_info?.shop_id) {
+        try {
+          const qrResponse = await window.API.qr.getQR(data.shop_info.shop_id);
+          const qrData = qrResponse.data || qrResponse;
+          qrCode = qrData.qr_code;
+        } catch (qrError) {
+          console.warn('Failed to fetch/generate QR on load:', qrError);
+        }
+      }
+
+      // Ensure Base64 prefix
+      if (qrCode && !qrCode.startsWith('data:image/png;base64,')) {
+        qrCode = `data:image/png;base64,${qrCode}`;
+      }
+
       // Store all data
       this.state.allData = {
         processed_reviews: data.processed_reviews || [],
@@ -102,7 +121,7 @@ const DashboardManager = {
         rejected_irrelevant_reviews: data.rejected_irrelevant_reviews || [],
         metrics: data.metrics || {},
         shop_info: data.shop_info || {},
-        qr_code: data.qr_code,
+        qr_code: qrCode,
         last_updated: data.last_updated
       };
 
@@ -314,7 +333,7 @@ const DashboardManager = {
 
     // Sentiment filter
     if (this.state.filters.sentiment) {
-      reviews = reviews.filter(r => 
+      reviews = reviews.filter(r =>
         (r.overall_sentiment || r.analysis?.sentiment) === this.state.filters.sentiment
       );
     }
@@ -408,8 +427,8 @@ const DashboardManager = {
     const container = document.getElementById('reviewsContainer');
     if (!container) return;
 
-    const reviews = this.state.filteredReviews.length > 0 
-      ? this.state.filteredReviews 
+    const reviews = this.state.filteredReviews.length > 0
+      ? this.state.filteredReviews
       : this.getCurrentTabReviews();
 
     if (reviews.length === 0) {
@@ -625,7 +644,7 @@ const DashboardManager = {
   getRejectionReason(review) {
     if (this.state.currentTab === 'rejected-quality') {
       const flags = review.analysis?.quality?.flags || [];
-      return flags.length > 0 
+      return flags.length > 0
         ? `الأسباب: ${flags.join(', ')}`
         : 'التقييم لم يستوف معايير الجودة المطلوبة';
     } else if (this.state.currentTab === 'rejected-irrelevant') {
@@ -662,7 +681,7 @@ const DashboardManager = {
     const startIdx = (this.state.currentPage - 1) * this.state.itemsPerPage + 1;
     const endIdx = Math.min(this.state.currentPage * this.state.itemsPerPage, totalReviews);
 
-    document.getElementById('pageInfo').textContent = 
+    document.getElementById('pageInfo').textContent =
       `الصفحة ${this.state.currentPage} من ${totalPages} (${startIdx}-${endIdx} من ${totalReviews})`;
 
     document.getElementById('prevBtn').disabled = this.state.currentPage === 1;
@@ -769,7 +788,7 @@ const DashboardManager = {
           },
           tooltip: {
             callbacks: {
-              label: function(context) {
+              label: function (context) {
                 const label = context.label || '';
                 const value = context.parsed || 0;
                 const total = context.dataset.data.reduce((a, b) => a + b, 0);
@@ -882,7 +901,7 @@ const DashboardManager = {
     }
 
     // Satisfaction rate
-    const positiveCount = allReviews.filter(r => 
+    const positiveCount = allReviews.filter(r =>
       r.overall_sentiment === 'إيجابي'
     ).length;
     const satisfactionRate = Math.round((positiveCount / allReviews.length) * 100);
@@ -899,7 +918,7 @@ const DashboardManager = {
     if (lastWeek.length === 0) {
       document.getElementById('trendsIndicator').textContent = '→ ثابت';
     } else {
-      const lastWeekPositive = lastWeek.filter(r => 
+      const lastWeekPositive = lastWeek.filter(r =>
         r.overall_sentiment === 'إيجابي'
       ).length;
       const lastWeekRate = (lastWeekPositive / lastWeek.length) * 100;
@@ -969,7 +988,12 @@ const DashboardManager = {
       const response = await window.API.qr.generateQR();
       const data = response.data || response;
 
-      this.state.allData.qr_code = data.qr_code;
+      let qrCode = data.qr_code;
+      if (qrCode && !qrCode.startsWith('data:image/png;base64,')) {
+        qrCode = `data:image/png;base64,${qrCode}`;
+      }
+
+      this.state.allData.qr_code = qrCode;
       this.updateQRSection();
 
       window.UI.Toast.show('تم إنشاء رمز QR جديد', 'success');
