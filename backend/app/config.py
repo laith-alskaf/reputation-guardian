@@ -42,3 +42,4 @@ SHOP_TYPES = [
 
 # Other
 TALLY_FORM_URL = os.environ.get('TALLY_FORM_URL')
+SIGNING_SECRET = os.environ.get('SIGNING_SECRET')

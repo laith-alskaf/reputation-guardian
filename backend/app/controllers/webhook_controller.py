@@ -1,14 +1,33 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, abort
 from app.services.core import WebhookService
 from app.utils.response import ResponseBuilder
 from app.dto.review_dto import ReviewDTO
+from app import config
 import logging
+import hmac
+import hashlib
+import base64
 
 webhook_bp = Blueprint('webhook', __name__)
 webhook_service = WebhookService()
 
 @webhook_bp.route('/webhook', methods=['POST'])
 def webhook():
+    # Verify Signature
+    if config.SIGNING_SECRET:
+        signature = request.headers.get('Tally-Signature')
+        if not signature:
+             return ResponseBuilder.error("Missing Tally-Signature header", 401)
+        
+        # Calculate expected signature
+        payload = request.get_data()
+        calculated_signature = base64.b64encode(
+            hmac.new(config.SIGNING_SECRET.encode('utf-8'), payload, hashlib.sha256).digest()
+        ).decode('utf-8')
+        
+        if not hmac.compare_digest(signature, calculated_signature):
+             return ResponseBuilder.error("Invalid Signature", 403)
+
     try:
         data = request.json or {}
 
