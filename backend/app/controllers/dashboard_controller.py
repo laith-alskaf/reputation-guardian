@@ -25,6 +25,20 @@ def get_dashboard():
         error_message = handle_mongodb_errors(e)
         logging.error(f"Dashboard retrieval failed: {e}")
         return ResponseBuilder.error(error_message, 400)
+
+@dashboard_bp.route('/dashboard/rejected', methods=['GET'])
+@token_required
+def get_rejected_dashboard():
+    try:
+        # The `shop_id` is available on `request` from the `@token_required` decorator
+        rejected_data = dashboard_service.get_rejected_reviews(request.shop_id)
+        return ResponseBuilder.success(rejected_data, "تم جلب التقييمات المرفوضة", 200)
+
+    except Exception as e:
+        error_message = handle_mongodb_errors(e)
+        logging.error(f"Rejected reviews retrieval failed: {e}")
+        return ResponseBuilder.error(error_message, 400)
+
 @dashboard_bp.route('/profile', methods=['GET'])
 @token_required
 def get_profile():

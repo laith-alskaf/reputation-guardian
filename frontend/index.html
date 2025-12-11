@@ -66,31 +66,138 @@
 
   <!-- Hero Section -->
   <section id="home" class="hero">
-    <div class="container">
-      <div class="hero-content">
-        <h1>حول تقييمات عملائك إلى<br>قصص نجاح حقيقية</h1>
+    <div class="hero-background"></div>
+    <div class="container hero-container">
+      <div class="hero-content animate-fade-in-up">
+        <div class="hero-badge">
+          <span class="badge-dot"></span>
+          <span>النظام الأول في الشرق الأوسط للتحليل الذكي</span>
+        </div>
+        
+        <h1 class="hero-title">
+          <span class="highlight-text">حول التقييمات</span> إلى 
+          <span class="highlight-text">قوة نمو</span> 
+          لعملك
+        </h1>
+        
         <p class="hero-subtitle">
-          نظام ذكي متكامل مدعوم بالذكاء الاصطناعي لإدارة سمعتك الرقمية، تحليل آراء العملاء، وزيادة المبيعات من خلال الثقة.
+          نظام إدارة تقييمات ذكي مدعوم بـ AI يفهم عملاءك أفضل من أي وقت مضى. 
+          اكتشف الفرص، حل المشاكل، وبني سمعة رقمية قوية في ثوانٍ.
         </p>
+
+        <div class="hero-stats">
+          <div class="stat">
+            <div class="stat-number">+10K</div>
+            <div class="stat-label">تاجر مشترك</div>
+          </div>
+          <div class="stat">
+            <div class="stat-number">98%</div>
+            <div class="stat-label">دقة التحليل</div>
+          </div>
+          <div class="stat">
+            <div class="stat-number">24/7</div>
+            <div class="stat-label">دعم فني</div>
+          </div>
+        </div>
+
         <div class="hero-buttons">
-          <button class="btn btn-primary btn-lg" onclick="showRegisterModal()">
-            <i class="fas fa-rocket"></i> جرب مجاناً
+          <button class="btn btn-primary btn-lg btn-with-icon" onclick="showRegisterModal()">
+            <i class="fas fa-rocket"></i>
+            <span>ابدأ الآن مجاناً</span>
+            <i class="fas fa-arrow-left"></i>
           </button>
           <button class="btn btn-outline btn-lg" onclick="document.getElementById('features').scrollIntoView()">
-            <i class="fas fa-play-circle"></i> كيف يعمل؟
+            <i class="fas fa-play-circle"></i> شاهد التوضيح
           </button>
+        </div>
+
+        <div class="hero-trust">
+          <p>موثوق من قبل الشركات الكبرى</p>
+          <div class="trust-logos">
+            <div class="trust-logo">📱</div>
+            <div class="trust-logo">🏪</div>
+            <div class="trust-logo">🍽️</div>
+            <div class="trust-logo">💼</div>
+          </div>
         </div>
       </div>
 
-      <div class="hero-image">
-        <div class="hero-placeholder">
-          <i class="fas fa-chart-pie" style="font-size: 5rem; color: var(--primary); margin-bottom: 1rem;"></i>
-          <h3>لوحة تحكم تفاعلية</h3>
-          <p>تحليلات فورية ودقيقة لأداء أعمالك</p>
-          <div style="margin-top: 1.5rem; display: flex; gap: 1rem; justify-content: center;">
-            <div style="height: 8px; width: 60px; background: var(--border); border-radius: 4px;"></div>
-            <div style="height: 8px; width: 30px; background: var(--success); border-radius: 4px;"></div>
+      <div class="hero-visual animate-float" style="animation-delay: 0.2s;">
+        <div class="hero-card card-1">
+          <div class="card-icon">⭐</div>
+          <div class="card-content">
+            <div class="card-label">تقييم جديد</div>
+            <div class="card-value">5 نجوم</div>
           </div>
+        </div>
+
+        <div class="hero-card card-2">
+          <div class="card-icon">🔍</div>
+          <div class="card-content">
+            <div class="card-label">تحليل</div>
+            <div class="card-value">إيجابي جداً</div>
+          </div>
+        </div>
+
+        <div class="hero-card card-3">
+          <div class="card-icon">💡</div>
+          <div class="card-content">
+            <div class="card-label">الاقتراح</div>
+            <div class="card-value">محسّن</div>
+          </div>
+        </div>
+
+        <div class="hero-chart">
+          <div class="chart-bar positive"></div>
+          <div class="chart-bar positive"></div>
+          <div class="chart-bar neutral"></div>
+          <div class="chart-bar negative"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section class="how-it-works">
+    <div class="container">
+      <div class="section-header">
+        <h2>كيف يعمل النظام؟</h2>
+        <p>عملية بسيطة وذكية في 4 خطوات</p>
+      </div>
+
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-number">1</div>
+          <i class="fas fa-qrcode step-icon"></i>
+          <h3>شارك رمز QR</h3>
+          <p>أنشئ رمز QR مخصص وضعه في متجرك لتشجيع العملاء على التقييم</p>
+        </div>
+
+        <div class="step-arrow">→</div>
+
+        <div class="step-card">
+          <div class="step-number">2</div>
+          <i class="fas fa-lightbulb step-icon"></i>
+          <h3>استقبل التقييمات</h3>
+          <p>استلم التقييمات تلقائياً مع جميع التفاصيل والبيانات الكاملة</p>
+        </div>
+
+        <div class="step-arrow">→</div>
+
+        <div class="step-card">
+          <div class="step-number">3</div>
+          <i class="fas fa-brain step-icon"></i>
+          <h3>تحليل ذكي</h3>
+          <p>الذكاء الاصطناعي يحلل المشاعر والمشاكل ويقترح الحلول تلقائياً</p>
+        </div>
+
+        <div class="step-arrow">→</div>
+
+        <div class="step-card">
+          <div class="step-number">4</div>
+          <i class="fas fa-chart-line step-icon"></i>
+          <h3>نمو مستمر</h3>
+          <p>تتبع التحسيرات وشاهد نمو سمعتك وعملك مع الوقت</p>
         </div>
       </div>
     </div>
@@ -100,33 +207,156 @@
   <section id="features" class="features">
     <div class="container">
       <div class="section-header">
-        <h2>لماذا تختار حارس السمعة؟</h2>
-        <p>مجموعة متكاملة من الأدوات المصممة خصيصاً لنمو أعمالك</p>
+        <h2>المميزات الرئيسية</h2>
+        <p>كل ما تحتاجه لإدارة وتحسين سمعتك الرقمية</p>
       </div>
 
       <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon"><i class="fas fa-qrcode"></i></div>
+        <div class="feature-card feature-1">
+          <div class="feature-header">
+            <div class="feature-icon"><i class="fas fa-qrcode"></i></div>
+            <span class="feature-badge">إدارة سهلة</span>
+          </div>
           <h3>رموز QR ذكية</h3>
-          <p>شجع عملاءك على التقييم بسهولة تامة عبر مسح رمز QR مخصص لمتجرك.</p>
+          <p>أنشئ رموز QR مخصصة وشاهد إحصائيات مفصلة عن كل رمز. تتبع أي رمز ينجح أكثر من غيره.</p>
+          <div class="feature-points">
+            <div>✓ إنشاء فوري</div>
+            <div>✓ تتبع شامل</div>
+            <div>✓ تحديث مستمر</div>
+          </div>
         </div>
 
-        <div class="feature-card">
-          <div class="feature-icon"><i class="fas fa-brain"></i></div>
-          <h3>تحليل بالذكاء الاصطناعي</h3>
-          <p>افهم مشاعر عملائك بدقة. يقوم نظامنا بتحليل النصوص واكتشاف المشاكل تلقائياً.</p>
+        <div class="feature-card feature-2">
+          <div class="feature-header">
+            <div class="feature-icon"><i class="fas fa-brain"></i></div>
+            <span class="feature-badge">تقنية متقدمة</span>
+          </div>
+          <h3>ذكاء اصطناعي متطور</h3>
+          <p>فهم عميق للمشاعر والنصوص. التعرف على المشاكل والفرص قبل أن تصبح حرجة.</p>
+          <div class="feature-points">
+            <div>✓ تحليل المشاعر</div>
+            <div>✓ كشف المشاكل</div>
+            <div>✓ اقتراح الحلول</div>
+          </div>
         </div>
 
-        <div class="feature-card">
-          <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+        <div class="feature-card feature-3">
+          <div class="feature-header">
+            <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+            <span class="feature-badge">تحليلات عميقة</span>
+          </div>
           <h3>تقارير تفصيلية</h3>
-          <p>راقب أداء فروعك وموظفيك من خلال لوحة تحكم شاملة وسهلة القراءة.</p>
+          <p>رسوم بيانية جميلة وسهلة الفهم. شاهد الأداء بالتفصيل وقارن النتائج مع الفترات السابقة.</p>
+          <div class="feature-points">
+            <div>✓ مخططات فورية</div>
+            <div>✓ مقارنات تاريخية</div>
+            <div>✓ توقعات مستقبلية</div>
+          </div>
         </div>
 
-        <div class="feature-card">
-          <div class="feature-icon"><i class="fas fa-bell"></i></div>
-          <h3>تنبيهات فورية</h3>
-          <p>استلم إشعارات فورية عند وجود تقييم سلبي لتتمكن من حله قبل تفاقمه.</p>
+        <div class="feature-card feature-4">
+          <div class="feature-header">
+            <div class="feature-icon"><i class="fas fa-bell"></i></div>
+            <span class="feature-badge">تنبيهات ذكية</span>
+          </div>
+          <h3>إشعارات فورية</h3>
+          <p>لا تفوت أي تقييم مهم. تنبيهات موجهة لأهم القضايا التي تحتاج لانتباهك.</p>
+          <div class="feature-points">
+            <div>✓ تقييمات سلبية</div>
+            <div>✓ مشاكل طارئة</div>
+            <div>✓ فرص النمو</div>
+          </div>
+        </div>
+
+        <div class="feature-card feature-5">
+          <div class="feature-header">
+            <div class="feature-icon"><i class="fas fa-reply"></i></div>
+            <span class="feature-badge">مساعد ذكي</span>
+          </div>
+          <h3>ردود مقترحة</h3>
+          <p>الذكاء الاصطناعي يكتب ردود احترافية وملائمة لكل تقييم تلقائياً.</p>
+          <div class="feature-points">
+            <div>✓ ردود احترافية</div>
+            <div>✓ توافق تام</div>
+            <div>✓ توفير الوقت</div>
+          </div>
+        </div>
+
+        <div class="feature-card feature-6">
+          <div class="feature-header">
+            <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+            <span class="feature-badge">أمان عالي</span>
+          </div>
+          <h3>حماية كاملة</h3>
+          <p>بيانات آمنة وموثوقة مع تشفير عسكري وموافقة على معايير الأمان الدولية.</p>
+          <div class="feature-points">
+            <div>✓ تشفير كامل</div>
+            <div>✓ نسخ احتياطية</div>
+            <div>✓ التوافقية الدولية</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing Section -->
+  <section class="pricing">
+    <div class="container">
+      <div class="section-header">
+        <h2>خطط مرنة وميسورة</h2>
+        <p>اختر الخطة التي تناسب احتياجات عملك</p>
+      </div>
+
+      <div class="pricing-grid">
+        <div class="pricing-card starter">
+          <div class="pricing-badge">الأشهر الثلاثة الأولى مجاني</div>
+          <h3>الأساسي</h3>
+          <div class="pricing-price">
+            <span class="price-value">مجاني</span>
+            <span class="price-period">الشهر الأول</span>
+          </div>
+          <div class="pricing-features">
+            <div class="feature">✓ رموز QR غير محدودة</div>
+            <div class="feature">✓ تحليل التقييمات</div>
+            <div class="feature">✓ لوحة تحكم كاملة</div>
+            <div class="feature">✗ ردود مقترحة</div>
+            <div class="feature">✗ تقارير متقدمة</div>
+          </div>
+          <button class="btn btn-outline btn-block">ابدأ الآن</button>
+        </div>
+
+        <div class="pricing-card professional">
+          <div class="pricing-badge">الأكثر شهرة</div>
+          <h3>احترافي</h3>
+          <div class="pricing-price">
+            <span class="price-value">49</span>
+            <span class="price-period">ريال سعودي/شهر</span>
+          </div>
+          <div class="pricing-features">
+            <div class="feature">✓ كل ميزات الأساسي</div>
+            <div class="feature">✓ ردود مقترحة ذكية</div>
+            <div class="feature">✓ تقارير أسبوعية</div>
+            <div class="feature">✓ دعم الأولويات</div>
+            <div class="feature">✗ API للتكامل</div>
+          </div>
+          <button class="btn btn-primary btn-block">شروع الآن</button>
+        </div>
+
+        <div class="pricing-card enterprise">
+          <div class="pricing-badge">للشركات الكبرى</div>
+          <h3>متقدم</h3>
+          <div class="pricing-price">
+            <span class="price-value">199</span>
+            <span class="price-period">ريال سعودي/شهر</span>
+          </div>
+          <div class="pricing-features">
+            <div class="feature">✓ كل الميزات</div>
+            <div class="feature">✓ API للتكامل</div>
+            <div class="feature">✓ حسابات متعددة</div>
+            <div class="feature">✓ دعم 24/7</div>
+            <div class="feature">✓ تحليلات مخصصة</div>
+          </div>
+          <button class="btn btn-outline btn-block">اتصل بنا</button>
         </div>
       </div>
     </div>

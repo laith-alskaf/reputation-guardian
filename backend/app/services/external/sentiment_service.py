@@ -84,6 +84,7 @@ class SentimentService:
                         "multi_label": False
                     }
                 },
+                timeout=70
             )
 
             if response.status_code == 200:

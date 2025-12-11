@@ -11,9 +11,9 @@ webhook_service = WebhookService()
 def webhook():
     try:
         data = request.json or {}
-        dto = ReviewDTO.from_dict(data)
 
-        result = webhook_service.process_review(dto)
+        # The service layer now handles the raw dictionary directly.
+        result = webhook_service.process_review(data)
         return ResponseBuilder.success(result, "تم حفظ التقييم بنجاح", 200)
 
     except ValueError as e:

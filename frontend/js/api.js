@@ -137,6 +137,10 @@ const dashboardAPI = {
     const res = await apiRequest('/dashboard');
     return res.data || res;
   },
+  async getRejectedReviews() {
+    const res = await apiRequest('/dashboard/rejected');
+    return res.data || res;
+  },
   async getProfile() {
     const res = await apiRequest('/profile');
     return res.data || res;

@@ -26,6 +26,11 @@ FIREBASE_JSON = os.environ.get('FIREBASE_JSON')
 # Telegram
 TELEGRAM_TOKEN = os.environ.get('TELEGRAM_TOKEN')
 
+# Quality Gate
+# Defines the minimum quality score (e.g., from sentiment analysis)
+# for a review to be processed by advanced AI services.
+QUALITY_GATE_THRESHOLD = float(os.environ.get('QUALITY_GATE_THRESHOLD', 0.7))
+
 # Shop Types
 SHOP_TYPES = [
     "مطعم", "مقهى", "محل ملابس", "صيدلية", "سوبر ماركت",
