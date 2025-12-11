@@ -96,7 +96,7 @@ class SentimentService:
                     top_score = top_result.get("score")
 
                     if top_label and top_score is not None:
-                        if top_label == toxic_label and top_score > 0.60:
+                        if top_label == toxic_label and top_score > 0.50:
                             return "toxic"
                         elif top_label == toxic_label and top_score <= 0.60:
                             return "uncertain"
