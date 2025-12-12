@@ -132,7 +132,9 @@ const DashboardManager = {
       this.updateTabCounts();
       this.switchTab('processed');
       this.updateAnalyticsChart();
+      this.updateAnalyticsChart();
       this.updateStatistics();
+      this.updateTelegramStatus(); // Check telegram connection
 
       // Update last updated time
       if (data.last_updated) {
@@ -246,6 +248,46 @@ const DashboardManager = {
         </div>
       </div>
     `;
+  },
+
+  /**
+   * Update Telegram Connection Status
+   */
+  async updateTelegramStatus() {
+    try {
+        const response = await window.API.dashboard.getProfile();
+        const profile = response.data || response;
+        
+        const setupDiv = document.getElementById('telegramSetup');
+        const statusIndicator = document.getElementById('telegramStatus');
+        const connectBtn = document.getElementById('connectTelegramBtn');
+        
+        if (!setupDiv) return;
+
+        // BOT USERNAME - You should replace this with your actual bot username
+        const BOT_USERNAME = "ReputationGuardianBot"; 
+        
+        if (profile.telegram_chat_id) {
+            // Connected
+            statusIndicator.classList.remove('hidden');
+            statusIndicator.innerHTML = '<i class="fas fa-check-circle"></i> متصل';
+            statusIndicator.style.color = 'var(--success-color)';
+            connectBtn.style.display = 'none';
+            
+            // Optionally update the text
+            setupDiv.querySelector('.setup-info p').textContent = 'حسابك مربوط بنجاح. ستصلك الإشعارات هنا.';
+        } else {
+            // Not Connected
+            statusIndicator.classList.add('hidden');
+            connectBtn.style.display = 'inline-flex';
+            
+            // Set Deep Link
+            // Format: https://t.me/<BOT_USERNAME>?start=<SHOP_ID>
+            connectBtn.href = `https://t.me/${BOT_USERNAME}?start=${profile.shop_id}`;
+        }
+    } catch (error) {
+        console.error("Failed to update telegram status:", error);
+    }
   },
 
   /**

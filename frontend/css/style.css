@@ -3449,3 +3449,101 @@ a {
     padding: 1.5rem 1rem;
   }
 }
+
+/* ============================
+   Telegram Notification Card
+   ============================ */
+.notifications-card .card-content {
+    background: radial-gradient(circle at top right, rgba(0, 136, 204, 0.05), transparent 60%);
+}
+
+.notification-setup {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    padding: 1rem;
+}
+
+.setup-icon {
+    width: 64px;
+    height: 64px;
+    background: #e3f2fd;
+    color: #0088cc;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.setup-info {
+    flex-grow: 1;
+}
+
+.setup-info h4 {
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.setup-info p {
+    margin-bottom: 0.5rem;
+    color: var(--text-secondary);
+}
+
+.status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    background: #ecfdf5;
+    color: #10b981;
+}
+
+.status-indicator.hidden {
+    display: none;
+}
+
+.setup-action {
+    flex-shrink: 0;
+}
+
+.btn-telegram {
+    background-color: #0088cc;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 50px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 136, 204, 0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-telegram:hover {
+    background-color: #0077b5;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 136, 204, 0.4);
+}
+
+@media (max-width: 768px) {
+    .notification-setup {
+        flex-direction: column;
+        text-align: center;
+        gap: 1.5rem;
+    }
+    
+    .setup-action {
+        width: 100%;
+    }
+    
+    .btn-telegram {
+        width: 100%;
+        justify-content: center;
+    }
+}

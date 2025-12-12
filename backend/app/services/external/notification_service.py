@@ -1,7 +1,6 @@
 import firebase_admin
 from firebase_admin import credentials, messaging
 import json
-import telegram
 import logging
 from app.config import FIREBASE_JSON, TELEGRAM_TOKEN
 from app.services_interfaces import INotificationService
@@ -43,8 +42,17 @@ class NotificationService(INotificationService):
             return
 
         try:
-            bot = telegram.Bot(token=TELEGRAM_TOKEN)
-            bot.send_message(chat_id=chat_id, text=message)
-            logging.info(f"Telegram notification sent to {chat_id}")
+            # استخدام requests لإرسال الطلب بشكل متزامن وبسيط
+            import requests
+            url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+            data = {
+                "chat_id": chat_id,
+                "text": message
+            }
+            response = requests.post(url, data=data, timeout=10)
+            if response.status_code == 200:
+                logging.info(f"Telegram notification sent to {chat_id}")
+            else:
+                logging.error(f"Failed to send Telegram notification: {response.text}")
         except Exception as e:
             logging.error(f"Error sending Telegram notification: {e}")

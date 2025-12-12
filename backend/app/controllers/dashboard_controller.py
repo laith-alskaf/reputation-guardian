@@ -57,3 +57,30 @@ def get_profile():
     except Exception as e:
         logging.error(f"Profile retrieval failed: {e}")
         return ResponseBuilder.error("فشل في جلب معلومات الحساب", 400)
+
+@dashboard_bp.route('/profile', methods=['PUT'])
+@token_required
+def update_profile():
+    """تحديث معلومات المستخدم"""
+    try:
+        from app.models.user import UserModel
+        user_model = UserModel()
+        
+        data = request.json or {}
+        
+        # user_id comes from the token via @token_required wrapper (request.user_id)
+        # Note: token_required usually sets request.user_id. Let's assume it does or we use request.email to find.
+        # Based on get_profile, we have request.shop_id (which seems to be the user _id in this system)
+        
+        user_id = request.shop_id
+        
+        result = user_model.update_user(user_id, data)
+        
+        if result and result.modified_count > 0:
+            return ResponseBuilder.success(None, "تم تحديث البيانات بنجاح", 200)
+        else:
+            return ResponseBuilder.success(None, "لم يتم إجراء أي تغييرات", 200)
+            
+    except Exception as e:
+        logging.error(f"Profile update failed: {e}")
+        return ResponseBuilder.error("فشل في تحديث البيانات", 400)

@@ -265,3 +265,38 @@ class WebhookService:
                 self.notification_service.send_telegram_notification(owner['telegram_chat_id'], message)
         except Exception as e:
             logging.error(f"Notification failed for shop {review_doc.shop_id}: {e}")
+
+    def process_telegram_webhook(self, update_data: Dict[str, Any]):
+        """
+        Processes telegram webhook updates.
+        Handles the /start <deep_link> command to link users.
+        """
+        message = update_data.get('message', {})
+        text = message.get('text', '')
+        chat_id = message.get('chat', {}).get('id')
+        
+        if not text or not chat_id:
+            return
+            
+        if text.startswith('/start'):
+            parts = text.split()
+            if len(parts) > 1:
+                # Payload exists, e.g., /start <user_id>
+                user_id_payload = parts[1]
+                
+                # Check if user exists
+                user = self.user_model.find_by_id(user_id_payload)
+                if user:
+                    # Update user with chat_id
+                    self.user_model.update_user(user_id_payload, {"telegram_chat_id": str(chat_id)})
+                    
+                    # Send confirmation
+                    try:
+                        self.notification_service.send_telegram_notification(chat_id, "تم ربط حسابك في Reputation Guardian بنجاح! ✅\nستصلك إشعارات بالتقييمات الجديدة هنا.")
+                    except Exception as e:
+                        logging.error(f"Failed to send welcome message: {e}")
+                else:
+                    self.notification_service.send_telegram_notification(chat_id, "عذراً، لم يتم العثور على الحساب. تأكد من استخدام الرابط الصحيح من لوحة التحكم.")
+            else:
+                # Just /start without payload
+                self.notification_service.send_telegram_notification(chat_id, "مرحباً بك في بوت Reputation Guardian! 🤖\nلربط حسابك، يرجى استخدام زر 'تفعيل التنبيهات' من لوحة التحكم في الموقع.")

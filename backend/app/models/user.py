@@ -40,3 +40,19 @@ class UserModel:
             {"_id": ObjectId(shop_id)},
             {"$set": {"qr_code": qr_base64, "qr_updated_at": get_syria_time()}}
         )
+
+    def update_user(self, user_id, update_data):
+        """تحديث بيانات المستخدم"""
+        # تصفية الحقول المسموح بتحديثها فقط
+        allowed_fields = ['shop_name', 'shop_type', 'device_token', 'telegram_chat_id']
+        filtered_data = {k: v for k, v in update_data.items() if k in allowed_fields}
+        
+        if not filtered_data:
+            return None
+            
+        filtered_data['updated_at'] = get_syria_time()
+        
+        return self.collection.update_one(
+            {"_id": ObjectId(user_id)},
+            {"$set": filtered_data}
+        )

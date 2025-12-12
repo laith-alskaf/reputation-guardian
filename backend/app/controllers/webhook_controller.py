@@ -44,3 +44,16 @@ def webhook():
     except Exception as e:
         logging.error(f"Webhook error: {e}", exc_info=True)
         return ResponseBuilder.error("Internal server error", 500)
+
+@webhook_bp.route('/webhook/telegram', methods=['POST'])
+def telegram_webhook():
+    """
+    Endpoint for Telegram Webhook
+    """
+    try:
+        data = request.json or {}
+        webhook_service.process_telegram_webhook(data)
+        return ResponseBuilder.success(None, "OK", 200)
+    except Exception as e:
+        logging.error(f"Telegram Webhook error: {e}", exc_info=True)
+        return ResponseBuilder.error("Internal server error", 500)
