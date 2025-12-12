@@ -44,12 +44,22 @@ def get_rejected_dashboard():
 def get_profile():
     """Get user profile information"""
     try:
-        # Token data is already attached to request by @token_required
+        from app.models.user import UserModel
+        user_model = UserModel()
+
+        # Fetch fresh data from DB
+        user = user_model.find_by_id(request.shop_id)
+        
+        if not user:
+             return ResponseBuilder.error("المستخدم غير موجود", 404)
+
         profile_data = {
-            "shop_id": request.shop_id,
-            "email": request.email,
-            "shop_type": request.shop_type,
-            "shop_name": request.shop_name
+            "shop_id": str(user.get('_id')),
+            "email": user.get('email'),
+            "shop_type": user.get('shop_type'),
+            "shop_name": user.get('shop_name'),
+            "telegram_chat_id": user.get('telegram_chat_id'), # Important: Return this field
+            "device_token": user.get('device_token')
         }
         
         return ResponseBuilder.success(profile_data, "تم جلب معلومات الحساب", 200)

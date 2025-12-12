@@ -271,7 +271,7 @@ const DashboardManager = {
         // Connected
         statusIndicator.classList.remove('hidden');
         statusIndicator.innerHTML = '<i class="fas fa-check-circle"></i> متصل';
-        statusIndicator.style.color = 'var(--success-color)';
+        statusIndicator.style.color = 'var(--success)';
         connectBtn.style.display = 'none';
 
         // Optionally update the text
