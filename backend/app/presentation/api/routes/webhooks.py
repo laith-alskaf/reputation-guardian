@@ -21,7 +21,7 @@ def webhook():
         if not signature:
              return ResponseBuilder.error("Missing Tally-Signature header", 401)
         
-        Calculate expected signature
+        # Calculate expected signature
         payload = request.get_data()
         calculated_signature = base64.b64encode(
             hmac.new(SIGNING_SECRET.encode('utf-8'), payload, hashlib.sha256).digest()
