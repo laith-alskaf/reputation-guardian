@@ -7,9 +7,23 @@ from pathlib import Path
 def setup_logging(app):
     """Configure application logging."""
     
-    # Create logs directory if it doesn't exist
-    log_dir = Path(__file__).parent.parent.parent / 'logs'
-    log_dir.mkdir(exist_ok=True)
+    # Determine log directory based on environment
+    # Use /tmp for serverless (Vercel) since file system is read-only
+    # Use local logs directory for development
+    if os.environ.get('VERCEL') or os.environ.get('AWS_LAMBDA_FUNCTION_NAME'):
+        # Serverless environment - use /tmp
+        log_dir = Path('/tmp/logs')
+    else:
+        # Local development - use app directory
+        log_dir = Path(__file__).parent.parent.parent / 'logs'
+    
+    # Create logs directory if it doesn't exist and filesystem is writable
+    try:
+        log_dir.mkdir(parents=True, exist_ok=True)
+    except (OSError, PermissionError):
+        # If we can't create directory, fall back to /tmp
+        log_dir = Path('/tmp/logs')
+        log_dir.mkdir(parents=True, exist_ok=True)
     
     # Get log level from config
     log_level = getattr(logging, app.config.get('LOG_LEVEL', 'INFO'))
@@ -47,4 +61,4 @@ def setup_logging(app):
     app.logger.addHandler(console_handler)
     app.logger.setLevel(log_level)
     
-    app.logger.info(f"Logging configured with level: {app.config.get('LOG_LEVEL')}")
+    app.logger.info(f"Logging configured with level: {app.config.get('LOG_LEVEL')}, logs directory: {log_dir}")
