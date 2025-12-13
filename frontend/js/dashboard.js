@@ -7,6 +7,73 @@ const DashboardManager = {
   realtimeInterval: null,
   notifications: [],
 
+  /**
+   * Normalize review data to handle both old and new schema
+   * @param {Object} review - Raw review object from API
+   * @returns {Object} Normalized review with consistent field access
+   */
+  normalizeReview(review) {
+    if (!review) return {};
+
+    // Helper to safely access nested properties
+    const get = (obj, path, defaultValue = null) => {
+      return path.split('.').reduce((curr, prop) =>
+        curr && curr[prop] !== undefined ? curr[prop] : defaultValue, obj);
+    };
+
+    return {
+      // Original review object
+      _raw: review,
+
+      // Basic Info
+      id: review._id || review.id,
+      email: review.email,
+      shopId: review.shop_id,
+      status: review.status || 'processed',
+      createdAt: review.created_at || review.timestamp,
+
+      // Rating - from source.rating or legacy stars
+      rating: get(review, 'source.rating') || review.stars || 0,
+
+      // Review Text - from processing.concatenated_text or legacy text
+      text: get(review, 'processing.concatenated_text') || review.text || '',
+
+      // Profanity check
+      isProfane: get(review, 'processing.is_profane', false),
+
+      // Source Fields - from source.fields or legacy original_fields
+      sourceFields: get(review, 'source.fields') || review.original_fields || {},
+
+      // Sentiment & Category - from analysis or legacy fields
+      sentiment: get(review, 'analysis.sentiment') || review.overall_sentiment || 'محايد',
+      category: get(review, 'analysis.category') || review.category || review.review_type || 'عام',
+
+      // Quality Metrics - from analysis.quality
+      qualityScore: get(review, 'analysis.quality.quality_score'),
+      qualityFlags: get(review, 'analysis.quality.flags', []),
+      isSuspicious: get(review, 'analysis.quality.is_suspicious', false),
+
+      // Context Match - from analysis.context
+      contextMatch: get(review, 'analysis.context.has_mismatch') === false, // Invert has_mismatch
+      mismatchReasons: get(review, 'analysis.context.reasons', []),
+
+      // Key Themes - from analysis.key_themes
+      keyThemes: get(review, 'analysis.key_themes', []),
+
+      // Toxicity - from analysis.toxicity
+      toxicity: get(review, 'analysis.toxicity'),
+
+      // AI Generated Content - from generated_content
+      summary: get(review, 'generated_content.summary') || review.organized_feedback,
+      actionableInsights: get(review, 'generated_content.actionable_insights', []),
+      suggestedReply: get(review, 'generated_content.suggested_reply') || review.suggested_reply,
+
+      // Legacy support - keep for backward compatibility
+      organizedFeedback: review.organized_feedback,
+      solutions: review.solutions,
+    };
+  },
+
   async init() {
     const isAuth = await AuthManager.checkAuthStatus();
     if (!isAuth) {
@@ -35,7 +102,7 @@ const DashboardManager = {
       // Based on dashboard.js logic: const data = await window.API.dashboard.getDashboard();
       // and then renderDashboard(data).
       // If the API wrapper returns the json body directly:
-      const data = response.data || response; 
+      const data = response.data || response;
       this.renderDashboard(data);
       window.UI.Toast.show('تم تحديث البيانات بنجاح', 'success');
     } catch (e) {
@@ -114,13 +181,13 @@ const DashboardManager = {
       const original = r.original_fields || {};
       const text = r.text || original.text || '';
       // const improveProduct = r.improve_product || original.improve_product || ''; // Not used directly in display logic below, kept in original text display
-      
+
       const type = r.category || r.review_type || 'عام';
       const sentiment = r.overall_sentiment || 'محايد';
-      
+
       const typeClass = this.getReviewTypeClass(type);
       const sentimentClass = this.getSentimentClass(sentiment);
-      
+
       const stars = '⭐'.repeat(r.stars || 0);
       const date = window.UI.Utils.formatDate(r.timestamp);
 
@@ -130,7 +197,7 @@ const DashboardManager = {
 
       // Quality Score
       const qualityScore = r.quality_score !== undefined ? Math.round(r.quality_score * 100) : null;
-      const qualityBadge = qualityScore !== null ? 
+      const qualityBadge = qualityScore !== null ?
         `<span class="quality-badge ${qualityScore < 50 ? 'low' : 'high'}" title="جودة التقييم">${qualityScore}% جودة</span>` : '';
 
       // Markdown parsing with DOMPurify sanitization
@@ -140,26 +207,35 @@ const DashboardManager = {
         return DOMPurify.sanitize(rawHtml);
       };
 
-      const safeText = DOMPurify.sanitize(text);
-      const organizedFeedbackHtml = parseMarkdown(r.organized_feedback);
-      const solutionsHtml = parseMarkdown(r.solutions);
-      const suggestedReplyHtml = parseMarkdown(r.suggested_reply);
+      const safeText = DOMPurify.sanitize(r.text);
+
+      // AI-generated content from new schema
+      const summaryHtml = parseMarkdown(r.summary);
+      const insightsHtml = r.actionableInsights && r.actionableInsights.length > 0 ?
+        `<ul class="insights-list">
+          ${r.actionableInsights.map(insight =>
+          `<li>${DOMPurify.sanitize(insight)}</li>`
+        ).join('')}
+        </ul>` : '';
+      const suggestedReplyHtml = parseMarkdown(r.suggestedReply);
 
       return `
-        <div class="review-card ${sentimentClass} ${mismatchClass} animate-float-up collapsed"
-             data-sentiment="${sentiment}"
-             data-type="${type}"
-             data-stars="${r.stars || 0}"
-             data-mismatch="${!contextMatch}"
+        <div class="review-card ${sentimentClass} ${mismatchClass} ${profanityClass} animate-float-up collapsed"
+             data-sentiment="${r.sentiment}"
+             data-type="${r.category}"
+             data-stars="${r.rating}"
+             data-status="${r.status}"
+             data-mismatch="${!r.contextMatch}"
              onclick="DashboardManager.toggleReviewCard(this)">
 
           <div class="review-header">
             <div class="review-meta">
-              <div class="review-stars" title="${r.stars} نجوم">${stars}</div>
-              <span class="review-badge ${typeClass}">${type}</span>
-              <span class="sentiment-badge ${sentimentClass}">${this.getSentimentLabel(sentiment)}</span>
+              <div class="review-stars" title="${r.rating} نجوم">${stars}</div>
+              <span class="review-badge ${typeClass}">${r.category}</span>
+              <span class="sentiment-badge ${sentimentClass}">${this.getSentimentLabel(r.sentiment)}</span>
               ${qualityBadge}
-              ${!contextMatch ? `<span class="mismatch-badge" title="قد يكون التقييم عن متجر آخر">⚠️ غير متطابق</span>` : ''}
+              ${profanityWarning}
+              ${!r.contextMatch ? `<span class="mismatch-badge" title="قد يكون التقييم عن متجر آخر">⚠️ غير متطابق</span>` : ''}
             </div>
             <div class="review-date">
               <i class="far fa-clock"></i> ${date}
@@ -167,10 +243,15 @@ const DashboardManager = {
             </div>
           </div>
 
-          ${!contextMatch ? `
+          ${themesHtml}
+
+          ${!r.contextMatch ? `
           <div class="mismatch-notice">
             <i class="fas fa-exclamation-triangle"></i>
-            <span>هذا التقييم قد يكون عن متجر آخر أو خطأ في التصنيف</span>
+            <span>هذا التقييم قد يكون عن متجر آخر</span>
+            ${r.mismatchReasons && r.mismatchReasons.length > 0 ? `
+              <small>${r.mismatchReasons.slice(0, 2).join('، ')}</small>
+            ` : ''}
           </div>` : ''}
 
           <div class="review-expanded">
@@ -179,12 +260,12 @@ const DashboardManager = {
               <button class="switcher-btn active" data-content="original" onclick="DashboardManager.switchReviewContent(this, event)">
                 <i class="fas fa-user"></i> التفاصيل الأصلية
               </button>
-              ${organizedFeedbackHtml ? `
-              <button class="switcher-btn" data-content="ai-analysis" onclick="DashboardManager.switchReviewContent(this, event)">
-                <i class="fas fa-robot"></i> تحليل الذكاء الاصطناعي
+              ${summaryHtml ? `
+              <button class="switcher-btn" data-content="ai-summary" onclick="DashboardManager.switchReviewContent(this, event)">
+                <i class="fas fa-robot"></i> الملخص الذكي
               </button>` : ''}
-              ${solutionsHtml ? `
-              <button class="switcher-btn" data-content="solutions" onclick="DashboardManager.switchReviewContent(this, event)">
+              ${insightsHtml ? `
+              <button class="switcher-btn" data-content="insights" onclick="DashboardManager.switchReviewContent(this, event)">
                 <i class="fas fa-lightbulb"></i> المقترحات
               </button>` : ''}
               ${suggestedReplyHtml ? `
@@ -199,34 +280,34 @@ const DashboardManager = {
               <div class="content-panel original active">
                 <div class="customer-contact">
                   ${r.email ? `<p class="contact-item"><i class="fas fa-envelope"></i> <a href="mailto:${r.email}">${r.email}</a></p>` : ''}
-                  ${r.phone ? `<p class="contact-item"><i class="fas fa-phone"></i> <a href="tel:${r.phone}">${r.phone}</a></p>` : ''}
                 </div>
                 <div class="original-text">"${safeText}"</div>
                 <div class="original-fields">
-                  ${original.enjoy_most ? `<p><strong>أكثر ما أعجبني:</strong> ${DOMPurify.sanitize(original.enjoy_most)}</p>` : ''}
-                  ${original.improve_product ? `<p><strong>أقترح تحسين:</strong> ${DOMPurify.sanitize(original.improve_product)}</p>` : ''}
-                  ${original.additional_feedback ? `<p><strong>ملاحظات إضافية:</strong> ${DOMPurify.sanitize(original.additional_feedback)}</p>` : ''}
+                  ${r.sourceFields.enjoy_most ? `<p><strong>أكثر ما أعجبني:</strong> ${DOMPurify.sanitize(r.sourceFields.enjoy_most)}</p>` : ''}
+                  ${r.sourceFields.improve_product ? `<p><strong>أقترح تحسين:</strong> ${DOMPurify.sanitize(r.sourceFields.improve_product)}</p>` : ''}
+                  ${r.sourceFields.additional_feedback ? `<p><strong>ملاحظات إضافية:</strong> ${DOMPurify.sanitize(r.sourceFields.additional_feedback)}</p>` : ''}
                 </div>
               </div>
 
-              <!-- AI Analysis -->
-              ${organizedFeedbackHtml ? `
-              <div class="content-panel ai-analysis">
-                <div class="markdown-content">${organizedFeedbackHtml}</div>
+              <!-- AI Summary -->
+              ${summaryHtml ? `
+              <div class="content-panel ai-summary">
+                <div class="markdown-content">${summaryHtml}</div>
               </div>` : ''}
 
-              <!-- Solutions -->
-              ${solutionsHtml ? `
-              <div class="content-panel solutions">
-                <div class="markdown-content">${solutionsHtml}</div>
+              <!-- Actionable Insights -->
+              ${insightsHtml ? `
+              <div class="content-panel insights">
+                <h4>💡 مقترحات للتحسين</h4>
+                <div class="markdown-content">${insightsHtml}</div>
               </div>` : ''}
 
               <!-- Suggested Reply -->
               ${suggestedReplyHtml ? `
               <div class="content-panel reply">
-                <div class="markdown-content" id="reply-${r._id}">${suggestedReplyHtml}</div>
+                <div class="markdown-content" id="reply-${r.id}">${suggestedReplyHtml}</div>
                 <div class="review-actions">
-                  <button class="btn-copy" onclick="DashboardManager.copyReply('reply-${r._id}', this)">
+                  <button class="btn-copy" onclick="DashboardManager.copyReply('reply-${r.id}', this)">
                     <i class="far fa-copy"></i> نسخ الرد
                   </button>
                 </div>
@@ -357,36 +438,36 @@ const DashboardManager = {
       if (el) el.addEventListener('change', () => this.applyFilters());
     });
   },
-  
+
   applyFilters() {
-     const typeVal = document.getElementById('reviewFilter')?.value;
-     const sentimentVal = document.getElementById('sentimentFilter')?.value;
-     const mismatchVal = document.getElementById('mismatchFilter')?.value;
-     const starsVal = document.getElementById('starsFilter')?.value;
-     
-     const cards = document.querySelectorAll('.review-card');
-     
-     cards.forEach(card => {
-       let show = true;
-       
-       if (typeVal && card.dataset.type !== typeVal) show = false;
-       if (sentimentVal && card.dataset.sentiment !== sentimentVal) show = false;
-       
-       if (mismatchVal) {
-         const isMismatch = card.dataset.mismatch === 'true';
-         if (mismatchVal === 'valid' && isMismatch) show = false;
-         if (mismatchVal === 'mismatch' && !isMismatch) show = false;
-       }
-       
-       if (starsVal) {
-          const stars = parseInt(card.dataset.stars);
-          if (starsVal === 'high' && stars < 4) show = false;
-          if (starsVal === 'low' && stars > 2) show = false;
-          // Exact star match if needed, but generic high/low is often better
-       }
-       
-       card.style.display = show ? 'flex' : 'none';
-     });
+    const typeVal = document.getElementById('reviewFilter')?.value;
+    const sentimentVal = document.getElementById('sentimentFilter')?.value;
+    const mismatchVal = document.getElementById('mismatchFilter')?.value;
+    const starsVal = document.getElementById('starsFilter')?.value;
+
+    const cards = document.querySelectorAll('.review-card');
+
+    cards.forEach(card => {
+      let show = true;
+
+      if (typeVal && card.dataset.type !== typeVal) show = false;
+      if (sentimentVal && card.dataset.sentiment !== sentimentVal) show = false;
+
+      if (mismatchVal) {
+        const isMismatch = card.dataset.mismatch === 'true';
+        if (mismatchVal === 'valid' && isMismatch) show = false;
+        if (mismatchVal === 'mismatch' && !isMismatch) show = false;
+      }
+
+      if (starsVal) {
+        const stars = parseInt(card.dataset.stars);
+        if (starsVal === 'high' && stars < 4) show = false;
+        if (starsVal === 'low' && stars > 2) show = false;
+        // Exact star match if needed, but generic high/low is often better
+      }
+
+      card.style.display = show ? 'flex' : 'none';
+    });
   },
 
   async generateNewQR() {
@@ -642,16 +723,16 @@ const DashboardManager = {
   convertToCSV(reviews) {
     const headers = ['التاريخ', 'النجوم', 'النوع', 'البريد', 'الهاتف', 'النص'];
     const rows = reviews.map(review => {
-        const original = review.original_fields || {};
-        const text = review.text || original.text || '';
-        return [
-            window.UI.Utils.formatDate(review.timestamp),
-            review.stars || 0,
-            review.category || 'عام',
-            review.email || '',
-            review.phone || '',
-            (text).replace(/"/g, '""')
-        ];
+      const original = review.original_fields || {};
+      const text = review.text || original.text || '';
+      return [
+        window.UI.Utils.formatDate(review.timestamp),
+        review.stars || 0,
+        review.category || 'عام',
+        review.email || '',
+        review.phone || '',
+        (text).replace(/"/g, '""')
+      ];
     });
 
     const csvContent = [headers, ...rows]
@@ -705,10 +786,10 @@ const DashboardManager = {
 
 أحدث التقييمات:
 ${(data.recent_reviews || []).slice(0, 5).map(review => {
-  const original = review.original_fields || {};
-  const text = review.text || original.text || '';
-  return `- ${review.category || 'عام'}: ${window.UI.Utils.truncate(text, 50)}`;
-}).join('\n')}
+      const original = review.original_fields || {};
+      const text = review.text || original.text || '';
+      return `- ${review.category || 'عام'}: ${window.UI.Utils.truncate(text, 50)}`;
+    }).join('\n')}
 
 تم إنشاء هذا التقرير بواسطة نظام حارس السمعة
     `.trim();
@@ -773,7 +854,7 @@ function renderReviewsChart(metrics) {
       animation: {
         duration: 2000,
         easing: 'easeOutBounce',
-        onComplete: function() {
+        onComplete: function () {
           ctx.classList.add('animate-chart-grow');
         }
       },
@@ -820,7 +901,7 @@ function renderReviewsChart(metrics) {
     }
   });
 
-  ctx.onclick = function(evt) {
+  ctx.onclick = function (evt) {
     const activePoints = chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
     if (activePoints.length > 0) {
       const index = activePoints[0].index;
