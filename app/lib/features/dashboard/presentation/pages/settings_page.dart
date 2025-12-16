@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:reputation_guardian/features/dashboard/presentation/pages/about_page.dart';
+import 'package:reputation_guardian/features/dashboard/presentation/pages/support_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -143,14 +145,24 @@ class _SettingsPageState extends State<SettingsPage> {
             icon: Icons.help_outline,
             title: 'المساعدة والدعم',
             subtitle: 'الحصول على مساعدة',
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SupportPage()),
+              );
+            },
           ),
           _buildSettingTile(
             context,
             icon: Icons.info_outline,
             title: 'حول التطبيق',
             subtitle: 'الإصدار 1.0.0',
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AboutPage()),
+              );
+            },
           ),
           _buildSettingTile(
             context,
