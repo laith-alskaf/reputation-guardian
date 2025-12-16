@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
+import 'package:reputation_guardian/features/qr/domain/usecases/generate_qr_usecase.dart';
 import '../../domain/usecases/get_dashboard_usecase.dart';
-import '../../domain/usecases/generate_qr_usecase.dart';
 import '../../data/datasources/dashboard_local_datasource.dart';
 import 'dashboard_event.dart';
 import 'dashboard_state.dart';

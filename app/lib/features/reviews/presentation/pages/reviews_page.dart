@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:reputation_guardian/core/utils/app_animations.dart';
+import 'package:reputation_guardian/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:reputation_guardian/features/dashboard/presentation/bloc/dashboard_state.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/utils/app_snackbar.dart';
 import '../../../../core/widgets/responsive_scaffold.dart';
-import '../bloc/dashboard_bloc.dart';
 
 class ReviewsPage extends StatefulWidget {
   const ReviewsPage({super.key});

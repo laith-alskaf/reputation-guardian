@@ -11,7 +11,7 @@ import 'package:reputation_guardian/core/widgets/error_widget.dart' as custom;
 import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
-import 'reviews_page.dart';
+import '../../../reviews/presentation/pages/reviews_page.dart';
 import 'analytics_page.dart';
 
 class DashboardPage extends StatefulWidget {

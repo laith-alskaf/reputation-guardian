@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:reputation_guardian/core/theme/app_theme.dart';
 import 'package:reputation_guardian/features/dashboard/presentation/pages/dashboard_page.dart';
-import 'package:reputation_guardian/features/dashboard/presentation/pages/reviews_page.dart';
-import 'package:reputation_guardian/features/dashboard/presentation/pages/settings_page.dart';
+import 'package:reputation_guardian/features/reviews/presentation/pages/reviews_page.dart';
+import 'package:reputation_guardian/features/settings/presentation/pages/settings_page.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});

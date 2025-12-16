@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:reputation_guardian/features/dashboard/presentation/pages/about_page.dart';
-import 'package:reputation_guardian/features/dashboard/presentation/pages/support_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/responsive_scaffold.dart';
 import '../../../auth/data/datasources/auth_local_datasource.dart';
-import 'profile_edit_page.dart';
-import 'shop_edit_page.dart';
+import '../../../profile/presentation/pages/profile_edit_page.dart';
+import '../../../profile/presentation/pages/shop_edit_page.dart';
+import '../../../info/presentation/pages/about_page.dart';
+import '../../../info/presentation/pages/support_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
