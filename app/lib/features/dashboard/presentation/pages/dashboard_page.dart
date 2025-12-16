@@ -11,6 +11,8 @@ import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
 import '../../../reviews/presentation/pages/reviews_page.dart';
 import '../../../qr/presentation/widgets/qr_section_widget.dart';
+import '../../../qr/presentation/bloc/qr_bloc.dart';
+import '../../../qr/presentation/bloc/qr_event.dart';
 import '../widgets/dashboard/welcome_card.dart';
 import '../widgets/dashboard/metrics_grid.dart';
 import '../widgets/dashboard/sentiment_section.dart';
@@ -96,13 +98,11 @@ class _DashboardPageState extends State<DashboardPage> {
                             qrCode: data.qrCode!,
                             onDownload: () {
                               context.read<QRBloc>().add(
-                                DownloadQRCode(data.qrCode!),
+                                DownloadQR(data.qrCode!),
                               );
                             },
                             onShare: () {
-                              context.read<QRBloc>().add(
-                                ShareQRCode(data.qrCode!),
-                              );
+                              context.read<QRBloc>().add(ShareQR(data.qrCode!));
                             },
                           ),
                         ),
@@ -124,7 +124,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                 child: ElevatedButton.icon(
                                   onPressed: () {
                                     context.read<QRBloc>().add(
-                                      DownloadQRCode(data.qrCode!),
+                                      DownloadQR(data.qrCode!),
                                     );
                                   },
                                   icon: const Icon(Icons.download),
@@ -136,7 +136,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                 child: ElevatedButton.icon(
                                   onPressed: () {
                                     context.read<QRBloc>().add(
-                                      ShareQRCode(data.qrCode!),
+                                      ShareQR(data.qrCode!),
                                     );
                                   },
                                   icon: const Icon(Icons.share),
@@ -279,9 +279,7 @@ class _DashboardPageState extends State<DashboardPage> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: (color ?? AppColors.primary).withOpacity(
-                    0.1,
-                  ), // Used withOpacity
+                  color: (color ?? AppColors.primary).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: AppColors.primary, size: 28),

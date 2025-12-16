@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:injectable/injectable.dart';
@@ -44,7 +46,7 @@ abstract class NetworkModule {
               options.headers['Authorization'] = 'Bearer $token';
             }
           } catch (e) {
-            print('Error reading token: $e');
+            log('Error reading token: $e');
           }
           handler.next(options);
         },
