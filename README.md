@@ -155,6 +155,16 @@ app/
 - Real-time data updates
 - Chart.js for visualizations
 
+### Mobile App - Flutter ⭐ NEW
+
+- **Flutter 3.27.1** with Dart 3.6.0
+- **Clean Architecture** (Domain/Data/Presentation)
+- **BLoC Pattern** for state management
+- **Dependency Injection** (get_it + injectable)
+- Native Android & iOS support
+- RTL support for Arabic
+- Offline-first with local caching
+
 ---
 
 ## 🛠️ Tech Stack
@@ -183,6 +193,19 @@ app/
 | **Marked.js** | Markdown parsing |
 | **DOMPurify.js** | XSS protection |
 | **Font Awesome** | Icons |
+
+### Mobile (Flutter)
+
+| Technology | Purpose |
+|------------|---------|
+| **Flutter 3.27+** | Cross-platform framework |
+| **Dart 3.6+** | Programming language |
+| **BLoC Pattern** | State management |
+| **Dio** | HTTP client |
+| **GetIt** | Dependency injection |
+| **FL Chart** | Data visualization |
+| **QR Flutter** | QR code generation |
+| **Shared Preferences** | Local storage |
 
 ### External Services
 
@@ -247,9 +270,22 @@ app/
    - Backend API: `http://localhost:5000`
    - Frontend: `http://localhost:8000`
 
+7. **Mobile App Setup** (Optional)
+   ```bash
+   cd app
+   flutter pub get
+   flutter pub run build_runner build --delete-conflicting-outputs
+   flutter run
+   ```
+
+8. **Access Application**
+   - Backend API: `http://localhost:5000`
+   - Web Dashboard: `http://localhost:8000`
+   - Mobile App: On connected device/emulator
+
 ### Detailed Setup
 
-See [Backend README](./backend/README.md) and [Frontend README](./frontend/README.md) for detailed instructions.
+See [Backend README](./backend/README.md), [Frontend README](./frontend/README.md), and [App README](./app/README.md) for detailed instructions.
 
 ---
 
@@ -278,6 +314,21 @@ reputation-guardian/
 │   │   └── ui.js
 │   ├── index.html
 │   ├── dashboard.html
+│   └── README.md
+│
+├── app/                     # Flutter mobile app ⭐ NEW
+│   ├── lib/
+│   │   ├── core/            # Shared utilities
+│   │   ├── features/        # Feature modules
+│   │   │   ├── auth/        # Authentication
+│   │   │   ├── dashboard/   # Dashboard
+│   │   │   ├── reviews/     # Reviews management
+│   │   │   ├── qr/          # QR generation
+│   │   │   └── settings/    # Settings
+│   │   └── main.dart
+│   ├── android/
+│   ├── ios/
+│   ├── pubspec.yaml
 │   └── README.md
 │
 └── README.md               # This file

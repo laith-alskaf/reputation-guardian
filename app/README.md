@@ -1,151 +1,659 @@
-# 📱 Reputation Guardian - Flutter App
+# 📱 Reputation Guardian - Mobile App
 
-## 🎯 نظرة عامة
-تطبيق موبايل لإدارة تقييمات العملاء بالذكاء الاصطناعي، مبني باستخدام **Clean Architecture** و **BLoC Pattern**.
+<div align="center">
 
-## ✅ ما تم إنجازه (115+ ملف)
+![Flutter](https://img.shields.io/badge/Flutter-3.27.1-02569B?logo=flutter)
+![Dart](https://img.shields.io/badge/Dart-3.6.0-0175C2?logo=dart)
+![Architecture](https://img.shields.io/badge/Architecture-Clean%20Architecture-blue.svg)
+![BLoC](https://img.shields.io/badge/State-BLoC%20Pattern-orange)
 
-### 🏗️ Core Layer
-- Constants، Theme (Light/Dark)
-- Error Handling (Failures & Exceptions)
-- Network Layer مع Dio & Interceptors
-- **Responsive Utilities** - Extensions للتجاوب التلقائي
-- Validators، Date Formatter، Helpers
-- Dependency Injection (get_it + injectable)
+**Modern Flutter App built with Clean Architecture & BLoC Pattern**
 
-### 🎨 Custom Widgets (11 ويدجت)
-- **CustomButton** - زر مع loading state
-- **CustomTextField** - حقل نص مع RTL
-- **MetricCard** - بطاقة مقاييس
-- **SentimentBadge** - رمز المشاعر
-- **CategoryBadge** - رمز الفئة مع أيقونة
-- **ReviewCard** - بطاقة تقييم متجاوبة
-- **ResponsiveScaffold** - Scaffold متكيف
-- **LoadingWidget، ErrorWidget، EmptyStateWidget**
+[العربية](#arabic-docs) | [English](#english)
 
-### 🔐 Auth Feature (مكتمل 100%)
-**Domain:**
-- User Entity  
-- AuthRepository Interface
-- Use Cases: Login، Register، Logout
-
-**Data:**
-- UserModel + JSON Serialization
-- Remote/Local DataSources
-- Repository Implementation
-
-**Presentation:**
-- AuthBloc (Events، States، Bloc)
-- **SplashScreen** - شاشة بداية متحركة
-- **LoginPage** - تسجيل دخول
-- **RegisterPage** - إنشاء حساب
-
-### 📊 Dashboard Feature (مكتمل 80%)
-**Domain:**
-- Review، DashboardData، ShopInfo، Metrics Entities
-- DashboardRepository Interface
-- GetDashboardUseCase
-
-**Presentation:**
-- **DashboardPage** - لوحة تحكم متجاوبة
-- **ReviewsPage** - مع Tabs و Filters
-- **SettingsPage** - إعدادات كاملة
-- **MainNavigation** - BottomNavigationBar
-
-## 🎨 التصميم المتجاوب
-
-### Breakpoints
-- 📱 **Mobile**: width < 600px
-- 📋 **Tablet**: 600px ≤ width < 900px
-- 💻 **Desktop**: width ≥ 900px
-
-### Adaptive Features
-✅ **Responsive Spacing** - مسافات تتكيف تلقائياً  
-✅ **Responsive Fonts** - أحجام خطوط متجاوبة  
-✅ **GridView** - عدد الأعمدة يتغير حسب الشاشة  
-✅ **Row ↔ Column** - تبديل تلقائي للتخطيط  
-✅ **RTL Support** - دعم كامل للعربية
-
-```dart
-// مثال على الاستخدام
-context.isMobile // true/false
-context.responsive(mobile: 2, tablet: 3, desktop: 5)
-ResponsiveSpacing.medium(context)
-```
-
-## 📱 الشاشات (7 شاشات)
-
-1. **SplashScreen** - شاشة بداية مع Fade/Scale Animation
-2. **LoginPage** - تسجيل الدخول
-3. **RegisterPage** - إنشاء حساب (20 نوع متجر)
-4. **DashboardPage** - لوحة التحكم
-   - Welcome Card
-   - Metrics Grid (يتكيف: 2/3/5 أعمدة)
-   - Quick Actions
-   - Recent Reviews
-5. **ReviewsPage** - التقييمات
-   - 3 Tabs (مقبولة، منخفضة الجودة، غير ذات صلة)
-   - Filters (الكل، إيجابي، سلبي، محايد)
-6. **SettingsPage** - الإعدادات
-   - Account، Notifications، App Settings
-7. **MainNavigation** - التنقل الرئيسي
-
-## 🎯 مبادئ UI/UX المطبقة
-
-✅ **Visual Hierarchy** - تسلسل بصري واضح  
-✅ **Consistent Spacing** - مسافات متناسقة  
-✅ **Color-coded Feedback** - ألوان ذات معنى  
-✅ **Smooth Animations** - انتقالات سلسة  
-✅ **Touch-friendly** - أزرار كبيرة (48x48 min)  
-✅ **Loading States** - حالات تحميل واضحة  
-✅ **Error Handling** - معالجة أخطاء صديقة  
-✅ **Empty States** - حالات فارغة جميلة
-
-## 🚀 التشغيل
-
-```bash
-# 1. الانتقال للمجلد
-cd app
-
-# 2. تثبيت الباكجات
-flutter pub get
-
-# 3. (اختياري) Code Generation
-flutter pub run build_runner build --delete-conflicting-outputs
-
-# 4. تشغيل التطبيق
-flutter run
-```
-
-## 📊 الإحصائيات
-
-- 📁 **الملفات**: 115+
-- 🎨 **Custom Widgets**: 11
-- 📱 **Screens**: 7
-- ⚙️ **Features**: 2 (Auth + Dashboard)
-- 🎯 **Use Cases**: 4
-- 📦 **Models**: 3+
-
-## 🔜 القادم (اختياري)
-
-- [ ] Dashboard BLoC Integration
-- [ ] Reviews BLoC Integration
-- [ ] QR Code Feature
-- [ ] Analytics Charts
-- [ ] Profile Management
-- [ ] Data Export
-
-## 💡 نقاط القوة
-
-✨ **Clean Architecture** - معمارية نظيفة قابلة للتوسع  
-✨ **BLoC Pattern** - إدارة حالة احترافية  
-✨ **Responsive Design** - يعمل على جميع الأحجام  
-✨ **RTL Support** - دعم كامل للعربية  
-✨ **Type Safety** - كود آمن مع Dart  
-✨ **DI** - Dependency Injection محترف  
-✨ **Error Handling** - معالجة شاملة للأخطاء
+</div>
 
 ---
 
-**المطور**: مع التركيز على الجودة والأداء 🚀  
-**الترخيص**: © 2025 Reputation Guardian
+## 📋 Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+- [Architecture](#architecture)
+- [Installation](#installation)
+- [Project Structure](#project-structure)
+- [State Management](#state-management)
+- [Dependencies](#dependencies)
+- [Development](#development)
+
+---
+
+## 🌟 Overview
+
+The **Reputation Guardian Mobile App** is a cross-platform Flutter application providing shop owners with powerful tools to manage customer reviews, monitor sentiment, and access AI-powered insights on the go. Built with **Clean Architecture** and **BLoC pattern** for maintainability and scalability.
+
+### Why This App?
+
+- 📱 **Native Performance** - Smooth 60fps animations
+- 🎨 **Beautiful UI** - Modern Material Design 3
+- 🔄 **Real-time Updates** - Live dashboard metrics
+- 🌐 **RTL Support** - Full Arabic language support
+- 📊 **Rich Analytics** - Interactive charts and insights
+- 🔐 **Secure** - JWT authentication with token refresh
+- 📴 **Offline-First** - Local caching for offline access
+
+---
+
+## ✨ Features
+
+### 🏠 Dashboard
+
+#### Metrics Overview
+- **Real-time Statistics**
+  - Total reviews count with trend
+  - Average rating display
+  - Sentiment distribution (positive/negative/neutral)
+  - Quality score indicators
+
+#### Quick Actions
+- **QR Code Management**
+  - Generate review collection QR codes
+  - Download and share functionality
+  - Cached QR codes for offline viewing
+
+### 📊 Analytics Page
+
+- **Period Filtering**
+  - Last 7 days / 30 days / 90 days
+  - Custom date range selection
+
+- **Interactive Charts**
+  - Rating distribution bar chart
+  - Sentiment pie chart with legend
+  - Trend analysis visualizations
+
+- **Data Insights**
+  - Category breakdown
+  - Quality metrics
+  - Temporal patterns
+
+### 📝 Reviews Management
+
+- **Tabbed Interface**
+  - Processed reviews (accepted)
+  - Rejected - Low Quality
+  - Rejected - Irrelevant
+
+- **Search & Filter**
+  - Real-time search
+  - Filter by sentiment, rating, category
+  - Sort options
+
+- **Review Details**
+  - Customer information
+  - AI-generated summary
+  - Actionable insights
+  - Suggested reply (copy to clipboard)
+  - Key themes tags
+  - Quality score badges
+
+### ⚙️ Settings & Profile
+
+- **Profile Management**
+  - Edit personal information
+  - Shop details configuration
+
+- **Telegram Integration**
+  - Connect bot for notifications
+  - Rich Telegram messages
+  - Real-time alerts
+
+- **About & Support**
+  - App information
+  - Contact support
+  - Terms and privacy
+
+---
+
+## 🏗️ Architecture
+
+### Clean Architecture Layers
+
+```
+lib/
+├── core/                       # Layer 0: Shared Core
+│   ├── theme/                  # App theme (Material 3)
+│   ├── utils/                  # Utilities & helpers
+│   ├── error/                  # Error handling
+│   ├── network/                # HTTP client (Dio)
+│   ├── di/                     # Dependency injection (GetIt)
+│   └── widgets/                # Shared UI components
+│
+├── features/                   # Layer 1-4: Feature Modules
+│   ├── auth/                   # Authentication feature
+│   │   ├── domain/             # Business logic
+│   │   │   ├── entities/       # Auth entities
+│   │   │   ├── repositories/   # Repository interfaces
+│   │   │   └── usecases/       # Use cases
+│   │   ├── data/               # Data layer
+│   │   │   ├── models/         # API models
+│   │   │   ├── datasources/    # Remote/local sources
+│   │   │   └── repositories/   # Repository implementations
+│   │   └── presentation/       # UI layer
+│   │       ├── bloc/           # BLoC state management
+│   │       ├── pages/          # Screen widgets
+│   │       └── widgets/        # Feature-specific widgets
+│   │
+│   ├── dashboard/              # Dashboard feature
+│   ├── analytics/              # Analytics feature (PLANNED)
+│   ├── reviews/                # Reviews management
+│   ├── profile/                # Profile & settings
+│   ├── qr/                     # QR code generation
+│   └── settings/               # App settings
+│
+└── main.dart                   # App entry point
+```
+
+### Design Principles
+
+✅ **Dependency Inversion** - Layers depend on abstractions  
+✅ **Single Responsibility** - Each class has one purpose  
+✅ **Feature-First Organization** - Modular and scalable  
+✅ **Clean Separation** - Domain independent of frameworks  
+✅ **Testability** - Easy to unit test each layer  
+
+---
+
+## 🚀 Installation
+
+### Prerequisites
+
+- **Flutter SDK** 3.27.1 or higher
+- **Dart** 3.6.0 or higher
+- **Android Studio** / **Xcode** (for platform development)
+- **Git**
+
+### Quick Start
+
+1. **Clone Repository**
+   ```bash
+   cd app
+   ```
+
+2. **Install Dependencies**
+   ```bash
+   flutter pub get
+   ```
+
+3. **Generate Code** (BLoC, Dependency Injection)
+   ```bash
+   flutter pub run build_runner build --delete-conflicting-outputs
+   ```
+
+4. **Run on Device/Emulator**
+   ```bash
+   # Android
+   flutter run
+   
+   # iOS
+   flutter run -d ios
+   
+   # Specific device
+   flutter devices  # List devices
+   flutter run -d <device-id>
+   ```
+
+### Build for Production
+
+```bash
+# Android APK
+flutter build apk --release
+
+# Android App Bundle (Google Play)
+flutter build appbundle --release
+
+# iOS
+flutter build ios --release
+```
+
+---
+
+## 📁 Project Structure
+
+### Feature Module Example (Dashboard)
+
+```
+features/dashboard/
+├── domain/
+│   ├── entities/
+│   │   ├── dashboard_data.dart      # Business entity
+│   │   ├── metrics.dart
+│   │   └── shop_info.dart
+│   ├── repositories/
+│   │   └── dashboard_repository.dart  # Abstract interface
+│   └── usecases/
+│       └── get_dashboard_data.dart    # Use case
+│
+├── data/
+│   ├── models/
+│   │   └── dashboard_model.dart       # JSON serializable
+│   ├── datasources/
+│   │   ├── dashboard_remote_datasource.dart
+│   │   └── dashboard_local_datasource.dart
+│   └── repositories/
+│       └── dashboard_repository_impl.dart
+│
+└── presentation/
+    ├── bloc/
+    │   ├── dashboard_bloc.dart        # Business logic component
+    │   ├── dashboard_event.dart       # Events
+    │   └── dashboard_state.dart       # States
+    ├── pages/
+    │   ├── dashboard_page.dart        # Main screen
+    │   └── analytics_page.dart
+    └── widgets/
+        ├── dashboard/
+        │   ├── welcome_card.dart
+        │   ├── metrics_grid.dart
+        │   └── sentiment_section.dart
+        └── analytics/
+            ├── period_filter_widget.dart
+            ├── rating_distribution_chart.dart
+            └── sentiment_pie_chart_widget.dart
+```
+
+---
+
+## 🔄 State Management
+
+### BLoC Pattern
+
+**Why BLoC?**
+- ✅ Predictable state transitions
+- ✅ Easy to test and debug
+- ✅ Separation of business logic from UI
+- ✅ Built-in event handling
+- ✅ Stream-based reactive programming
+
+### BLoC Architecture
+
+```dart
+// Event
+abstract class DashboardEvent extends Equatable {}
+
+class LoadDashboard extends DashboardEvent {
+  @override
+  List<Object> get props => [];
+}
+
+// State
+abstract class DashboardState extends Equatable {}
+
+class DashboardInitial extends DashboardState {}
+class DashboardLoading extends DashboardState {}
+class DashboardLoaded extends DashboardState {
+  final DashboardData data;
+  DashboardLoaded(this.data);
+  @override
+  List<Object> get props => [data];
+}
+
+// BLoC
+class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
+  final GetDashboardData getDashboardData;
+  
+  DashboardBloc(this.getDashboardData) : super(DashboardInitial()) {
+    on<LoadDashboard>(_onLoadDashboard);
+  }
+  
+  Future<void> _onLoadDashboard(
+    LoadDashboard event,
+    Emitter<DashboardState> emit,
+  ) async {
+    emit(DashboardLoading());
+    final result = await getDashboardData();
+    result.fold(
+      (failure) => emit(DashboardError(failure.message)),
+      (data) => emit(DashboardLoaded(data)),
+    );
+  }
+}
+```
+
+### Usage in Widget
+
+```dart
+class DashboardPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<DashboardBloc, DashboardState>(
+      builder: (context, state) {
+        if (state is DashboardLoading) {
+          return const CircularProgressIndicator();
+        }
+        
+        if (state is DashboardLoaded) {
+          return DashboardContent(data: state.data);
+        }
+        
+        return const ErrorView();
+      },
+    );
+  }
+}
+```
+
+---
+
+## 📦 Dependencies
+
+### Core Dependencies
+
+```yaml
+dependencies:
+  flutter:
+    sdk: flutter
+    
+  # State Management
+  flutter_bloc: ^8.1.6          # BLoC pattern
+  equatable: ^2.0.7             # Value equality
+  
+  # Dependency Injection
+  get_it: ^8.0.3                # Service locator
+  injectable: ^2.5.0            # DI code generation
+  
+  # Networking
+  dio: ^5.7.0                   # HTTP client
+  dartz: ^0.10.1                # Functional programming
+  
+  # UI Components
+  flutter_svg: ^2.0.16          # SVG rendering
+  cached_network_image: ^3.4.1  # Image caching
+  fl_chart: ^0.70.2             # Charts library
+  qr_flutter: ^4.1.0            # QR generation
+  
+  # Storage
+  shared_preferences: ^2.3.3    # Local storage
+  
+  # Utilities
+  intl: ^0.20.1                 # Internationalization
+  url_launcher: ^6.3.1          # URL handling
+```
+
+### Dev Dependencies
+
+```yaml
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+    
+  # Code Generation
+  build_runner: ^2.4.14         # Build system
+  injectable_generator: ^2.6.2  # DI generator
+  
+  # Linting
+  flutter_lints: ^5.0.0         # Linting rules
+```
+
+---
+
+## 🎨 UI Components
+
+### Reusable Widgets
+
+#### Core Widgets
+- **ResponsiveScaffold** - Responsive app bar and scaffold
+- **SectionCard** - Consistent card UI
+- **ChartLegend** - Chart legend component
+- **MetricCard** - Stat display card
+
+#### Dashboard Widgets  
+- **WelcomeCard** - Personalized greeting
+- **MetricsGrid** - Responsive metrics layout
+- **SentimentSection** - Sentiment analysis display
+
+#### Analytics Widgets
+- **PeriodFilterWidget** - Time period selector
+- **RatingDistributionChart** - Bar chart for ratings
+- **SentimentPieChartWidget** - Pie chart with legend
+
+#### Reviews Widgets
+- **ReviewCard** - Review item display
+- **ReviewDetailsDialog** - Full review details
+- **ReviewSearchBar** - Search functionality
+- **SentimentHelpers** - Sentiment utilities
+
+#### QR Widgets
+- **QRSectionWidget** - Complete QR section
+- **QRDisplayWidget** - QR code viewer
+- **QRActionButtons** - Download/share buttons
+
+---
+
+## 🔧 Development
+
+### Code Generation
+
+**When to Run:**
+- After modifying `@injectable` annotated classes
+- After changing BLoC events/states
+- When adding new dependencies
+
+```bash
+# Watch mode (auto-rebuild)
+flutter pub run build_runner watch
+
+# One-time build
+flutter pub run build_runner build --delete-conflicting-outputs
+```
+
+### Adding a New Feature
+
+1. **Create Feature Directory**
+   ```
+   lib/features/new_feature/
+   ├── domain/
+   ├── data/
+   └── presentation/
+   ```
+
+2. **Define Domain Layer**
+   - Create entities
+   - Define repository interface
+   - Implement use cases
+
+3. **Implement Data Layer**
+   - Create models (with JSON serialization)
+   - Implement data sources
+   - Implement repository
+
+4. **Build Presentation Layer**
+   - Create BLoC (events, states, bloc)
+   - Design pages and widgets
+
+5. **Register Dependencies**
+   ```dart
+   @module
+   abstract class NewFeatureModule {
+     @lazySingleton
+     NewFeatureRepository provideRepository(
+       NewFeatureRemoteDataSource remoteDataSource,
+     ) {
+       return NewFeatureRepositoryImpl(remoteDataSource);
+     }
+   }
+   ```
+
+6. **Run Code Generation**
+
+### Best Practices
+
+✅ **Keep widgets small** - Single responsibility  
+✅ **Extract reusable components** - DRY principle  
+✅ **Use const constructors** - Performance optimization  
+✅ **Handle all states** - Loading, success, error  
+✅ **Add error boundaries** - Graceful degradation  
+✅ **Write meaningful names** - Self-documenting code  
+✅ **Comment complex logic** - Future maintainability  
+
+---
+
+## 📱 Platform Specific
+
+### Android
+
+**Minimum SDK**: 21 (Android 5.0 Lollipop)  
+**Target SDK**: 35 (Android 15)  
+
+**Permissions** (`android/app/src/main/AndroidManifest.xml`):
+```xml
+<uses-permission android:name="android.permission.INTERNET"/>
+```
+
+### iOS
+
+**Minimum Version**: iOS 13.0  
+
+**Info.plist** configuration required for camera (QR scanning):
+```xml
+<key>NSCameraUsageDescription</key>
+<string>We need camera access to scan QR codes</string>
+```
+
+---
+
+## 🌐 API Integration
+
+### Base URL Configuration
+
+```dart
+// lib/core/network/network_module.dart
+@module
+abstract class NetworkModule {
+  @lazySingleton
+  Dio provideDio() {
+    final dio = Dio(
+      BaseOptions(
+        baseUrl: 'http://your-api-url.com',
+        connectTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(seconds: 30),
+      ),
+    );
+    return dio;
+  }
+}
+```
+
+### Authentication Flow
+
+1. **Login** → Store JWT token
+2. **Token Refresh** → Auto-refresh on 401
+3. **Logout** → Clear stored credentials
+
+---
+
+## 🎯 Performance Optimization
+
+### Techniques Used
+
+1. **Widget Rebuilds** - Using `const` constructors
+2. **List Performance** - ListView.builder for large lists
+3. **Image Caching** - CachedNetworkImage
+4. **Lazy Loading** - Pagination for reviews
+5. **State Optimization** - Equatable for efficient comparisons
+6. **Code Splitting** - Feature-based modules
+
+### App Size
+
+- **Android APK**: ~25 MB (release)
+- **iOS App**: ~30 MB (release)
+
+---
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**Build Errors After Pulling**:
+```bash
+flutter clean
+flutter pub get
+flutter pub run build_runner build --delete-conflicting-outputs
+```
+
+**Dependency Conflicts**:
+```bash
+flutter pub upgrade
+```
+
+**iOS Pod Issues**:
+```bash
+cd ios
+pod deintegrate
+pod install
+cd ..
+flutter run
+```
+
+---
+
+## 📚 Documentation
+
+- [Main README](../README.md) - Project overview
+- [Backend README](../backend/README.md) - API documentation  
+- [Frontend README](../frontend/README.md) - Web dashboard
+
+---
+
+<a name="arabic-docs"></a>
+## 🇸🇦 الدليل العربي
+
+### التثبيت السريع
+
+```bash
+# تثبيت المكتبات
+flutter pub get
+
+# توليد الكود
+flutter pub run build_runner build --delete-conflicting-outputs
+
+# تشغيل التطبيق
+flutter run
+```
+
+### الهيكل المعماري
+
+التطبيق مبني على مبدأ **Clean Architecture** مع **BLoC Pattern**:
+
+1. **Domain** - منطق الأعمال النقي
+2. **Data** - طبقة البيانات و APIs
+3. **Presentation** - واجهة المستخدم و BLoC
+
+### المميزات الرئيسية
+
+- 📊 لوحة تحكم شاملة مع إحصائيات فورية
+- 📈 تحليلات متقدمة مع رسوم بيانية تفاعلية
+- 📝 إدارة كاملة للتقييمات مع البحث والفلترة
+- 🔔 تكامل Telegram للإشعارات
+- 📱 تصميم متجاوب يدعم RTL للعربية
+- ⚡ أداء عالي مع 60fps
+
+### بناء التطبيق للإنتاج
+
+```bash
+# Android
+flutter build apk --release
+
+# iOS  
+flutter build ios --release
+```
+
+---
+
+<div align="center">
+
+**Built with ❤️ using Flutter & Clean Architecture**
+
+⭐ Star this repo if you find it useful!
+
+</div>
