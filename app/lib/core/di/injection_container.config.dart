@@ -52,6 +52,8 @@ import 'package:reputation_guardian/features/qr/domain/repositories/qr_repositor
     as _i388;
 import 'package:reputation_guardian/features/qr/domain/usecases/generate_qr_usecase.dart'
     as _i495;
+import 'package:reputation_guardian/features/qr/domain/usecases/get_latest_qr_usecase.dart'
+    as _i448;
 import 'package:reputation_guardian/features/qr/presentation/bloc/qr_bloc.dart'
     as _i591;
 import 'package:shared_preferences/shared_preferences.dart' as _i460;
@@ -126,13 +128,22 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i495.GenerateQRUseCase>(
       () => _i495.GenerateQRUseCase(gh<_i388.QRRepository>()),
     );
+    gh.lazySingleton<_i448.GetLatestQRUseCase>(
+      () => _i448.GetLatestQRUseCase(gh<_i388.QRRepository>()),
+    );
     gh.factory<_i704.DashboardBloc>(
       () => _i704.DashboardBloc(
         gh<_i487.GetDashboardUseCase>(),
         gh<_i853.DashboardLocalDataSource>(),
       ),
     );
-    gh.factory<_i591.QRBloc>(() => _i591.QRBloc(gh<_i495.GenerateQRUseCase>()));
+    gh.factory<_i591.QRBloc>(
+      () => _i591.QRBloc(
+        generateQRUseCase: gh<_i495.GenerateQRUseCase>(),
+        getLatestQRUseCase: gh<_i448.GetLatestQRUseCase>(),
+        qrRepository: gh<_i388.QRRepository>(),
+      ),
+    );
     return this;
   }
 }

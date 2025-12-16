@@ -6,7 +6,6 @@ import '../models/dashboard_model.dart';
 
 abstract class DashboardRemoteDataSource {
   Future<DashboardModel> getDashboard();
-  Future<String> generateQR();
 }
 
 @LazySingleton(as: DashboardRemoteDataSource)
@@ -21,79 +20,44 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
       final response = await dio.get(AppConstants.dashboardEndpoint);
 
       if (response.statusCode == 200) {
-        // API returns: { "data": {...}, "message": "...", "status": "success" }
-        final data = response.data['data'];
-        if (data == null) {
-          throw ServerException(message: 'البيانات غير صحيحة');
-        }
-        return DashboardModel.fromJson(data as Map<String, dynamic>);
-      } else {
-        throw ServerException(
-          message: 'فشل تحميل البيانات: ${response.statusCode}',
-        );
-      }
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 401) {
-        throw UnauthorizedException(
-          message: 'انتهت صلاحية الجلسة، يرجى تسجيل الدخول مرة أخرى',
-        );
-      } else if (e.type == DioExceptionType.connectionTimeout ||
-          e.type == DioExceptionType.receiveTimeout) {
-        throw NetworkException(
-          message: 'انتهى وقت الاتصال، يرجى المحاولة مرة أخرى',
-        );
-      } else if (e.type == DioExceptionType.connectionError) {
-        throw NetworkException(message: 'لا يوجد اتصال بالإنترنت');
-      } else {
-        throw ServerException(
-          message: e.response?.data?['message'] ?? 'حدث خطأ في الخادم',
-        );
-      }
-    } catch (e) {
-      throw ServerException(message: 'حدث خطأ غير متوقع: $e');
-    }
-  }
-
-  @override
-  Future<String> generateQR() async {
-    try {
-      final response = await dio.post(AppConstants.generateQrEndpoint);
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        // API returns: { "data": { "qr_code": "..." }, "message": "...", "status": "success" }
-        final data = response.data['data'];
-        if (data != null) {
-          final qrCode = data['qr_code'] as String?;
-          if (qrCode != null && qrCode.isNotEmpty) {
-            print('✅ QR Generated: ${qrCode.substring(0, 50)}...');
-            return qrCode;
+        // The API returns nested structure: { data: { data: {...}, message, success } }
+        final outerData = response.data;
+        if (outerData is Map<String, dynamic>) {
+          // Check if there's a nested 'data' field
+          if (outerData.containsKey('data')) {
+            final innerData = outerData['data'];
+            if (innerData is Map<String, dynamic>) {
+              // Use the inner data to create the model
+              print('✅ Dashboard Data Loaded Successfully');
+              return DashboardModel.fromJson(innerData);
+            }
           }
+          // If no nested structure, use the outer data directly
+          return DashboardModel.fromJson(outerData);
         }
-        throw ServerException(message: 'فشل إنشاء رمز QR - البيانات غير صحيحة');
+        throw ServerException(message: 'Invalid response format from server');
       } else {
         throw ServerException(
-          message: 'فشل إنشاء رمز QR: ${response.statusCode}',
+          message: 'Failed to load dashboard: ${response.statusCode}',
         );
       }
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
         throw UnauthorizedException(
-          message: 'انتهت صلاحية الجلسة، يرجى تسجيل الدخول مرة أخرى',
+          message: 'Session expired, please login again',
         );
       } else if (e.type == DioExceptionType.connectionTimeout ||
           e.type == DioExceptionType.receiveTimeout) {
-        throw NetworkException(
-          message: 'انتهى وقت الاتصال، يرجى المحاولة مرة أخرى',
-        );
+        throw NetworkException(message: 'Connection timeout, please try again');
       } else if (e.type == DioExceptionType.connectionError) {
-        throw NetworkException(message: 'لا يوجد اتصال بالإنترنت');
+        throw NetworkException(message: 'No internet connection');
       } else {
         throw ServerException(
-          message: e.response?.data?['message'] ?? 'حدث خطأ في الخادم',
+          message: e.response?.data?['message'] ?? 'Server error occurred',
         );
       }
     } catch (e) {
-      throw ServerException(message: 'حدث خطأ غير متوقع: $e');
+      throw ServerException(message: 'Unexpected error occurred: $e');
     }
   }
 }

@@ -16,11 +16,25 @@ class QRRepositoryImpl implements QRRepository {
   Future<Either<Failure, String>> generateQR() async {
     try {
       final qrCode = await remoteDataSource.generateQR();
-      // Cache the QR code
+      // Cache the generated QR
       await localDataSource.cacheQR(qrCode);
       return Right(qrCode);
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure('Failed to generate QR: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, String?>> getLatestQR() async {
+    try {
+      final qrCode = await remoteDataSource.getLatestQR();
+      // Cache if found
+      if (qrCode != null && qrCode.isNotEmpty) {
+        await localDataSource.cacheQR(qrCode);
+      }
+      return Right(qrCode);
+    } catch (e) {
+      return Left(ServerFailure('Failed to get QR: ${e.toString()}'));
     }
   }
 

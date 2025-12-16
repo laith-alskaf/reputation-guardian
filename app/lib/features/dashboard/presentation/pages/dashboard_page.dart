@@ -6,6 +6,7 @@ import 'package:reputation_guardian/core/utils/app_animations.dart';
 import 'package:reputation_guardian/core/widgets/responsive_scaffold.dart';
 import 'package:reputation_guardian/core/widgets/loading_widget.dart';
 import 'package:reputation_guardian/core/widgets/error_widget.dart' as custom;
+import 'package:reputation_guardian/features/qr/presentation/widgets/qr_dialog.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
@@ -38,6 +39,18 @@ class _DashboardPageState extends State<DashboardPage> {
     return ResponsiveScaffold(
       title: 'لوحة التحكم',
       useAnimatedAppBar: true,
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.qr_code_2, color: Colors.white),
+          tooltip: 'رمز QR',
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (context) => const QRDialog(),
+            );
+          },
+        ),
+      ],
       body: RefreshIndicator(
         onRefresh: () async {
           context.read<DashboardBloc>().add(const RefreshDashboard());
@@ -85,70 +98,6 @@ class _DashboardPageState extends State<DashboardPage> {
                       child: SentimentSection(metrics: data.metrics),
                     ),
                     SizedBox(height: ResponsiveSpacing.large(context)),
-
-                    // QR Code Section
-                    if (data.qrCode != null && data.qrCode!.isNotEmpty) ...[
-                      AppAnimations.fadeSlideIn(
-                        delay: const Duration(milliseconds: 300),
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: ResponsiveSpacing.medium(context),
-                          ),
-                          child: QRSectionWidget(
-                            qrCode: data.qrCode!,
-                            onDownload: () {
-                              context.read<QRBloc>().add(
-                                DownloadQR(data.qrCode!),
-                              );
-                            },
-                            onShare: () {
-                              context.read<QRBloc>().add(ShareQR(data.qrCode!));
-                            },
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                        height: ResponsiveSpacing.medium(context),
-                      ), // Added spacing between QR widget and buttons
-                      // QR Code Actions
-                      AppAnimations.fadeSlideIn(
-                        delay: const Duration(milliseconds: 350),
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: ResponsiveSpacing.medium(context),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: () {
-                                    context.read<QRBloc>().add(
-                                      DownloadQR(data.qrCode!),
-                                    );
-                                  },
-                                  icon: const Icon(Icons.download),
-                                  label: const Text('تحميل'),
-                                ),
-                              ),
-                              SizedBox(width: ResponsiveSpacing.small(context)),
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: () {
-                                    context.read<QRBloc>().add(
-                                      ShareQR(data.qrCode!),
-                                    );
-                                  },
-                                  icon: const Icon(Icons.share),
-                                  label: const Text('مشاركة'),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: ResponsiveSpacing.large(context)),
-                    ],
 
                     // Actions Section
                     AppAnimations.fadeSlideIn(

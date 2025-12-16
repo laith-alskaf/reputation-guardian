@@ -4,7 +4,11 @@ abstract class QREvent extends Equatable {
   const QREvent();
 
   @override
-  List<Object?> get props => [];
+  List<Object> get props => [];
+}
+
+class LoadQRCode extends QREvent {
+  const LoadQRCode();
 }
 
 class GenerateQR extends QREvent {
@@ -21,7 +25,7 @@ class DownloadQR extends QREvent {
   const DownloadQR(this.qrCode);
 
   @override
-  List<Object?> get props => [qrCode];
+  List<Object> get props => [qrCode];
 }
 
 class ShareQR extends QREvent {
@@ -30,5 +34,5 @@ class ShareQR extends QREvent {
   const ShareQR(this.qrCode);
 
   @override
-  List<Object?> get props => [qrCode];
+  List<Object> get props => [qrCode];
 }

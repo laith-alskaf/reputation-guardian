@@ -33,20 +33,31 @@ class ReviewDetailsDialog extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
+  Widget _buildDetailRow(
+    String label,
+    String value, {
+    bool copyable = false,
+    BuildContext? context,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 120,
+            width: 90,
             child: Text(
               '$label:',
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
             ),
           ),
-          Expanded(child: Text(value, style: const TextStyle(fontSize: 13))),
+          SelectableText(
+            enableInteractiveSelection:
+                label.contains('هاتف') || label.contains('بريد'),
+            value,
+            style: const TextStyle(fontSize: 13),
+            // Force LTR for phone numbers
+            textDirection: label.contains('هاتف') ? TextDirection.ltr : null,
+          ),
         ],
       ),
     );
@@ -117,7 +128,19 @@ class ReviewDetailsDialog extends StatelessWidget {
                   children: [
                     // Meta Info
                     _buildDetailSection('معلومات المقيم', Icons.person, [
-                      _buildDetailRow('البريد الإلكتروني', email),
+                      _buildDetailRow(
+                        'البريد الإلكتروني',
+                        email,
+                        copyable: true,
+                        context: context,
+                      ),
+                      if (review['source']?['fields']?['phone'] != null)
+                        _buildDetailRow(
+                          'رقم الهاتف',
+                          review['source']['fields']['phone'].toString(),
+                          copyable: true,
+                          context: context,
+                        ),
                       _buildDetailRow('التاريخ', displayDate),
                       _buildDetailRow('التقييم', '$stars نجوم⭐'),
                       _buildDetailRow('المشاعر', sentiment.toString()),
@@ -248,6 +271,137 @@ class ReviewDetailsDialog extends StatelessWidget {
                         '${(qualityScore * 100).toStringAsFixed(0)}%',
                       ),
                     ]),
+
+                    // Warning Section - is_profane, flags, is_suspicious
+                    if (review['processing']?['is_profane'] == true ||
+                        (review['analysis']?['quality']?['flags'] != null &&
+                            (review['analysis']['quality']['flags'] as List)
+                                .isNotEmpty) ||
+                        review['analysis']?['quality']?['is_suspicious'] ==
+                            true) ...[
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppColors.error.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppColors.error.withOpacity(0.3),
+                            width: 2,
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.warning_amber_rounded,
+                                  color: AppColors.error,
+                                  size: 24,
+                                ),
+                                const SizedBox(width: 8),
+                                const Text(
+                                  'تحذيرات الجودة',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.error,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+
+                            // is_profane warning
+                            if (review['processing']?['is_profane'] == true)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.block,
+                                      size: 18,
+                                      color: AppColors.error,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Expanded(
+                                      child: Text(
+                                        'محتوى غير لائق: يحتوي التقييم على لغة غير لائقة',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: AppColors.error,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                            // is_suspicious warning
+                            if (review['analysis']?['quality']?['is_suspicious'] ==
+                                true)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.help_outline,
+                                      size: 18,
+                                      color: AppColors.warning,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Expanded(
+                                      child: Text(
+                                        'تقييم مشبوه: قد يكون التقييم مزيفاً أو غير موثوق',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: AppColors.warning,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                            // Flags warnings
+                            if (review['analysis']?['quality']?['flags'] !=
+                                    null &&
+                                (review['analysis']['quality']['flags'] as List)
+                                    .isNotEmpty)
+                              ...(review['analysis']['quality']['flags']
+                                      as List)
+                                  .map((flag) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(bottom: 8),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.flag,
+                                            size: 18,
+                                            color: AppColors.error,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              _getFlagDescription(
+                                                flag.toString(),
+                                              ),
+                                              style: const TextStyle(
+                                                fontSize: 13,
+                                                color: AppColors.error,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  })
+                                  .toList(),
+                          ],
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -256,5 +410,20 @@ class ReviewDetailsDialog extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _getFlagDescription(String flag) {
+    switch (flag) {
+      case 'high_toxicity':
+        return 'سمية عالية: يحتوي على لغة سامة أو عنيفة';
+      case 'spam':
+        return 'بريد عشوائي: قد يكون محتوى ترويجي غير مرغوب';
+      case 'low_quality':
+        return 'جودة منخفضة: محتوى ضعيف أو غير مفيد';
+      case 'irrelevant':
+        return 'غير ذي صلة: المحتوى غير متعلق بالمنتج أو الخدمة';
+      default:
+        return flag;
+    }
   }
 }
