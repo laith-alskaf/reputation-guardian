@@ -32,3 +32,11 @@ class QRError extends QRState {
   @override
   List<Object?> get props => [message];
 }
+
+class QRDownloaded extends QRState {
+  const QRDownloaded();
+}
+
+class QRShared extends QRState {
+  const QRShared();
+}

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/responsive_scaffold.dart';
 import '../../../auth/data/datasources/auth_local_datasource.dart';
+import '../../../dashboard/presentation/bloc/dashboard_bloc.dart';
+import '../../../dashboard/presentation/bloc/dashboard_state.dart';
 import '../../../profile/presentation/pages/profile_edit_page.dart';
 import '../../../profile/presentation/pages/shop_edit_page.dart';
 import '../../../info/presentation/pages/about_page.dart';
@@ -370,7 +373,12 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _openTelegramBot() async {
     try {
       const botUsername = 'LaithAlskafBot';
-      final shopId = '69408597806ff8d4dc1dc6cf'; // TODO: Get from auth
+
+      // Get shop ID from dashboard state
+      final dashboardState = context.read<DashboardBloc>().state;
+      final shopId = dashboardState is DashboardLoaded
+          ? dashboardState.dashboardData.shopInfo.shopId
+          : '';
 
       final telegramUrl = Uri.parse('https://t.me/$botUsername?start=$shopId');
 

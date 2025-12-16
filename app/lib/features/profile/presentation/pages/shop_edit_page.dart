@@ -216,7 +216,19 @@ class _ShopEditPageState extends State<ShopEditPage> {
     });
 
     try {
-      // TODO: Implement API call to save shop info
+      // Prepare shop data
+      final shopName = _shopNameController.text.trim();
+      final shopType = _selectedShopType == 'أخرى'
+          ? _shopTypeController.text.trim()
+          : _selectedShopType;
+
+      // TODO: Implement actual API call through a use case or repository
+      // For now, this is a placeholder that simulates the API call
+      // In a real implementation, you would:
+      // 1. Create a UpdateShopInfoUseCase
+      // 2. Call it with the shop data
+      // 3. Update the DashboardBloc state with the new data
+
       await Future.delayed(const Duration(seconds: 2));
 
       if (mounted) {
