@@ -35,12 +35,13 @@ The **Reputation Guardian Mobile App** is a cross-platform Flutter application p
 ### Why This App?
 
 - 📱 **Native Performance** - Smooth 60fps animations
-- 🎨 **Beautiful UI** - Modern Material Design 3
+- 🎨 **Beautiful UI** - Modern Material Design 3 with responsive layout
 - 🔄 **Real-time Updates** - Live dashboard metrics
-- 🌐 **RTL Support** - Full Arabic language support
+- 🌐 **RTL Support** - Full Arabic language support with proper text direction
 - 📊 **Rich Analytics** - Interactive charts and insights
 - 🔐 **Secure** - JWT authentication with token refresh
-- 📴 **Offline-First** - Local caching for offline access
+- 📴 **Offline-First** - Local caching with smart cache→API→generate flow
+- ⚠️ **Quality Indicators** - Advanced review quality warnings and flags
 
 ---
 
@@ -51,15 +52,19 @@ The **Reputation Guardian Mobile App** is a cross-platform Flutter application p
 #### Metrics Overview
 - **Real-time Statistics**
   - Total reviews count with trend
-  - Average rating display
-  - Sentiment distribution (positive/negative/neutral)
-  - Quality score indicators
+  - Average rating display (5-star system)
+  - Positive/negative reviews count
+  - Sentiment distribution visualization
+  - **Responsive Grid Layout** - 2 columns on mobile, 3 on tablet, 4 on desktop
 
 #### Quick Actions
 - **QR Code Management**
-  - Generate review collection QR codes
-  - Download and share functionality
-  - Cached QR codes for offline viewing
+  - Smart QR flow: Cache → API → Generate
+  - Dedicated QR Dialog with clean UI
+  - **Download to Gallery** - Direct save using `gal` package
+  - **Share QR Code** - Share via WhatsApp, Email, etc.
+  - Offline QR code viewing from cache
+  - Date-formatted QR code with Arabic locale support
 
 ### 📊 Analytics Page
 
@@ -84,18 +89,42 @@ The **Reputation Guardian Mobile App** is a cross-platform Flutter application p
   - Rejected - Low Quality
   - Rejected - Irrelevant
 
+- **Enhanced Review Cards**
+  - **Sentiment Display** - Color-coded sentiment badges (Positive/Negative/Neutral)
+  - **Star Ratings** - Visual 5-star display
+  - **Review Text Preview** - 3-line preview with ellipsis
+  - **Date/Time** - Formatted with Arabic locale (e.g., "15 ديسمبر 2024، 10:30 م")
+  - **Quality Score Badge** - Color-coded quality indicator (green ≥70%, orange <70%)
+  - **Warning Ribbons**:
+    - 🚫 **Profane Content** - Red ribbon for inappropriate content
+    - 🚩 **Quality Flags** - Orange ribbon for flagged reviews (toxicity, spam, low quality, irrelevant)
+
 - **Search & Filter**
   - Real-time search
   - Filter by sentiment, rating, category
   - Sort options
 
-- **Review Details**
-  - Customer information
-  - AI-generated summary
-  - Actionable insights
-  - Suggested reply (copy to clipboard)
-  - Key themes tags
-  - Quality score badges
+- **Review Details Dialog**
+  - **Customer Information**
+    - Email (copyable with one click)
+    - Phone number (copyable, LTR formatted: +963...)
+    - Review date and rating
+    - Sentiment and category
+  - **AI-Generated Content**
+    - Summary
+    - Actionable insights
+    - Suggested reply (copy to clipboard)
+    - Key themes tags
+  - **Quality Analysis**
+    - Quality score display
+  - **⚠️ Quality Warnings Section** (if applicable):
+    - 🚫 Profane content warning
+    - ⚠️ Suspicious review indicator
+    - 🚩 Quality flags with Arabic descriptions:
+      - `high_toxicity` → "سمية عالية: يحتوي على لغة سامة أو عنيفة"
+      - `spam` → "بريد عشوائي: قد يكون محتوى ترويجي غير مرغوب"
+      - `low_quality` → "جودة منخفضة: محتوى ضعيف أو غير مفيد"
+      - `irrelevant` → "غير ذي صلة: المحتوى غير متعلق بالمنتج أو الخدمة"
 
 ### ⚙️ Settings & Profile
 
@@ -145,10 +174,10 @@ lib/
 │   │       └── widgets/        # Feature-specific widgets
 │   │
 │   ├── dashboard/              # Dashboard feature
-│   ├── analytics/              # Analytics feature (PLANNED)
-│   ├── reviews/                # Reviews management
+│   ├── analytics/              # Analytics feature
+│   ├── reviews/                # Reviews management (enhanced)
 │   ├── profile/                # Profile & settings
-│   ├── qr/                     # QR code generation
+│   ├── qr/                     # QR code generation (improved flow)
 │   └── settings/               # App settings
 │
 └── main.dart                   # App entry point
@@ -254,7 +283,7 @@ features/dashboard/
     └── widgets/
         ├── dashboard/
         │   ├── welcome_card.dart
-        │   ├── metrics_grid.dart
+        │   ├── metrics_grid.dart      # Responsive 2/3/4 columns
         │   └── sentiment_section.dart
         └── analytics/
             ├── period_filter_widget.dart
@@ -372,12 +401,16 @@ dependencies:
   fl_chart: ^0.70.2             # Charts library
   qr_flutter: ^4.1.0            # QR generation
   
-  # Storage
+  # Storage & Sharing
   shared_preferences: ^2.3.3    # Local storage
+  share_plus: ^10.1.3           # Share functionality
+  path_provider: ^2.1.5         # File paths
+  gal: ^2.3.0                   # Save to gallery
   
   # Utilities
-  intl: ^0.20.1                 # Internationalization
+  intl: ^0.20.1                 # Internationalization & date formatting
   url_launcher: ^6.3.1          # URL handling
+  permission_handler: ^11.3.1   # Permissions
 ```
 
 ### Dev Dependencies
@@ -409,7 +442,7 @@ dev_dependencies:
 
 #### Dashboard Widgets  
 - **WelcomeCard** - Personalized greeting
-- **MetricsGrid** - Responsive metrics layout
+- **MetricsGrid** - Responsive metrics layout (2/3/4 columns)
 - **SentimentSection** - Sentiment analysis display
 
 #### Analytics Widgets
@@ -418,13 +451,21 @@ dev_dependencies:
 - **SentimentPieChartWidget** - Pie chart with legend
 
 #### Reviews Widgets
-- **ReviewCard** - Review item display
-- **ReviewDetailsDialog** - Full review details
+- **ReviewCard** - Enhanced review card with:
+  - Sentiment badges
+  - Star ratings
+  - Quality score
+  - Warning ribbons (profane/flags)
+  - Formatted date/time
+- **ReviewDetailsDialog** - Full review details with:
+  - Copyable email/phone
+  - AI-generated insights
+  - Quality warnings section
 - **ReviewSearchBar** - Search functionality
 - **SentimentHelpers** - Sentiment utilities
 
 #### QR Widgets
-- **QRSectionWidget** - Complete QR section
+- **QRDialog** - Standalone QR dialog
 - **QRDisplayWidget** - QR code viewer
 - **QRActionButtons** - Download/share buttons
 
@@ -495,6 +536,7 @@ flutter pub run build_runner build --delete-conflicting-outputs
 ✅ **Add error boundaries** - Graceful degradation  
 ✅ **Write meaningful names** - Self-documenting code  
 ✅ **Comment complex logic** - Future maintainability  
+✅ **Responsive design** - Test on multiple screen sizes
 
 ---
 
@@ -508,16 +550,20 @@ flutter pub run build_runner build --delete-conflicting-outputs
 **Permissions** (`android/app/src/main/AndroidManifest.xml`):
 ```xml
 <uses-permission android:name="android.permission.INTERNET"/>
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 ```
 
 ### iOS
 
 **Minimum Version**: iOS 13.0  
 
-**Info.plist** configuration required for camera (QR scanning):
+**Info.plist** configuration:
 ```xml
 <key>NSCameraUsageDescription</key>
 <string>We need camera access to scan QR codes</string>
+<key>NSPhotoLibraryAddUsageDescription</key>
+<string>Save QR codes to your photo library</string>
 ```
 
 ---
@@ -562,11 +608,12 @@ abstract class NetworkModule {
 4. **Lazy Loading** - Pagination for reviews
 5. **State Optimization** - Equatable for efficient comparisons
 6. **Code Splitting** - Feature-based modules
+7. **Smart Caching** - Cache → API → Generate flow for QR codes
 
 ### App Size
 
-- **Android APK**: ~25 MB (release)
-- **iOS App**: ~30 MB (release)
+- **Android APK**: ~25-30 MB (release)
+- **iOS App**: ~30-35 MB (release)
 
 ---
 
@@ -631,12 +678,20 @@ flutter run
 
 ### المميزات الرئيسية
 
-- 📊 لوحة تحكم شاملة مع إحصائيات فورية
-- 📈 تحليلات متقدمة مع رسوم بيانية تفاعلية
-- 📝 إدارة كاملة للتقييمات مع البحث والفلترة
-- 🔔 تكامل Telegram للإشعارات
-- 📱 تصميم متجاوب يدعم RTL للعربية
-- ⚡ أداء عالي مع 60fps
+- 📊 **لوحة تحكم شاملة** - إحصائيات فورية مع شبكة متجاوبة (2/3/4 أعمدة)
+- 📈 **تحليلات متقدمة** - رسوم بيانية تفاعلية
+- 📝 **إدارة كاملة للتقييمات** - مع تحذيرات الجودة والمحتوى غير اللائق
+- 📱 **QR Code محسّن**:
+  - تدفق ذكي: Cache → API → توليد
+  - حفظ مباشر في المعرض
+  - مشاركة عبر التطبيقات
+- ⚠️ **تحذيرات الجودة**:
+  - محتوى غير لائق (شريط أحمر)
+  - علامات الجودة (شريط برتقالي)
+  - تحذيرات تفصيلية في صفحة التفاصيل
+- 🔔 **تكامل Telegram** - للإشعارات
+- 📱 **تصميم متجاوب** - يدعم RTL للعربية
+- ⚡ **أداء عالي** - 60fps
 
 ### بناء التطبيق للإنتاج
 
