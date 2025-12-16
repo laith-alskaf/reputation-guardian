@@ -1,6 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
-import 'package:reputation_guardian/features/qr/domain/usecases/generate_qr_usecase.dart';
 import '../../domain/usecases/get_dashboard_usecase.dart';
 import '../../data/datasources/dashboard_local_datasource.dart';
 import 'dashboard_event.dart';
@@ -9,17 +8,12 @@ import 'dashboard_state.dart';
 @injectable
 class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   final GetDashboardUseCase getDashboardUseCase;
-  final GenerateQRUseCase generateQRUseCase;
   final DashboardLocalDataSource localDataSource;
 
-  DashboardBloc(
-    this.getDashboardUseCase,
-    this.generateQRUseCase,
-    this.localDataSource,
-  ) : super(const DashboardInitial()) {
+  DashboardBloc(this.getDashboardUseCase, this.localDataSource)
+    : super(const DashboardInitial()) {
     on<LoadDashboard>(_onLoadDashboard);
     on<RefreshDashboard>(_onRefreshDashboard);
-    on<GenerateQRCode>(_onGenerateQRCode);
   }
 
   Future<void> _onLoadDashboard(
@@ -77,38 +71,6 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
           }
         }
         emit(DashboardLoaded(dashboardData));
-      },
-    );
-  }
-
-  Future<void> _onGenerateQRCode(
-    GenerateQRCode event,
-    Emitter<DashboardState> emit,
-  ) async {
-    final currentState = state;
-
-    if (currentState is! DashboardLoaded) {
-      return;
-    }
-
-    emit(const QRGenerating());
-
-    // Call API to generate QR
-    final result = await generateQRUseCase();
-
-    await result.fold(
-      (failure) async {
-        // If QR generation fails, return to loaded state
-        emit(DashboardLoaded(currentState.dashboardData));
-      },
-      (qrCode) async {
-        // Save QR code locally
-        await localDataSource.saveQRCode(qrCode);
-        print('✅ QR saved, updating dashboard...');
-
-        // Update current dashboard data with new QR immediately
-        final updatedData = currentState.dashboardData.copyWith(qrCode: qrCode);
-        emit(DashboardLoaded(updatedData));
       },
     );
   }

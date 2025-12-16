@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:reputation_guardian/core/theme/app_theme.dart';
@@ -12,6 +11,7 @@ import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
 import '../../../reviews/presentation/pages/reviews_page.dart';
+import '../../../qr/presentation/widgets/qr_section_widget.dart';
 import 'analytics_page.dart';
 
 class DashboardPage extends StatefulWidget {
@@ -86,13 +86,23 @@ class _DashboardPageState extends State<DashboardPage> {
                     if (data.qrCode != null && data.qrCode!.isNotEmpty)
                       AppAnimations.fadeSlideIn(
                         delay: const Duration(milliseconds: 300),
-                        child: Column(
-                          children: [
-                            _buildQRCodeSection(context, data.qrCode!),
-                            SizedBox(height: ResponsiveSpacing.large(context)),
-                          ],
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: ResponsiveSpacing.medium(context),
+                          ),
+                          child: QRSectionWidget(
+                            qrCode: data.qrCode!,
+                            onDownload: () {
+                              // TODO: Implement download
+                            },
+                            onShare: () {
+                              // TODO: Implement share
+                            },
+                          ),
                         ),
                       ),
+                    if (data.qrCode != null && data.qrCode!.isNotEmpty)
+                      SizedBox(height: ResponsiveSpacing.large(context)),
 
                     // Actions Section
                     AppAnimations.fadeSlideIn(
@@ -231,16 +241,6 @@ class _DashboardPageState extends State<DashboardPage> {
                 children: [
                   _buildActionButton(
                     context,
-                    icon: Icons.qr_code,
-                    title: 'رمز QR',
-                    subtitle: 'عرض وتحميل رمز QR',
-                    onTap: () {
-                      context.read<DashboardBloc>().add(const GenerateQRCode());
-                    },
-                  ),
-                  SizedBox(height: ResponsiveSpacing.small(context)),
-                  _buildActionButton(
-                    context,
                     icon: Icons.analytics,
                     title: 'التحليلات',
                     subtitle: 'عرض الإحصائيات المفصلة',
@@ -265,20 +265,6 @@ class _DashboardPageState extends State<DashboardPage> {
               )
             : Row(
                 children: [
-                  Expanded(
-                    child: _buildActionButton(
-                      context,
-                      icon: Icons.qr_code,
-                      title: 'رمز QR',
-                      subtitle: 'عرض وتحميل رمز QR',
-                      onTap: () {
-                        context.read<DashboardBloc>().add(
-                          const GenerateQRCode(),
-                        );
-                      },
-                    ),
-                  ),
-                  SizedBox(width: ResponsiveSpacing.medium(context)),
                   Expanded(
                     child: _buildActionButton(
                       context,
@@ -541,127 +527,6 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildQRCodeSection(BuildContext context, String qrCode) {
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: ResponsiveSpacing.medium(context),
-      ),
-      child: Card(
-        child: Padding(
-          padding: EdgeInsets.all(ResponsiveSpacing.medium(context)),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.qr_code, color: AppColors.primary),
-                  const SizedBox(width: 8),
-                  Text(
-                    'رمز QR الخاص بك',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Center(
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      // Decode base64 QR code
-                      _buildQRImage(qrCode),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              // TODO: Download QR
-                            },
-                            icon: const Icon(Icons.download),
-                            label: const Text('تحميل'),
-                          ),
-                          const SizedBox(width: 12),
-                          OutlinedButton.icon(
-                            onPressed: () {
-                              // TODO: Share QR
-                            },
-                            icon: const Icon(Icons.share),
-                            label: const Text('مشاركة'),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildQRImage(String qrCode) {
-    try {
-      // Try to decode as base64
-      final bytes = base64Decode(qrCode);
-      return Image.memory(
-        bytes,
-        width: 200,
-        height: 200,
-        errorBuilder: (context, error, stackTrace) {
-          return _buildQRErrorWidget();
-        },
-      );
-    } catch (e) {
-      // If not base64, try as URL
-      if (qrCode.startsWith('http')) {
-        return Image.network(
-          qrCode,
-          width: 200,
-          height: 200,
-          errorBuilder: (context, error, stackTrace) {
-            return _buildQRErrorWidget();
-          },
-        );
-      }
-      return _buildQRErrorWidget();
-    }
-  }
-
-  Widget _buildQRErrorWidget() {
-    return Container(
-      width: 200,
-      height: 200,
-      color: AppColors.surface,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.qr_code_2, size: 64, color: AppColors.textSecondary),
-          const SizedBox(height: 8),
-          Text(
-            'خطأ في عرض QR',
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
-          ),
-        ],
-      ),
     );
   }
 

@@ -14,7 +14,3 @@ class LoadDashboard extends DashboardEvent {
 class RefreshDashboard extends DashboardEvent {
   const RefreshDashboard();
 }
-
-class GenerateQRCode extends DashboardEvent {
-  const GenerateQRCode();
-}

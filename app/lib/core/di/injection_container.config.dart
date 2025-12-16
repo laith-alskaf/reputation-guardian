@@ -42,8 +42,18 @@ import 'package:reputation_guardian/features/dashboard/domain/usecases/get_dashb
     as _i487;
 import 'package:reputation_guardian/features/dashboard/presentation/bloc/dashboard_bloc.dart'
     as _i704;
+import 'package:reputation_guardian/features/qr/data/datasources/qr_local_datasource.dart'
+    as _i1068;
+import 'package:reputation_guardian/features/qr/data/datasources/qr_remote_datasource.dart'
+    as _i122;
+import 'package:reputation_guardian/features/qr/data/repositories/qr_repository_impl.dart'
+    as _i571;
+import 'package:reputation_guardian/features/qr/domain/repositories/qr_repository.dart'
+    as _i388;
 import 'package:reputation_guardian/features/qr/domain/usecases/generate_qr_usecase.dart'
     as _i495;
+import 'package:reputation_guardian/features/qr/presentation/bloc/qr_bloc.dart'
+    as _i591;
 import 'package:shared_preferences/shared_preferences.dart' as _i460;
 
 extension GetItInjectableX on _i174.GetIt {
@@ -57,6 +67,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i361.Dio>(() => networkModule.dio);
     gh.lazySingleton<_i558.FlutterSecureStorage>(
       () => networkModule.secureStorage,
+    );
+    gh.factory<_i122.QRRemoteDataSource>(
+      () => _i122.QRRemoteDataSourceImpl(gh<_i361.Dio>()),
     );
     gh.lazySingleton<_i200.DashboardRemoteDataSource>(
       () => _i200.DashboardRemoteDataSourceImpl(gh<_i361.Dio>()),
@@ -76,6 +89,9 @@ extension GetItInjectableX on _i174.GetIt {
         localDataSource: gh<_i853.DashboardLocalDataSource>(),
       ),
     );
+    gh.factory<_i1068.QRLocalDataSource>(
+      () => _i1068.QRLocalDataSourceImpl(gh<_i460.SharedPreferences>()),
+    );
     gh.lazySingleton<_i877.AuthRepository>(
       () => _i17.AuthRepositoryImpl(
         remoteDataSource: gh<_i332.AuthRemoteDataSource>(),
@@ -84,16 +100,6 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i487.GetDashboardUseCase>(
       () => _i487.GetDashboardUseCase(gh<_i381.DashboardRepository>()),
-    );
-    gh.factory<_i495.GenerateQRUseCase>(
-      () => _i495.GenerateQRUseCase(gh<_i381.DashboardRepository>()),
-    );
-    gh.factory<_i704.DashboardBloc>(
-      () => _i704.DashboardBloc(
-        gh<_i487.GetDashboardUseCase>(),
-        gh<_i495.GenerateQRUseCase>(),
-        gh<_i853.DashboardLocalDataSource>(),
-      ),
     );
     gh.factory<_i98.LoginUseCase>(
       () => _i98.LoginUseCase(gh<_i877.AuthRepository>()),
@@ -111,6 +117,22 @@ extension GetItInjectableX on _i174.GetIt {
         logoutUseCase: gh<_i891.LogoutUseCase>(),
       ),
     );
+    gh.factory<_i388.QRRepository>(
+      () => _i571.QRRepositoryImpl(
+        gh<_i122.QRRemoteDataSource>(),
+        gh<_i1068.QRLocalDataSource>(),
+      ),
+    );
+    gh.factory<_i495.GenerateQRUseCase>(
+      () => _i495.GenerateQRUseCase(gh<_i388.QRRepository>()),
+    );
+    gh.factory<_i704.DashboardBloc>(
+      () => _i704.DashboardBloc(
+        gh<_i487.GetDashboardUseCase>(),
+        gh<_i853.DashboardLocalDataSource>(),
+      ),
+    );
+    gh.factory<_i591.QRBloc>(() => _i591.QRBloc(gh<_i495.GenerateQRUseCase>()));
     return this;
   }
 }

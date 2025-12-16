@@ -33,17 +33,3 @@ class DashboardError extends DashboardState {
   @override
   List<Object?> get props => [message];
 }
-
-class QRGenerating extends DashboardState {
-  const QRGenerating();
-}
-
-class QRGenerated extends DashboardState {
-  final String qrCode;
-  final DashboardData dashboardData;
-
-  const QRGenerated(this.qrCode, this.dashboardData);
-
-  @override
-  List<Object?> get props => [qrCode, dashboardData];
-}

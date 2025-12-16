@@ -4,5 +4,4 @@ import '../entities/dashboard_data.dart';
 
 abstract class DashboardRepository {
   Future<Either<Failure, DashboardData>> getDashboard();
-  Future<Either<Failure, String>> generateQR();
 }
