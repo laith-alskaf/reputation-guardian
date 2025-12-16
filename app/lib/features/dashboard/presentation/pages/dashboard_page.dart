@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:reputation_guardian/core/theme/app_theme.dart';
 import 'package:reputation_guardian/core/utils/responsive.dart';
 import 'package:reputation_guardian/core/utils/app_animations.dart';
-import 'package:reputation_guardian/core/widgets/metric_card.dart';
 import 'package:reputation_guardian/core/widgets/responsive_scaffold.dart';
 import 'package:reputation_guardian/core/widgets/loading_widget.dart';
 import 'package:reputation_guardian/core/widgets/error_widget.dart' as custom;
@@ -12,6 +11,9 @@ import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
 import '../../../reviews/presentation/pages/reviews_page.dart';
 import '../../../qr/presentation/widgets/qr_section_widget.dart';
+import '../widgets/dashboard/welcome_card.dart';
+import '../widgets/dashboard/metrics_grid.dart';
+import '../widgets/dashboard/sentiment_section.dart';
 import 'analytics_page.dart';
 
 class DashboardPage extends StatefulWidget {
@@ -64,26 +66,26 @@ class _DashboardPageState extends State<DashboardPage> {
                   children: [
                     // Welcome Card with animation
                     AppAnimations.fadeSlideIn(
-                      child: _buildWelcomeCard(context, data.shopInfo.shopName),
+                      child: WelcomeCard(shopName: data.shopInfo.shopName),
                     ),
                     SizedBox(height: ResponsiveSpacing.large(context)),
 
                     // Metrics Grid with stagger
                     AppAnimations.fadeSlideIn(
                       delay: const Duration(milliseconds: 100),
-                      child: _buildMetricsGrid(context, data.metrics),
+                      child: MetricsGrid(metrics: data.metrics),
                     ),
                     SizedBox(height: ResponsiveSpacing.large(context)),
 
                     // Sentiment Analysis
                     AppAnimations.fadeSlideIn(
                       delay: const Duration(milliseconds: 200),
-                      child: _buildSentimentAnalysis(context, data.metrics),
+                      child: SentimentSection(metrics: data.metrics),
                     ),
                     SizedBox(height: ResponsiveSpacing.large(context)),
 
                     // QR Code Section
-                    if (data.qrCode != null && data.qrCode!.isNotEmpty)
+                    if (data.qrCode != null && data.qrCode!.isNotEmpty) ...[
                       AppAnimations.fadeSlideIn(
                         delay: const Duration(milliseconds: 300),
                         child: Padding(
@@ -93,16 +95,60 @@ class _DashboardPageState extends State<DashboardPage> {
                           child: QRSectionWidget(
                             qrCode: data.qrCode!,
                             onDownload: () {
-                              // TODO: Implement download
+                              context.read<QRBloc>().add(
+                                DownloadQRCode(data.qrCode!),
+                              );
                             },
                             onShare: () {
-                              // TODO: Implement share
+                              context.read<QRBloc>().add(
+                                ShareQRCode(data.qrCode!),
+                              );
                             },
                           ),
                         ),
                       ),
-                    if (data.qrCode != null && data.qrCode!.isNotEmpty)
+                      SizedBox(
+                        height: ResponsiveSpacing.medium(context),
+                      ), // Added spacing between QR widget and buttons
+                      // QR Code Actions
+                      AppAnimations.fadeSlideIn(
+                        delay: const Duration(milliseconds: 350),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: ResponsiveSpacing.medium(context),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () {
+                                    context.read<QRBloc>().add(
+                                      DownloadQRCode(data.qrCode!),
+                                    );
+                                  },
+                                  icon: const Icon(Icons.download),
+                                  label: const Text('تحميل'),
+                                ),
+                              ),
+                              SizedBox(width: ResponsiveSpacing.small(context)),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () {
+                                    context.read<QRBloc>().add(
+                                      ShareQRCode(data.qrCode!),
+                                    );
+                                  },
+                                  icon: const Icon(Icons.share),
+                                  label: const Text('مشاركة'),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                       SizedBox(height: ResponsiveSpacing.large(context)),
+                    ],
 
                     // Actions Section
                     AppAnimations.fadeSlideIn(
@@ -139,89 +185,6 @@ class _DashboardPageState extends State<DashboardPage> {
           },
         ),
       ),
-    );
-  }
-
-  Widget _buildWelcomeCard(BuildContext context, String shopName) {
-    return Card(
-      child: Padding(
-        padding: EdgeInsets.all(ResponsiveSpacing.medium(context)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.shield, size: 32, color: AppColors.primary),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'مرحباً $shopName! 👋',
-                        style: Theme.of(context).textTheme.headlineMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'إليك نظرة سريعة على تقييمات متجرك',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMetricsGrid(BuildContext context, dynamic metrics) {
-    final crossAxisCount = context.responsive(mobile: 2, tablet: 3, desktop: 5);
-
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: crossAxisCount,
-      childAspectRatio: 1.0,
-      mainAxisSpacing: ResponsiveSpacing.medium(context),
-      crossAxisSpacing: ResponsiveSpacing.medium(context),
-      children: [
-        MetricCard(
-          icon: Icons.star,
-          value: metrics.averageStars.toStringAsFixed(1),
-          label: 'متوسط النجوم',
-          color: AppColors.warning,
-        ),
-        MetricCard(
-          icon: Icons.rate_review,
-          value: metrics.totalReviews.toString(),
-          label: 'إجمالي التقييمات',
-          color: AppColors.primary,
-        ),
-        MetricCard(
-          icon: Icons.thumb_up,
-          value: metrics.positiveReviews.toString(),
-          label: 'إيجابية',
-          color: AppColors.positive,
-        ),
-        MetricCard(
-          icon: Icons.thumb_down,
-          value: metrics.negativeReviews.toString(),
-          label: 'سلبية',
-          color: AppColors.negative,
-        ),
-        MetricCard(
-          icon: Icons.trending_flat,
-          value: metrics.neutralReviews.toString(),
-          label: 'محايدة',
-          color: AppColors.neutral,
-        ),
-      ],
     );
   }
 
@@ -303,6 +266,7 @@ class _DashboardPageState extends State<DashboardPage> {
     required String title,
     required String subtitle,
     required VoidCallback onTap,
+    Color? color, // Added color parameter
   }) {
     return Card(
       child: InkWell(
@@ -315,7 +279,9 @@ class _DashboardPageState extends State<DashboardPage> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: (color ?? AppColors.primary).withOpacity(
+                    0.1,
+                  ), // Used withOpacity
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: AppColors.primary, size: 28),
@@ -411,122 +377,6 @@ class _DashboardPageState extends State<DashboardPage> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildSentimentAnalysis(BuildContext context, dynamic metrics) {
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: ResponsiveSpacing.medium(context),
-      ),
-      child: Card(
-        child: Padding(
-          padding: EdgeInsets.all(ResponsiveSpacing.medium(context)),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.analytics, color: AppColors.primary),
-                  const SizedBox(width: 8),
-                  Text(
-                    'تحليل المشاعر',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              metrics.totalReviews > 0
-                  ? Column(
-                      children: [
-                        _buildSentimentBar(
-                          'إيجابي',
-                          metrics.positiveReviews,
-                          metrics.totalReviews,
-                          AppColors.positive,
-                        ),
-                        const SizedBox(height: 12),
-                        _buildSentimentBar(
-                          'محايد',
-                          metrics.neutralReviews,
-                          metrics.totalReviews,
-                          AppColors.neutral,
-                        ),
-                        const SizedBox(height: 12),
-                        _buildSentimentBar(
-                          'سلبي',
-                          metrics.negativeReviews,
-                          metrics.totalReviews,
-                          AppColors.negative,
-                        ),
-                      ],
-                    )
-                  : Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(32),
-                        child: Column(
-                          children: [
-                            Icon(
-                              Icons.sentiment_satisfied_alt,
-                              size: 48,
-                              color: AppColors.textSecondary.withOpacity(0.3),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'لا توجد تقييمات بعد',
-                              style: TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSentimentBar(String label, int count, int total, Color color) {
-    final percentage = (count / total * 100).toStringAsFixed(0);
-    final ratio = count / total;
-
-    return Row(
-      children: [
-        SizedBox(
-          width: 60,
-          child: Text(
-            label,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: LinearProgressIndicator(
-              value: ratio,
-              minHeight: 24,
-              backgroundColor: color.withOpacity(0.2),
-              valueColor: AlwaysStoppedAnimation<Color>(color),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        SizedBox(
-          width: 80,
-          child: Text(
-            '$count ($percentage%)',
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-            textAlign: TextAlign.end,
-          ),
-        ),
-      ],
     );
   }
 

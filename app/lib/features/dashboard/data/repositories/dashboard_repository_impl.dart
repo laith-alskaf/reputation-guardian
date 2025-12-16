@@ -44,20 +44,4 @@ class DashboardRepositoryImpl implements DashboardRepository {
       return Left(ServerFailure('حدث خطأ غير متوقع'));
     }
   }
-
-  @override
-  Future<Either<Failure, String>> generateQR() async {
-    try {
-      final qrCode = await remoteDataSource.generateQR();
-      return Right(qrCode);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } on NetworkException catch (e) {
-      return Left(NetworkFailure(e.message));
-    } on UnauthorizedException catch (e) {
-      return Left(UnauthorizedFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure('حدث خطأ غير متوقع'));
-    }
-  }
 }

@@ -80,11 +80,11 @@ class AuthRepositoryImpl implements AuthRepository {
       await remoteDataSource.logout();
       await localDataSource.deleteToken();
       return const Right(null);
-    } on NetworkException catch (e) {
+    } on NetworkException catch (_) {
       // Even if network fails, delete local token
       await localDataSource.deleteToken();
       return const Right(null);
-    } catch (e) {
+    } catch (_) {
       await localDataSource.deleteToken();
       return const Right(null);
     }

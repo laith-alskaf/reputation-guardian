@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/app_animations.dart';
-import '../../../../core/utils/app_snackbar.dart';
 import '../../../../core/widgets/responsive_scaffold.dart';
 import '../../../../core/utils/responsive.dart';
 

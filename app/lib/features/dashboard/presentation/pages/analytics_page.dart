@@ -8,6 +8,9 @@ import '../../../../core/widgets/responsive_scaffold.dart';
 import '../../domain/entities/dashboard_data.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_state.dart';
+import '../widgets/analytics/period_filter_widget.dart';
+import '../widgets/analytics/rating_distribution_chart.dart';
+import '../widgets/analytics/sentiment_pie_chart_widget.dart';
 
 class AnalyticsPage extends StatefulWidget {
   const AnalyticsPage({super.key});
@@ -18,22 +21,6 @@ class AnalyticsPage extends StatefulWidget {
 
 class _AnalyticsPageState extends State<AnalyticsPage> {
   String _selectedPeriod = 'week';
-
-  // Helper method to calculate rating distribution
-  Map<int, int> _calculateRatingDistribution(List<dynamic> reviews) {
-    final distribution = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0};
-
-    for (var review in reviews) {
-      if (review is Map && review.containsKey('stars')) {
-        final stars = (review['stars'] as num).round();
-        if (stars >= 1 && stars <= 5) {
-          distribution[stars] = (distribution[stars] ?? 0) + 1;
-        }
-      }
-    }
-
-    return distribution;
-  }
 
   // Helper method to calculate timeline data
   List<FlSpot> _calculateTimelineData(List<dynamic> reviews) {
@@ -127,7 +114,16 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Period Selector
-                AppAnimations.fadeSlideIn(child: _buildPeriodSelector()),
+                AppAnimations.fadeSlideIn(
+                  child: PeriodFilterWidget(
+                    selectedPeriod: _selectedPeriod,
+                    onPeriodChanged: (period) {
+                      setState(() {
+                        _selectedPeriod = period;
+                      });
+                    },
+                  ),
+                ),
                 const SizedBox(height: 24),
 
                 // Overview Cards
@@ -140,14 +136,14 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                 // Rating Distribution Chart
                 AppAnimations.fadeSlideIn(
                   delay: const Duration(milliseconds: 200),
-                  child: _buildRatingDistribution(reviews),
+                  child: RatingDistributionChart(reviews: reviews),
                 ),
                 const SizedBox(height: 24),
 
                 // Sentiment Trend Chart
                 AppAnimations.fadeSlideIn(
                   delay: const Duration(milliseconds: 300),
-                  child: _buildSentimentTrend(metrics),
+                  child: SentimentPieChartWidget(metrics: metrics),
                 ),
                 const SizedBox(height: 24),
 
@@ -167,54 +163,6 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
             ),
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildPeriodSelector() {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Row(
-        children: [
-          _buildPeriodButton('يوم', 'day'),
-          _buildPeriodButton('أسبوع', 'week'),
-          _buildPeriodButton('شهر', 'month'),
-          _buildPeriodButton('سنة', 'year'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPeriodButton(String label, String value) {
-    final isSelected = _selectedPeriod == value;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _selectedPeriod = value;
-          });
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            gradient: isSelected ? AppColors.primaryGradient : null,
-            color: isSelected ? null : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: isSelected ? Colors.white : AppColors.textSecondary,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
-        ),
       ),
     );
   }
@@ -282,243 +230,6 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildRatingDistribution(List<dynamic> reviews) {
-    final distribution = _calculateRatingDistribution(reviews);
-    final maxValue = distribution.values.isEmpty
-        ? 10.0
-        : distribution.values.reduce((a, b) => a > b ? a : b).toDouble() + 2;
-
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: AppColors.cardShadow,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'توزيع التقييمات',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 24),
-          SizedBox(
-            height: 200,
-            child: distribution.values.every((v) => v == 0)
-                ? const Center(
-                    child: Text(
-                      'لا توجد تقييمات بعد',
-                      style: TextStyle(color: AppColors.textSecondary),
-                    ),
-                  )
-                : BarChart(
-                    BarChartData(
-                      alignment: BarChartAlignment.spaceAround,
-                      maxY: maxValue,
-                      barTouchData: BarTouchData(enabled: true),
-                      titlesData: FlTitlesData(
-                        show: true,
-                        bottomTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            getTitlesWidget: (value, meta) {
-                              final stars = value.toInt() + 1;
-                              return Text(
-                                '$stars⭐',
-                                style: const TextStyle(fontSize: 12),
-                              );
-                            },
-                          ),
-                        ),
-                        leftTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            reservedSize: 30,
-                          ),
-                        ),
-                        topTitles: AxisTitles(
-                          sideTitles: SideTitles(showTitles: false),
-                        ),
-                        rightTitles: AxisTitles(
-                          sideTitles: SideTitles(showTitles: false),
-                        ),
-                      ),
-                      gridData: FlGridData(show: true, drawVerticalLine: false),
-                      borderData: FlBorderData(show: false),
-                      barGroups: [
-                        _buildBarGroup(0, distribution[1]!.toDouble()),
-                        _buildBarGroup(1, distribution[2]!.toDouble()),
-                        _buildBarGroup(2, distribution[3]!.toDouble()),
-                        _buildBarGroup(3, distribution[4]!.toDouble()),
-                        _buildBarGroup(4, distribution[5]!.toDouble()),
-                      ],
-                    ),
-                  ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  BarChartGroupData _buildBarGroup(int x, double y) {
-    return BarChartGroupData(
-      x: x,
-      barRods: [
-        BarChartRodData(
-          toY: y,
-          gradient: AppColors.primaryGradient,
-          width: 20,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSentimentTrend(Metrics metrics) {
-    final positive = metrics.positiveReviews;
-    final negative = metrics.negativeReviews;
-    final neutral = metrics.neutralReviews;
-    final total = positive + negative + neutral;
-
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: AppColors.cardShadow,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'توزيع المشاعر',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 24),
-          Row(
-            children: [
-              Expanded(
-                flex: 2,
-                child: SizedBox(
-                  height: 200,
-                  child: total > 0
-                      ? PieChart(
-                          PieChartData(
-                            sectionsSpace: 2,
-                            centerSpaceRadius: 40,
-                            sections: [
-                              PieChartSectionData(
-                                value: positive.toDouble(),
-                                title: '$positive',
-                                color: AppColors.positive,
-                                radius: 60,
-                                titleStyle: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              PieChartSectionData(
-                                value: negative.toDouble(),
-                                title: '$negative',
-                                color: AppColors.negative,
-                                radius: 60,
-                                titleStyle: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              PieChartSectionData(
-                                value: neutral.toDouble(),
-                                title: '$neutral',
-                                color: AppColors.neutral,
-                                radius: 60,
-                                titleStyle: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      : const Center(child: Text('لا توجد بيانات')),
-                ),
-              ),
-              const SizedBox(width: 24),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildLegendItem(
-                      'إيجابي',
-                      positive,
-                      total,
-                      AppColors.positive,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildLegendItem(
-                      'سلبي',
-                      negative,
-                      total,
-                      AppColors.negative,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildLegendItem(
-                      'محايد',
-                      neutral,
-                      total,
-                      AppColors.neutral,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLegendItem(String label, int count, int total, Color color) {
-    final percentage = total > 0
-        ? (count / total * 100).toStringAsFixed(1)
-        : '0.0';
-    return Row(
-      children: [
-        Container(
-          width: 16,
-          height: 16,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(4),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              Text(
-                '$count ($percentage%)',
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 
