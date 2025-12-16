@@ -1,14 +1,22 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import '../../domain/usecases/get_dashboard_usecase.dart';
+import '../../domain/usecases/generate_qr_usecase.dart';
+import '../../data/datasources/dashboard_local_datasource.dart';
 import 'dashboard_event.dart';
 import 'dashboard_state.dart';
 
 @injectable
 class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   final GetDashboardUseCase getDashboardUseCase;
+  final GenerateQRUseCase generateQRUseCase;
+  final DashboardLocalDataSource localDataSource;
 
-  DashboardBloc(this.getDashboardUseCase) : super(const DashboardInitial()) {
+  DashboardBloc(
+    this.getDashboardUseCase,
+    this.generateQRUseCase,
+    this.localDataSource,
+  ) : super(const DashboardInitial()) {
     on<LoadDashboard>(_onLoadDashboard);
     on<RefreshDashboard>(_onRefreshDashboard);
     on<GenerateQRCode>(_onGenerateQRCode);
@@ -22,9 +30,21 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
 
     final result = await getDashboardUseCase();
 
-    result.fold(
-      (failure) => emit(DashboardError(failure.message)),
-      (dashboardData) => emit(DashboardLoaded(dashboardData)),
+    await result.fold(
+      (failure) async => emit(DashboardError(failure.message)),
+      (dashboardData) async {
+        // If QR is null from API, try to load from local storage
+        if (dashboardData.qrCode == null || dashboardData.qrCode!.isEmpty) {
+          final cachedQR = await localDataSource.getQRCode();
+          if (cachedQR != null && cachedQR.isNotEmpty) {
+            // Create new dashboard data with cached QR
+            final updatedData = dashboardData.copyWith(qrCode: cachedQR);
+            emit(DashboardLoaded(updatedData));
+            return;
+          }
+        }
+        emit(DashboardLoaded(dashboardData));
+      },
     );
   }
 
@@ -37,17 +57,27 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
 
     final result = await getDashboardUseCase();
 
-    result.fold(
-      (failure) {
-        // If refresh fails, keep current data and show error via snackbar
-        // UI will handle this
+    await result.fold(
+      (failure) async {
+        // If refresh fails, keep current data
         if (currentState is DashboardLoaded) {
           emit(currentState);
         } else {
           emit(DashboardError(failure.message));
         }
       },
-      (dashboardData) => emit(DashboardLoaded(dashboardData)),
+      (dashboardData) async {
+        // If QR is null from API, try to load from local storage
+        if (dashboardData.qrCode == null || dashboardData.qrCode!.isEmpty) {
+          final cachedQR = await localDataSource.getQRCode();
+          if (cachedQR != null && cachedQR.isNotEmpty) {
+            final updatedData = dashboardData.copyWith(qrCode: cachedQR);
+            emit(DashboardLoaded(updatedData));
+            return;
+          }
+        }
+        emit(DashboardLoaded(dashboardData));
+      },
     );
   }
 
@@ -63,11 +93,23 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
 
     emit(const QRGenerating());
 
-    // For now, we'll simulate QR generation
-    // You can implement the actual API call using repository
-    await Future.delayed(const Duration(seconds: 1));
+    // Call API to generate QR
+    final result = await generateQRUseCase();
 
-    // Return to loaded state
-    emit(DashboardLoaded(currentState.dashboardData));
+    await result.fold(
+      (failure) async {
+        // If QR generation fails, return to loaded state
+        emit(DashboardLoaded(currentState.dashboardData));
+      },
+      (qrCode) async {
+        // Save QR code locally
+        await localDataSource.saveQRCode(qrCode);
+        print('✅ QR saved, updating dashboard...');
+
+        // Update current dashboard data with new QR immediately
+        final updatedData = currentState.dashboardData.copyWith(qrCode: qrCode);
+        emit(DashboardLoaded(updatedData));
+      },
+    );
   }
 }

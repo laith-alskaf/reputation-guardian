@@ -19,16 +19,38 @@ class DashboardData extends Equatable {
     required this.lastUpdated,
   });
 
+  DashboardData copyWith({
+    Metrics? metrics,
+    ShopInfo? shopInfo,
+    String? qrCode,
+    List<dynamic>? processedReviews,
+    List<dynamic>? rejectedQualityReviews,
+    List<dynamic>? rejectedIrrelevantReviews,
+    DateTime? lastUpdated,
+  }) {
+    return DashboardData(
+      metrics: metrics ?? this.metrics,
+      shopInfo: shopInfo ?? this.shopInfo,
+      qrCode: qrCode ?? this.qrCode,
+      processedReviews: processedReviews ?? this.processedReviews,
+      rejectedQualityReviews:
+          rejectedQualityReviews ?? this.rejectedQualityReviews,
+      rejectedIrrelevantReviews:
+          rejectedIrrelevantReviews ?? this.rejectedIrrelevantReviews,
+      lastUpdated: lastUpdated ?? this.lastUpdated,
+    );
+  }
+
   @override
   List<Object?> get props => [
-        metrics,
-        shopInfo,
-        qrCode,
-        processedReviews,
-        rejectedQualityReviews,
-        rejectedIrrelevantReviews,
-        lastUpdated,
-      ];
+    metrics,
+    shopInfo,
+    qrCode,
+    processedReviews,
+    rejectedQualityReviews,
+    rejectedIrrelevantReviews,
+    lastUpdated,
+  ];
 }
 
 class Metrics extends Equatable {
@@ -48,12 +70,12 @@ class Metrics extends Equatable {
 
   @override
   List<Object?> get props => [
-        averageStars,
-        totalReviews,
-        positiveReviews,
-        negativeReviews,
-        neutralReviews,
-      ];
+    averageStars,
+    totalReviews,
+    positiveReviews,
+    negativeReviews,
+    neutralReviews,
+  ];
 }
 
 class ShopInfo extends Equatable {

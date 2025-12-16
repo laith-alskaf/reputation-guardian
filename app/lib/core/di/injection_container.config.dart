@@ -38,6 +38,8 @@ import 'package:reputation_guardian/features/dashboard/data/repositories/dashboa
     as _i870;
 import 'package:reputation_guardian/features/dashboard/domain/repositories/dashboard_repository.dart'
     as _i381;
+import 'package:reputation_guardian/features/dashboard/domain/usecases/generate_qr_usecase.dart'
+    as _i786;
 import 'package:reputation_guardian/features/dashboard/domain/usecases/get_dashboard_usecase.dart'
     as _i487;
 import 'package:reputation_guardian/features/dashboard/presentation/bloc/dashboard_bloc.dart'
@@ -83,6 +85,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i487.GetDashboardUseCase>(
       () => _i487.GetDashboardUseCase(gh<_i381.DashboardRepository>()),
     );
+    gh.factory<_i786.GenerateQRUseCase>(
+      () => _i786.GenerateQRUseCase(gh<_i381.DashboardRepository>()),
+    );
     gh.factory<_i98.LoginUseCase>(
       () => _i98.LoginUseCase(gh<_i877.AuthRepository>()),
     );
@@ -100,7 +105,11 @@ extension GetItInjectableX on _i174.GetIt {
       ),
     );
     gh.factory<_i704.DashboardBloc>(
-      () => _i704.DashboardBloc(gh<_i487.GetDashboardUseCase>()),
+      () => _i704.DashboardBloc(
+        gh<_i487.GetDashboardUseCase>(),
+        gh<_i786.GenerateQRUseCase>(),
+        gh<_i853.DashboardLocalDataSource>(),
+      ),
     );
     return this;
   }

@@ -6,12 +6,18 @@ abstract class DashboardLocalDataSource {
   Future<DashboardModel?> getCachedDashboard();
   Future<void> cacheDashboard(DashboardModel dashboard);
   Future<void> clearCache();
+
+  // QR Code Storage
+  Future<void> saveQRCode(String qrCode);
+  Future<String?> getQRCode();
+  Future<void> deleteQRCode();
 }
 
 @LazySingleton(as: DashboardLocalDataSource)
 class DashboardLocalDataSourceImpl implements DashboardLocalDataSource {
   static const String _dashboardCacheKey = 'dashboard_cache';
   static const String _cacheTimeKey = 'dashboard_cache_time';
+  static const String _qrCodeKey = 'cached_qr_code';
   static const Duration _cacheValidity = Duration(minutes: 5);
 
   final SharedPreferences sharedPreferences;
@@ -70,5 +76,27 @@ class DashboardLocalDataSourceImpl implements DashboardLocalDataSource {
     } catch (e) {
       // Silently fail
     }
+  }
+
+  // QR Code Storage Implementation
+  @override
+  Future<void> saveQRCode(String qrCode) async {
+    await sharedPreferences.setString(_qrCodeKey, qrCode);
+    print('💾 QR Code saved to local storage');
+  }
+
+  @override
+  Future<String?> getQRCode() async {
+    final qrCode = sharedPreferences.getString(_qrCodeKey);
+    print(
+      '📱 QR Code loaded from local storage: ${qrCode != null ? "Found" : "Not found"}',
+    );
+    return qrCode;
+  }
+
+  @override
+  Future<void> deleteQRCode() async {
+    await sharedPreferences.remove(_qrCodeKey);
+    print('🗑️ QR Code deleted from local storage');
   }
 }

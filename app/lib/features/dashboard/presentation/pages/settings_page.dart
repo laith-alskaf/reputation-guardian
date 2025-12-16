@@ -1,12 +1,51 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/responsive_scaffold.dart';
 import '../../../auth/data/datasources/auth_local_datasource.dart';
+import 'profile_edit_page.dart';
+import 'shop_edit_page.dart';
 
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  bool _isDarkMode = false;
+  bool _notificationsEnabled = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDarkModePreference();
+  }
+
+  Future<void> _loadDarkModePreference() async {
+    // TODO: Load from SharedPreferences
+    setState(() {
+      _isDarkMode = false;
+    });
+  }
+
+  Future<void> _toggleDarkMode(bool value) async {
+    setState(() {
+      _isDarkMode = value;
+    });
+    // TODO: Save to SharedPreferences and apply theme
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          value ? 'تم تفعيل الوضع الداكن' : 'تم تفعيل الوضع الفاتح',
+        ),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,14 +60,26 @@ class SettingsPage extends StatelessWidget {
             icon: Icons.person,
             title: 'الملف الشخصي',
             subtitle: 'عرض وتعديل معلومات الحساب',
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ProfileEditPage(),
+                ),
+              );
+            },
           ),
           _buildSettingTile(
             context,
             icon: Icons.store,
             title: 'معلومات المتجر',
             subtitle: 'تعديل بيانات المتجر',
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ShopEditPage()),
+              );
+            },
           ),
 
           SizedBox(height: ResponsiveSpacing.large(context)),
@@ -41,8 +92,12 @@ class SettingsPage extends StatelessWidget {
             title: 'إشعارات Push',
             subtitle: 'استلام إشعارات التقييمات الجديدة',
             trailing: Switch(
-              value: true,
-              onChanged: (value) {},
+              value: _notificationsEnabled,
+              onChanged: (value) {
+                setState(() {
+                  _notificationsEnabled = value;
+                });
+              },
               activeColor: AppColors.primary,
             ),
           ),
@@ -51,7 +106,9 @@ class SettingsPage extends StatelessWidget {
             icon: Icons.telegram,
             title: 'ربط Telegram',
             subtitle: 'استلام التنبيهات عبر تيليجرام',
-            onTap: () {},
+            onTap: () {
+              _showTelegramDialog();
+            },
           ),
 
           SizedBox(height: ResponsiveSpacing.large(context)),
@@ -64,8 +121,8 @@ class SettingsPage extends StatelessWidget {
             title: 'المظهر الداكن',
             subtitle: 'التبديل بين الوضع الفاتح والداكن',
             trailing: Switch(
-              value: false,
-              onChanged: (value) {},
+              value: _isDarkMode,
+              onChanged: _toggleDarkMode,
               activeColor: AppColors.primary,
             ),
           ),
@@ -144,7 +201,188 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionHeader(BuildContext context, String title) {
+  void _showTelegramDialog() async {
+    // Check if already connected
+    final telegramChatId = await _getTelegramChatId();
+
+    if (telegramChatId != null && telegramChatId.isNotEmpty) {
+      // Already connected - show disconnect option
+      showDialog(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.telegram, color: AppColors.primary),
+              SizedBox(width: 8),
+              Text('Telegram متصل'),
+            ],
+          ),
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.check_circle, size: 64, color: AppColors.positive),
+              SizedBox(height: 16),
+              Text(
+                'حسابك مربوط بنجاح مع Telegram',
+                style: TextStyle(fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 8),
+              Text(
+                'ستصلك إشعارات فورية عند وصول تقييمات جديدة',
+                style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('إغلاق'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+                _disconnectTelegram();
+              },
+              style: TextButton.styleFrom(foregroundColor: AppColors.error),
+              child: const Text('فك الربط'),
+            ),
+          ],
+        ),
+      );
+    } else {
+      // Not connected - show connect instructions
+      showDialog(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.telegram, color: AppColors.primary),
+              SizedBox(width: 8),
+              Text('ربط Telegram'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'للحصول على إشعارات فورية عبر Telegram:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              _buildStep('1', 'اضغط على "فتح Telegram" أسفل'),
+              _buildStep('2', 'اضغط على Start في البوت'),
+              _buildStep('3', 'انتظر رسالة التأكيد'),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      color: AppColors.primary,
+                      size: 20,
+                    ),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'سيتم ربط حسابك تلقائياً',
+                        style: TextStyle(fontSize: 13),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('إلغاء'),
+            ),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+                _openTelegramBot();
+              },
+              icon: const Icon(Icons.telegram),
+              label: const Text('فتح Telegram'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  Widget _buildStep(String number, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                number,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(child: Text(text)),
+        ],
+      ),
+    );
+  }
+
+  Future<String?> _getTelegramChatId() async {
+    // TODO: Get from API/SharedPreferences
+    return null;
+  }
+
+  Future<void> _openTelegramBot() async {
+    try {
+      const botUsername = 'LaithAlskafBot';
+      final shopId = '69408597806ff8d4dc1dc6cf'; // TODO: Get from auth
+
+      final telegramUrl = Uri.parse('https://t.me/$botUsername?start=$shopId');
+
+      await launchUrl(telegramUrl, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('خطأ: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _disconnectTelegram() async {
+    // TODO: Call API to remove telegram_chat_id
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('تم فك ربط Telegram')));
+  }
+
+  static Widget _buildSectionHeader(BuildContext context, String title) {
     return Padding(
       padding: EdgeInsets.only(
         bottom: ResponsiveSpacing.small(context),

@@ -60,12 +60,16 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
       final response = await dio.post(AppConstants.generateQrEndpoint);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final qrCode = response.data['qr_code'] as String?;
-        if (qrCode != null) {
-          return qrCode;
-        } else {
-          throw ServerException(message: 'فشل إنشاء رمز QR');
+        // API returns: { "data": { "qr_code": "..." }, "message": "...", "status": "success" }
+        final data = response.data['data'];
+        if (data != null) {
+          final qrCode = data['qr_code'] as String?;
+          if (qrCode != null && qrCode.isNotEmpty) {
+            print('✅ QR Generated: ${qrCode.substring(0, 50)}...');
+            return qrCode;
+          }
         }
+        throw ServerException(message: 'فشل إنشاء رمز QR - البيانات غير صحيحة');
       } else {
         throw ServerException(
           message: 'فشل إنشاء رمز QR: ${response.statusCode}',
