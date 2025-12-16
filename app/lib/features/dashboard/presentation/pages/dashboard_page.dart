@@ -12,6 +12,7 @@ import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
 import 'reviews_page.dart';
+import 'analytics_page.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -243,7 +244,14 @@ class _DashboardPageState extends State<DashboardPage> {
                     icon: Icons.analytics,
                     title: 'التحليلات',
                     subtitle: 'عرض الإحصائيات المفصلة',
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AnalyticsPage(),
+                        ),
+                      );
+                    },
                   ),
                   SizedBox(height: ResponsiveSpacing.small(context)),
                   _buildActionButton(
@@ -277,7 +285,14 @@ class _DashboardPageState extends State<DashboardPage> {
                       icon: Icons.analytics,
                       title: 'التحليلات',
                       subtitle: 'عرض الإحصائيات المفصلة',
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const AnalyticsPage(),
+                          ),
+                        );
+                      },
                     ),
                   ),
                   SizedBox(width: ResponsiveSpacing.medium(context)),
