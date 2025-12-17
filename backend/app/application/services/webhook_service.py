@@ -178,17 +178,16 @@ class WebhookService:
         
         # A) Comprehensive Sentiment & Classification
         sentiment = self.sentiment_service.analyze_sentiment(processing.concatenated_text)
-        toxicity = self.sentiment_service.analyze_toxicity(processing.concatenated_text)
-        category = self.sentiment_service.classify_review(
-            sentiment=sentiment,
-            toxicity=toxicity,
-            stars=source.rating,
-            text=processing.concatenated_text
-        )
+        
+        # Optimization: Reuse toxicity from quality gate if available to save API call and use raw text accuracy
+        toxicity = quality_check_result.get('toxicity_status')
+        if not toxicity:
+            toxicity = self.sentiment_service.analyze_toxicity(processing.concatenated_text)
+            
         
         # B) Deepseek AI Analysis for insights and replies
         temp_sentiment_dto = SentimentAnalysisResultDTO(
-            sentiment=sentiment, toxicity=toxicity, category=category, quality_score=quality_check_result.get('quality_score', 1.0),
+            sentiment=sentiment, toxicity=toxicity, category="pending", quality_score=quality_check_result.get('quality_score', 1.0),
             is_spam=False, context_match=True, quality_flags=[], mismatch_reasons=[]
         )
         
@@ -226,7 +225,7 @@ class WebhookService:
             analysis={
                 "sentiment": sentiment,
                 "toxicity": toxicity,
-                "category": category,
+                "category": deepseek_result.category,
                 "quality": quality_check_result,
                 "context": context_check_result, # Include context result
                 "key_themes": deepseek_result.key_themes,

@@ -41,48 +41,43 @@ class DeepSeekService:
         ✓ صياغة رد احترافي مناسب ثقافياً
         """
         
-        full_text = f"التقييم الرئيسي: {''}\n"
+        full_text = f"التقييم الرئيسي: {getattr(dto, 'full_text', '')}\n"
         if dto.enjoy_most: full_text += f"الايجابيات: {dto.enjoy_most}\n"
         if dto.improve_product: full_text += f"نقاط التحسين: {dto.improve_product}\n"
         if dto.additional_feedback: full_text += f"ملاحظات إضافية: {dto.additional_feedback}\n"
 
         prompt = f"""
-        أنت خبير في خدمة العملاء وتحليل التقييمات لنوع متجر: "{shop_type}".
+        Role: Senior CS Manager for "{shop_type}".
+        Input: "{full_text}"
+        Stats: {dto.stars}/5 stars | Sentiment: {sentiment_result.sentiment} | Toxic: {sentiment_result.toxicity}
         
-        البيانات التحليلية الأولية (من النظام):
-        - المشاعر الكلية: {sentiment_result.sentiment}
-        - درجة السمية: {sentiment_result.toxicity}
-        - نوع التقييم: {sentiment_result.category}
-        - النجوم: {dto.stars}/5
+        Task: Analyze & output JSON in Arabic.
+
+        1. Category (Select one):
+        - "شكوى": Operational failure (rude staff, hygiene, delay, wrong order).
+        - "نقد": Subjective opinion, price/quality, constructive criticism.
+        - "مدح": Positive feedback.
+        - "اقتراح": Suggestion/Idea.
+        - "استفسار": Question.
+
+        2. Content:
+        - summary: Concise (<15 words).
+        - key_themes: 2-4 main topics.
+        - actionable_insights: 2-3 practical steps (no generic advice).
+        - suggested_reply: Professional, empathetic, human-like (Apologize for complaints, Thank for praise/critique).
         
-        محتوى التقييم:
-        {full_text}
-        
-        مهمتك:
-        1. **تنظيم الملخص**: اكتب ملخص واحد قصير بالعربية يجمع أهم النقاط
-        2. **المواضيع الرئيسية**: استخرج 2-4 مواضيع رئيسية من التقييم
-        3. **الحلول الملموسة**: اقترح 2-3 خطوات عملية محددة لتحسين الخدمة/المنتج
-           - ركز على ما يمكن للمتجر تنفيذه فعلاً
-           - كن محدداً وعملياً (تجنب الإجابات العامة)
-        4. **الرد المهني**: اكتب رد احترافي، تعاطفي، ومناسب ثقافياً بالعربية
-           - اشكر العميل على التقييم
-           - أظهر فهمك لآراءه
-           - أذكر أن المتجر سيعمل على التحسين
-           - تجنب الدفاع أو العتاب
-        
-        أرجع الإجابة بصيغة JSON صارمة:
+        Output JSON:
         {{
-            "summary": "ملخص قصير جداً",
-            "key_themes": ["موضوع1", "موضوع2", "موضوع3"],
-            "actionable_insights": ["حل عملي1", "حل عملي2", "حل عملي3"],
-            "suggested_reply": "الرد الاحترافي الطويل نسبياً..."
+            "category": "...",
+            "summary": "...",
+            "key_themes": ["..."],
+            "actionable_insights": ["..."],
+            "suggested_reply": "..."
         }}
-        
-        تأكد من أن جميع الحقول بالعربية.
         """
 
         messages = [
-            {"role": "system", "content": "You are a helpful AI assistant that outputs strictly valid JSON and writes responses only in Arabic."},
+            {"role": "system", "content": "You are a helpful AI assistant. Output strictly valid JSON. Language: Arabic."},
             {"role": "user", "content": prompt}
         ]
 
@@ -98,7 +93,7 @@ class DeepSeekService:
             
             return AnalysisResultDTO(
                 sentiment=sentiment_result.sentiment,
-                category=sentiment_result.category,
+                category=data.get('category', 'عام'),
                 summary=data.get('summary', 'تم استلام التقييم'),
                 key_themes=data.get('key_themes', []),
                 actionable_insights=data.get('actionable_insights', []),
@@ -113,9 +108,18 @@ class DeepSeekService:
 
     def _get_fallback_analysis(self, sentiment_result: SentimentAnalysisResultDTO, stars: int):
         """يرجع إجابة آمنة في حالة فشل DeepSeek"""
+        # Fallback classification logic
+        fallback_category = "عام"
+        if sentiment_result.sentiment == "سلبي" or (stars and stars <= 2):
+            fallback_category = "شكوى"
+        elif sentiment_result.sentiment == "إيجابي" or (stars and stars >= 4):
+            fallback_category = "إيجابي"
+        else:
+            fallback_category = "نقد"
+
         return AnalysisResultDTO(
             sentiment=sentiment_result.sentiment,
-            category=sentiment_result.category,
+            category=fallback_category,
             summary="تم استلام التقييم وسيتم مراجعته.",
             key_themes=["خدمة عام", "تجربة العميل"],
             actionable_insights=["سنقوم بمراجعة التقييم بعناية", "سنعمل على تحسين الخدمة"],
