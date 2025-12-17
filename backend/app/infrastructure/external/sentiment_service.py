@@ -218,29 +218,34 @@ class SentimentService:
             return "uncertain"
 
     @staticmethod
-    def detect_review_quality( enjoy_most: str, improve_product: str, additional_feedback: str, pre_calculated_toxicity: str = None) -> dict:
+    def detect_review_quality(enjoy_most: str, improve_product: str, additional_feedback: str, pre_calculated_toxicity: str = None) -> dict:
         flags = []
         quality_score = 1.0
-        all_text = f"{enjoy_most} {improve_product} {additional_feedback}".strip()
 
-        if not all_text or len(all_text.strip()) < 3:
+        parts = [p.strip() for p in [enjoy_most, improve_product, additional_feedback] if p and p.strip()]
+        all_text = " ".join(parts)
+
+        if not all_text or len(all_text) < 3:
             return {
                 'quality_score': 0.0,
                 'flags': ['empty_content'],
-                'is_suspicious': True
+                'is_suspicious': True,
+                'toxicity_status': pre_calculated_toxicity or "non-toxic"
             }
 
         try:
             arabic_chars = sum(1 for c in all_text if '\u0600' <= c <= '\u06FF')
             english_chars = sum(1 for c in all_text if c.isascii() and c.isalpha())
             total_alpha = arabic_chars + english_chars
+
             if total_alpha < len(all_text) * 0.3:
                 flags.append('gibberish_content')
                 quality_score -= 0.3
         except Exception as e:
             logging.error(f"Language detection error: {e}")
 
-        if total_alpha > 500:
+        words = all_text.split()
+        if len(words) > 200 or total_alpha > 500:
             flags.append('too_long')
             quality_score -= 0.1
 
@@ -253,26 +258,25 @@ class SentimentService:
             flags.append('excessive_special_chars')
             quality_score -= 0.2
 
-        # Use pre-calculated toxicity if available to save API calls
-        if pre_calculated_toxicity:
-            toxicity_score = pre_calculated_toxicity
-        else:
-            toxicity_score = SentimentService.analyze_toxicity(all_text)
-            
+        toxicity_score = pre_calculated_toxicity or SentimentService.analyze_toxicity(all_text)
         if toxicity_score == "toxic":
             flags.append('high_toxicity')
             quality_score -= 0.4
+        elif toxicity_score == "uncertain":
+            flags.append('possible_toxicity')
+            quality_score -= 0.1
 
-        words = all_text.split()
         if len(words) < 2:
             flags.append('too_short')
             quality_score -= 0.1
 
-        if len(set(words)) < len(words) * 0.5:
+        unique_words = set(words)
+        if len(unique_words) < len(words) * 0.5:
             flags.append('repetitive_words')
             quality_score -= 0.2
 
         quality_score = max(0, quality_score)
+
         return {
             'quality_score': round(quality_score, 2),
             'flags': flags,
@@ -282,7 +286,6 @@ class SentimentService:
 
     @staticmethod
     def detect_context_mismatch(text: str, shop_type: str) -> dict:
-        """يكتشف ما إذا كان النص غير مرتبط بالسياق التجاري المحدد."""
         headers = {"Authorization": f"Bearer {HF_TOKEN}"}
         url = HF_TOXICITY_MODEL_URL
 
@@ -309,10 +312,17 @@ class SentimentService:
         }
 
         target_label = shop_types_arabic.get(shop_type, shop_type)
-        general_label = "خدمة عملاء وتعامل عام ونظافة"
-        other_label = "سياق آخر غير مرتبط"
 
-        candidate_labels = [target_label, general_label, other_label]
+        # فئات إضافية لتقليل الأخطاء
+        candidate_labels = [
+            target_label,
+            "خدمة عملاء وتعامل عام ونظافة",
+            "رياضة وأحداث رياضية",
+            "سياسة وأخبار عامة",
+            "ترفيه ومشاهير",
+            "حياة شخصية أو يوميات",
+            "سياق آخر غير مرتبط"
+        ]
 
         payload = {
             "inputs": text,
@@ -333,39 +343,39 @@ class SentimentService:
 
             if response.status_code == 200:
                 result = response.json()
-                labels = []
-                scores = []
-                
-                if isinstance(result, list):
-                    for item in result:
-                        if isinstance(item, dict) and 'label' in item and 'score' in item:
-                            labels.append(item['label'])
-                            scores.append(item['score'])
-                
-                elif isinstance(result, dict):
+                labels, scores = [], []
+
+                if isinstance(result, dict):
                     labels = result.get("labels", [])
                     scores = result.get("scores", [])
-                
-                else:
-                    logging.error(f"Context API returned unexpected type: {type(result)}. Full result: {result}")
+                elif isinstance(result, list):
+                    for item in result:
+                        if isinstance(item, dict):
+                            labels.append(item.get("label"))
+                            scores.append(item.get("score"))
 
                 if labels and scores:
-                    result_map = {label: score for label, score in zip(labels, scores)}
+                            result_map = {label: score for label, score in zip(labels, scores)}
+                            top_label, top_score = labels[0], scores[0]
 
-                    target_score = result_map.get(target_label, 0)
-                    general_score = result_map.get(general_label, 0)
-                    other_score = result_map.get(other_label, 0)
+                            target_score = result_map.get(target_label, 0.0)
 
-                    valid_relevance = target_score + general_score
-                    has_mismatch = valid_relevance < 0.40
+                            # منطق mismatch الجديد
+                            if top_score < 0.4:
+                                has_mismatch = True
+                                predicted_label = "غير مرتبط"
+                            else:
+                                has_mismatch = (top_label != target_label and top_score >= 0.5) or (target_score < 0.5)
+                                predicted_label = top_label
 
-                    return {
-                        'mismatch_score': round(other_score, 2),
-                        'confidence': round(valid_relevance * 100, 2),
-                        'reasons': [f"النص يبدو بعيداً عن سياق {shop_type} أو الخدمة العامة"] if has_mismatch else [],
-                        'has_mismatch': has_mismatch,
-                        'predicted_label': labels[0] if labels else None
-                    }
+                            return {
+                                'mismatch_score': round(top_score, 2),
+                                'confidence': round(target_score * 100, 2),
+                                'reasons': [f"النص بعيد عن سياق {shop_type}"] if has_mismatch else [],
+                                'has_mismatch': has_mismatch,
+                                'predicted_label': predicted_label
+                            }
+
             else:
                 logging.error(f"HF API Error: {response.status_code} - {response.text}")
 
@@ -378,136 +388,5 @@ class SentimentService:
             'reasons': 'لاشيء',
             'has_mismatch': False,
             'predicted_label': "Error"
-        }    
-    # def analyze_review_comprehensive(self,dto: ReviewDTO, shop_type: str) -> SentimentAnalysisResultDTO:
-    #     cleaned_enjoy_most = SentimentService.clean_text(dto.enjoy_most or "")
-    #     cleaned_improve_product = SentimentService.clean_text(dto.improve_product or "")
-    #     cleaned_feedback = SentimentService.clean_text(dto.additional_feedback or "")
-        
-    #     full_text_parts = [
-    #         f"عدد النجوم: {dto.stars}" if dto.stars else "",
-    #         f"أكثر ما أعجبني: {cleaned_enjoy_most}" if cleaned_enjoy_most else "",
-    #         f"اقتراح للتحسين: {cleaned_improve_product}" if cleaned_improve_product else "",
-    #         f"ملاحظات إضافية: {cleaned_feedback}" if cleaned_feedback else ""
-    #     ]
-    #     full_text = " | ".join([part for part in full_text_parts if part]).strip()
+        }
 
-    #     if not full_text:
-    #         full_text = cleaned_text
-
-    #     sentiment = SentimentService.analyze_sentiment(full_text)
-    #     toxicity = SentimentService.analyze_toxicity(full_text)
-    #     category = "عام" # Placeholder as classification is now handled by AI
-
-    #     quality_result = SentimentService.detect_review_quality(
-    #         enjoy_most=dto.enjoy_most or "",
-    #         improve_product=dto.improve_product or "",
-    #         additional_feedback=dto.additional_feedback or "",
-    #         pre_calculated_toxicity=toxicity  # Pass the already calculated toxicity
-    #     )
-
-    #     context_result = SentimentService.detect_context_mismatch(full_text, shop_type)
-
-    #     is_spam = quality_result.get('is_suspicious', False)
-    #     context_match = not context_result.get('has_mismatch', False)
-
-    #     return SentimentAnalysisResultDTO(
-    #         sentiment=sentiment,
-    #         toxicity=toxicity,
-    #         category=category,
-    #         quality_score=quality_result.get('quality_score', 1.0),
-    #         is_spam=is_spam,
-    #         context_match=context_match,
-    #         quality_flags=quality_result.get('flags', []),
-    #         mismatch_reasons=context_result.get('reasons', [])
-    #     )
-
-    # @staticmethod
-    # def detect_and_censor_profanity_in_review(
-    #     text: str = "",
-    #     enjoy_most: str = "",
-    #     improve_product: str = "",
-    #     additional_feedback: str = "",
-    #     use_hf: bool = True
-    # ) -> dict:
-    #     result = {
-    #         'text': {
-    #             'original': text,
-    #             'censored': text,
-    #             'has_profanity': False,
-    #             'profanity_score': 0.0,
-    #             'censored_words': []
-    #         },
-    #         'enjoy_most': {
-    #             'original': enjoy_most,
-    #             'censored': enjoy_most,
-    #             'has_profanity': False,
-    #             'censored_words': []
-    #         },
-    #         'improve_product': {
-    #             'original': improve_product,
-    #             'censored': improve_product,
-    #             'has_profanity': False,
-    #             'censored_words': []
-    #         },
-    #         'additional_feedback': {
-    #             'original': additional_feedback,
-    #             'censored': additional_feedback,
-    #             'has_profanity': False,
-    #             'censored_words': []
-    #         },
-    #         'summary': {
-    #             'total_fields_with_profanity': 0,
-    #             'total_censored_words': [],
-    #             'has_any_profanity': False,
-    #             'overall_profanity_score': 0.0,
-    #             'method': 'hf' if use_hf else 'regex'
-    #         }
-    #     }
-
-    #     fields = [
-    #         ('text', text),
-    #         ('enjoy_most', enjoy_most),
-    #         ('improve_product', improve_product),
-    #         ('additional_feedback', additional_feedback)
-    #     ]
-
-    #     total_censored = []
-    #     fields_with_profanity = 0
-    #     total_score = 0.0
-
-    #     for field_name, field_text in fields:
-    #         if field_text and field_text.strip():
-    #             if use_hf and field_name == 'text':
-    #                 profanity_details = TextProfanityService.detect_profanity_with_hf(field_text)
-    #                 has_profanity = profanity_details['has_profanity']
-    #                 profanity_score = profanity_details['profanity_score']
-    #             else:
-    #                 profanity_details = TextProfanityService._detect_profanity_with_patterns(field_text)
-    #                 has_profanity = profanity_details['has_profanity']
-    #                 profanity_score = profanity_details['profanity_score']
-
-    #             censored_text, censored_words = TextProfanityService.censor_profanity(
-    #                 field_text,
-    #                 censor_char='*',
-    #                 method='word'
-    #             )
-
-    #             result[field_name]['censored'] = censored_text
-    #             result[field_name]['has_profanity'] = has_profanity
-    #             result[field_name]['profanity_score'] = profanity_score
-    #             result[field_name]['censored_words'] = censored_words
-
-    #             if has_profanity:
-    #                 fields_with_profanity += 1
-    #                 total_score += profanity_score
-
-    #             total_censored.extend(censored_words)
-
-    #     result['summary']['total_fields_with_profanity'] = fields_with_profanity
-    #     result['summary']['total_censored_words'] = list(set(total_censored))
-    #     result['summary']['has_any_profanity'] = fields_with_profanity > 0
-    #     if fields_with_profanity > 0:
-    #         result['summary']['overall_profanity_score'] = round(total_score / fields_with_profanity, 3)
-
-    #     return result
