@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:reputation_guardian/features/dashboard/data/datasources/dashboard_local_datasource.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -190,7 +191,10 @@ class _SettingsPageState extends State<SettingsPage> {
                         // Logout
                         final authLocalDataSource =
                             getIt<AuthLocalDataSource>();
+                        final dashboardLocalDataSource =
+                            getIt<DashboardLocalDataSource>();
                         await authLocalDataSource.deleteToken();
+                        await dashboardLocalDataSource.deleteQRCode();
                         // Navigate to login
                         if (context.mounted) {
                           Navigator.of(
