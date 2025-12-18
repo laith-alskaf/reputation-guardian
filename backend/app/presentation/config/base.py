@@ -46,7 +46,7 @@ class BaseConfig:
     TELEGRAM_TOKEN = os.environ.get('TELEGRAM_TOKEN')
     
     # Business Logic
-    QUALITY_GATE_THRESHOLD = float(os.environ.get('QUALITY_GATE_THRESHOLD', 0.7))
+    QUALITY_GATE_THRESHOLD = float(os.environ.get('QUALITY_GATE_THRESHOLD', 0.5))
     
     # Other
     TALLY_FORM_URL = os.environ.get('TALLY_FORM_URL')
