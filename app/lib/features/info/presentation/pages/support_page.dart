@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/utils/app_animations.dart';
 import '../../../../core/utils/app_snackbar.dart';
 import '../../../../core/widgets/responsive_scaffold.dart';
@@ -23,7 +24,10 @@ class SupportPage extends StatelessWidget {
   }
 
   Future<void> _launchPhone() async {
-    final Uri phoneUri = Uri(scheme: 'tel', path: '+963982055788');
+    final Uri phoneUri = Uri(
+      scheme: 'tel',
+      path: '+${AppConstants.whatsappNumber}',
+    );
 
     if (await canLaunchUrl(phoneUri)) {
       await launchUrl(phoneUri);
@@ -32,7 +36,7 @@ class SupportPage extends StatelessWidget {
 
   Future<void> _launchWhatsApp(BuildContext context) async {
     final Uri whatsappUri = Uri.parse(
-      'https://wa.me/963982055788?text=مرحباً، لدي استفسار حول تطبيق حارس السمعة',
+      'https://wa.me/${AppConstants.whatsappNumber}?text=مرحباً، لدي استفسار حول تطبيق حارس السمعة',
     );
 
     if (await canLaunchUrl(whatsappUri)) {

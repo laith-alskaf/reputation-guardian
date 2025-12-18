@@ -68,6 +68,9 @@ dependencies:
   cupertino_icons: ^1.0.8
   font_awesome_flutter: ^10.8.0 
   dartz: ^0.10.1
+  
+  # Environment Variables
+  flutter_dotenv: ^5.1.0
 
 dev_dependencies:
   flutter_test:
@@ -91,6 +94,7 @@ flutter:
   uses-material-design: true
 
   assets:
+    - .env
     - assets/images/
     - assets/icons/
     - assets/animations/
