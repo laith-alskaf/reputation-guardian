@@ -9,7 +9,9 @@ from app.infrastructure.external.text_profanity_service import TextProfanityServ
 import time
 class SentimentService:
     MAX_RETRIES = 3
-    INITIAL_WAIT = 2.0  # ثواني    @staticmethod
+    INITIAL_WAIT = 2.0  # ثواني  
+    
+    staticmethod
     def clean_text(text: str) -> str:
         try:
             if not text or not isinstance(text, str):
@@ -32,46 +34,7 @@ class SentimentService:
         except Exception as e:
             logging.error(f"Error cleaning text: {e}")
             return str(text) if text else ""
-    # @staticmethod
-    # def analyze_sentiment(text: str) -> str:
-    #     if not text or not text.strip():
-    #         return "محايد"
 
-    #     headers = {"Authorization": f"Bearer {HF_TOKEN}"}
-    #     url = HF_SENTIMENT_MODEL_URL
-    #     try:
-    #         response = requests.post(url, headers=headers, json={"inputs": text})
-    #         if response.status_code == 200:
-    #             result = response.json()
-    #             label = None
-
-    #             if isinstance(result, list) and result:
-    #                 first_element = result[0]
-    #                 if isinstance(first_element, list) and first_element:
-    #                     if isinstance(first_element[0], dict):
-    #                         label = first_element[0].get("label", "neutral")
-    #                 elif isinstance(first_element, dict): 
-    #                     label = first_element.get("label", "neutral")        
-    #                 else:          
-    #                         # تسجيل خطأ/تحذير إذا كانت القائمة تحتوي على عنصر غير متوقع
-    #                     logging.warning(f"Sentiment API returned list but first element is not a dict: {first_element}")
-    #             if label:
-    #                 mapping = {
-    #                     "positive": "إيجابي",
-    #                     "إيجابي": "إيجابي",
-    #                     "label_1": "إيجابي",
-    #                     "negative": "سلبي",
-    #                     "سلبي": "سلبي",
-    #                     "label_0": "سلبي",
-    #                     "neutral": "محايد"
-    #                 }
-    #                 return mapping.get(label.lower(), "محايد")
-
-    #         else:
-    #             logging.error(f"HuggingFace Sentiment API error: {response.status_code} - {response.text}")
-    #     except Exception as e:
-    #         logging.error(f"Sentiment analysis error: {e}")
-    #     return "محايد"
     @staticmethod
     def analyze_sentiment(text: str) -> str:
         if not text or not text.strip():
@@ -217,111 +180,8 @@ class SentimentService:
             logging.error(f"Parsing Toxicity Error: {e}")
             return "uncertain"
 
-    @staticmethod
-    def detect_review_quality(enjoy_most: str, improve_product: str, additional_feedback: str, rating: int = 0, pre_calculated_toxicity: str = None) -> dict:
-        flags = []
-        quality_score = 1.0
-
-        parts = [p.strip() for p in [enjoy_most, improve_product, additional_feedback] if p and p.strip()]
-        all_text = " ".join(parts)
-
-        # حالة خاصة: تقييم بالنجوم فقط (بدون نص)
-        if not all_text or len(all_text) < 3:
-            # إذا كان هناك تقييم بالنجوم، نقبل التقييم
-            if rating > 0:
-                flags_for_stars = ['stars_only']
-                # إضافة flag بناءً على التقييم بالنجوم (اقتراح المستخدم)
-                if rating <= 2:
-                    flags_for_stars.append('negative_stars')
-                elif rating >= 4:
-                    flags_for_stars.append('positive_stars')
-                else:
-                    flags_for_stars.append('neutral_stars')
-                
-                return {
-                    'quality_score': 1.0,
-                    'flags': flags_for_stars,
-                    'is_suspicious': False,
-                    'toxicity_status': pre_calculated_toxicity or "non-toxic"
-                }
-            # إذا لم يكن هناك نجوم ولا نص، نرفض
-            else:
-                return {
-                    'quality_score': 0.0,
-                    'flags': ['empty_content'],
-                    'is_suspicious': True,
-                    'toxicity_status': pre_calculated_toxicity or "non-toxic"
-                }
-
-        try:
-            arabic_chars = sum(1 for c in all_text if '\u0600' <= c <= '\u06FF')
-            english_chars = sum(1 for c in all_text if c.isascii() and c.isalpha())
-            total_alpha = arabic_chars + english_chars
-
-            if total_alpha < len(all_text) * 0.3:
-                flags.append('gibberish_content')
-                quality_score -= 0.3
-        except Exception as e:
-            logging.error(f"Language detection error: {e}")
-
-        words = all_text.split()
-        if len(words) > 200 or total_alpha > 500:
-            flags.append('too_long')
-            quality_score -= 0.1
-
-        if re.search(r'(.)\1{4,}', all_text):
-            flags.append('repetitive_characters')
-            quality_score -= 0.2
-
-        special_chars = sum(1 for c in all_text if not c.isalnum() and not c.isspace() and c not in '.,!?؛،')
-        if special_chars > len(all_text) * 0.2:
-            flags.append('excessive_special_chars')
-            quality_score -= 0.2
-
-        toxicity_score = pre_calculated_toxicity or SentimentService.analyze_toxicity(all_text)
-        if toxicity_score == "toxic":
-            flags.append('high_toxicity')
-            quality_score -= 0.4
-        elif toxicity_score == "uncertain":
-            flags.append('possible_toxicity')
-            quality_score -= 0.1
-
-        if len(words) < 2:
-            flags.append('too_short')
-            quality_score -= 0.05  # تقليل العقوبة من 0.1 إلى 0.05
-
-        unique_words = set(words)
-        # تطبيق فحص التكرار فقط إذا كان عدد الكلمات > 3
-        if len(words) > 3 and len(unique_words) < len(words) * 0.4:
-            flags.append('repetitive_words')
-            # عقوبة أكبر للتكرار الشديد
-            repetition_ratio = len(unique_words) / len(words)
-            if repetition_ratio < 0.25:  # تكرار شديد جداً (75%+ من نفس الكلمة)
-                quality_score -= 0.4
-            else:
-                quality_score -= 0.3  # زيادة من 0.2 إلى 0.3
-
-        quality_score = max(0, quality_score)
-
-        # تحديد is_suspicious بشكل أكثر ذكاءً
-        is_suspicious = False
-
-        # حالات تلقائية للـ suspicious
-        if quality_score < 0.4:  # تغيير من 0.5 إلى 0.4
-            is_suspicious = True
-        elif toxicity_score == "toxic":  # محتوى سام → suspicious تلقائياً
-            is_suspicious = True
-        elif 'repetitive_words' in flags and quality_score < 0.6:  # تكرار + درجة منخفضة
-            is_suspicious = True
-        elif len(flags) >= 3:  # 3 أعلام أو أكثر
-            is_suspicious = True
-
-        return {
-            'quality_score': round(quality_score, 2),
-            'flags': flags,
-            'is_suspicious': is_suspicious,
-            'toxicity_status': toxicity_score
-        }
+    # NOTE: detect_review_quality has been moved to quality_service.py
+    # Use QualityService.assess_quality() instead
 
     @staticmethod
     def detect_context_mismatch(text: str, shop_type: str) -> dict:

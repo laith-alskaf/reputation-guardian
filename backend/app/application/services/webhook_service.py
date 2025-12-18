@@ -8,8 +8,8 @@ from app.infrastructure.repositories import UserRepository, ReviewRepository
 from app.infrastructure.external import SentimentService
 from app.infrastructure.external import DeepSeekService
 from app.infrastructure.external import NotificationService
-from app.infrastructure.external import TextProfanityService
 from app.infrastructure.external import TelegramService
+from app.infrastructure.external import QualityService
 from app.application.dto.review_processing_dto import ReviewDocument, Source, Processing
 from app.application.dto.sentiment_analysis_result_dto import SentimentAnalysisResultDTO
 from app.application.dto.analysis_result_dto import AnalysisResultDTO
@@ -20,10 +20,10 @@ class WebhookService:
         self.user_repository = user_repository or UserRepository()
         self.review_repository = review_repository or ReviewRepository()
         self.sentiment_service = SentimentService()
-        self.profanity_service = TextProfanityService()
         self.deepseek_service = DeepSeekService()
         self.notification_service = NotificationService()
         self.telegram_service = telegram_service or TelegramService(self.notification_service)
+        self.quality_service = QualityService()
 
     def _extract_form_fields(self, fields: list) -> Dict[str, Any]:
         """Extracts key information from the Tally 'fields' array."""
@@ -80,11 +80,12 @@ class WebhookService:
         
         concatenated_text = " ".join(text_parts)
         
-        profanity_analysis = self.profanity_service.analyze_and_censor(concatenated_text, use_hf=False)
+        # تنظيف النص فقط - السمية ستُحسب لاحقاً في التدفق
+        cleaned_text = SentimentService.clean_text(concatenated_text)
 
         processing_obj = Processing(
-            concatenated_text=profanity_analysis['censored_text'],
-            is_profane=profanity_analysis['has_profanity']
+            concatenated_text=cleaned_text,
+            is_profane=False  # سيتم تحديدها لاحقاً من خلال تحليل السمية
         )
 
         return source_obj, processing_obj
@@ -132,20 +133,23 @@ class WebhookService:
 
         # --- 2. Initial Data Preparation ---
         source, processing = self._prepare_initial_data(extracted_fields)
+        # --- 3. Pre-calculate Toxicity (once for the entire flow) ---
+        toxicity_status = self.sentiment_service.analyze_toxicity(processing.concatenated_text)
         
-        # --- 3. Quality Gate (Gate 1) ---
+        # --- 4. Quality Gate (Gate 1) ---
         source_fields = extracted_fields.get('source_fields', {})
         enjoy_most = source_fields.get('enjoy_most', '')
         improve_product = source_fields.get('improve_product', '')
         additional_feedback = source_fields.get('additional_feedback', '')
         
-        quality_check_result = self.sentiment_service.detect_review_quality(
+        quality_result = self.quality_service.assess_quality(
             enjoy_most=enjoy_most,
             improve_product=improve_product,
             additional_feedback=additional_feedback,
             rating=source.rating,
-            pre_calculated_toxicity=None  
+            toxicity_status=toxicity_status
         )
+        quality_check_result = quality_result.to_dict()
 
         if not self._is_high_quality(quality_check_result):
             rejected_doc = ReviewDocument(
@@ -153,7 +157,7 @@ class WebhookService:
                 shop_id=shop_id,
                 email=respondent_email,
                 stars=source.rating,
-                status="rejected_low_quality", # Use specific status
+                status="rejected_low_quality",
                 overall_sentiment="محايد",
                 source=source,
                 processing=processing,
@@ -165,7 +169,7 @@ class WebhookService:
 
         logging.info(f"Review for shop {shop_id} passed Quality Gate.")
 
-        # --- 4. Relevancy Gate (Gate 2) ---
+        # --- 5. Relevancy Gate (Gate 2) ---
         shop_type = extracted_fields.get('shop_type', 'عام')
         raw_text = processing.concatenated_text
         context_check_result = self.sentiment_service.detect_context_mismatch(raw_text, shop_type)
@@ -191,16 +195,14 @@ class WebhookService:
         
         logging.info(f"Review for shop {shop_id} passed Relevancy Gate.")
 
-        # --- 5. Full Analysis (for High-Quality, Relevant Reviews) ---
+        # --- 6. Full Analysis (for High-Quality, Relevant Reviews) ---
         logging.info(f"Proceeding with full analysis for shop {shop_id}.")
         
         # A) Comprehensive Sentiment & Classification
         sentiment = self.sentiment_service.analyze_sentiment(processing.concatenated_text)
         
-        # Optimization: Reuse toxicity from quality gate if available to save API call and use raw text accuracy
-        toxicity = quality_check_result.get('toxicity_status')
-        if not toxicity:
-            toxicity = self.sentiment_service.analyze_toxicity(processing.concatenated_text)
+        # Reuse pre-calculated toxicity from step 3
+        toxicity = toxicity_status
             
         
         # B) Deepseek AI Analysis for insights and replies
