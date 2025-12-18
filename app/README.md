@@ -85,39 +85,83 @@ The **Reputation Guardian Mobile App** is a cross-platform Flutter application p
 ### 📝 Reviews Management
 
 - **Tabbed Interface**
-  - Processed reviews (accepted)
-  - Rejected - Low Quality
-  - Rejected - Irrelevant
+  - Processed reviews (accepted ✅)
+  - Rejected - Low Quality ❌
+  - Rejected - Irrelevant ⚠️
+  - Processing ⏳
 
-- **Enhanced Review Cards**
-  - **Sentiment Display** - Color-coded sentiment badges (Positive/Negative/Neutral)
+- **Enhanced Review Cards** (Completely Redesigned)
+  - **Status Badges** - Color-coded status indicators for all review states
+  - **Sentiment Display** - Color-coded sentiment badges (Positive/Negative/Neutral) with icons
   - **Star Ratings** - Visual 5-star display
   - **Review Text Preview** - 3-line preview with ellipsis
   - **Date/Time** - Formatted with Arabic locale (e.g., "15 ديسمبر 2024، 10:30 م")
-  - **Quality Score Badge** - Color-coded quality indicator (green ≥70%, orange <70%)
+  - **Quality Score Badge** - Dynamic color-coded quality indicator:
+    - 🟢 Green (≥70%) - High quality
+    - 🟠 Orange (40-70%) - Medium quality  
+    - 🔴 Red (<40%) - Low quality
+  - **Quality Flags Preview** - Compact display of top 3 quality flags
+  - **Rejection Reason** - Inline display for rejected reviews
   - **Warning Ribbons**:
-    - 🚫 **Profane Content** - Red ribbon for inappropriate content
-    - 🚩 **Quality Flags** - Orange ribbon for flagged reviews (toxicity, spam, low quality, irrelevant)
+    - 🚫 **Profane Content** - Red ribbon (top right) for inappropriate content
+    - 🚩 **Critical Quality Flags** - Orange ribbon (top left) for severe issues
+    - ⚠️ **Suspicious Indicator** - Yellow badge (bottom right) for questionable reviews
+
+- **Comprehensive Quality Analysis System** 🆕
+  - **13 Quality Flags** with Arabic descriptions:
+    - **Stars**: starsOnly, positiveStars, negativeStars, neutralStars
+    - **Content**: emptyContent, gibberishContent
+    - **Length**: tooLong, tooShort
+    - **Quality**: repetitiveCharacters, repetitiveWords, excessiveSpecialChars
+    - **Toxicity**: highToxicity, possibleToxicity
+  - **Priority System** - Flags sorted by severity and importance
+  - **Color Coding** - Each flag has unique color and icon
+  - **Smart Detection** - AI-powered quality analysis from backend
 
 - **Search & Filter**
   - Real-time search
   - Filter by sentiment, rating, category
+  - Filter by review status (processed, rejected, processing)
   - Sort options
 
-- **Review Details Dialog**
+- **Review Details Dialog** (Completely Redesigned)
+  - **Header**
+    - Status badge integration
+    - Quick close action
+  
+  - **Rejection Information** (for rejected reviews)
+    - Styled rejection reason card
+    - Status-specific colors and icons
+    - Clear Arabic explanations
+  
   - **Customer Information**
-    - Email (copyable with one click)
+    - Email (copyable with one-click copy button)
     - Phone number (copyable, LTR formatted: +963...)
     - Review date and rating
     - Sentiment and category
+  
+  - **Quality Analysis Section** 🆕
+    - **Quality Score Card**:
+      - Large circular percentage display
+      - Color-coded (green/orange/red)
+      - Quality level label (عالية/متوسطة/منخفضة)
+      - Detailed description
+    - **Quality Flags List**:
+      - Expanded view with full descriptions
+      - Icons and color coding for each flag
+      - Grouped by category (optional)
+      - Sorted by priority
+    - **Quality Warnings**:
+      - 🚫 Profane content warning
+      - ⚠️ Suspicious review indicator
+      - Detailed explanations for each warning
+  
   - **AI-Generated Content**
     - Summary
-    - Actionable insights
-    - Suggested reply (copy to clipboard)
+    - Actionable insights (with checkmark icons)
+    - Suggested reply (copy to clipboard button)
     - Key themes tags
-  - **Quality Analysis**
-    - Quality score display
-  - **⚠️ Quality Warnings Section** (if applicable):
+
     - 🚫 Profane content warning
     - ⚠️ Suspicious review indicator
     - 🚩 Quality flags with Arabic descriptions:
@@ -289,6 +333,45 @@ features/dashboard/
             ├── period_filter_widget.dart
             ├── rating_distribution_chart.dart
             └── sentiment_pie_chart_widget.dart
+```
+
+### Reviews Feature (Enhanced with Quality Analysis)
+
+```
+features/reviews/
+├── domain/
+│   ├── entities/
+│   │   └── review.dart                    # Review entity with quality fields
+│   ├── enums/                          # 🆕 Quality Analysis Enums
+│   │   ├── review_status_enum.dart       # 4 statuses (processing/processed/rejected*2)
+│   │   ├── quality_level_enum.dart       # 3 levels (high/medium/low)
+│   │   └── quality_flag_enum.dart        # 13 quality flags with Arabic labels
+│   ├── helpers/                        # 🆕 Quality Analysis Helpers
+│   │   ├── quality_score_helper.dart     # Score calculations, colors, labels
+│   │   ├── review_status_helper.dart     # Status operations, colors, translations
+│   │   └── quality_flag_helper.dart      # Flag sorting, grouping, filtering
+│   └── repositories/
+│       └── review_repository.dart
+│
+├── data/
+│   ├── models/
+│   │   ├── review_model.dart             # Updated with quality fields
+│   │   └── quality_analysis_model.dart   # 🆕 Quality analysis data model
+│   │
+└── presentation/
+    ├── bloc/
+    │   ├── reviews_bloc.dart
+    │   ├── reviews_event.dart
+    │   └── reviews_state.dart
+    ├── pages/
+    │   └── reviews_page.dart             # Tabbed interface (4 tabs)
+    └── widgets/
+        ├── review_card.dart              # Enhanced card with status/quality
+        ├── review_details_dialog.dart    # Comprehensive quality analysis
+        └── common/                       # 🆕 New Quality UI Components
+            ├── quality_score_badge.dart  # Badge & Card widgets
+            ├── flags_list_widget.dart    # Compact/Expanded/Grouped flags
+            └── rejection_reason_card.dart # Rejection info display
 ```
 
 ---
@@ -471,7 +554,130 @@ dev_dependencies:
 
 ---
 
-## 🔧 Development
+## � Quality Analysis System 🆕
+
+### Overview
+
+The app features a **comprehensive quality analysis system** for reviews, powered by AI-driven analysis from the backend. This system helps identify, categorize, and display review quality issues in an intuitive and user-friendly manner.
+
+### Components
+
+#### 1️⃣ Enums
+
+**ReviewStatus** - 4 States
+- `processing` - قيد المعالجة
+- `processed` - مقبول
+- `rejectedLowQuality` - مرفوض - جودة منخفضة
+- `rejectedIrrelevant` - مرفوض - غير ذي صلة
+
+**QualityLevel** - 3 Levels
+- `high` (≥70%) - 🟢 Green
+- `medium` (40-70%) - 🟠 Orange
+- `low` (<40%) - 🔴 Red
+
+**QualityFlag** - 13 Types
+
+| Category | Flags |
+|----------|-------|
+| **Stars** | `starsOnly`, `positiveStars`, `negativeStars`, `neutralStars` |
+| **Content** | `emptyContent`, `gibberishContent` |
+| **Length** | `tooLong`, `tooShort` |
+| **Quality** | `repetitiveCharacters`, `repetitiveWords`, `excessiveSpecialChars` |
+| **Toxicity** | `highToxicity`, `possibleToxicity` |
+
+Each flag includes:
+- **arabicLabel** - Display name in Arabic
+- **description** - Detailed explanation
+- **icon** - Material icon
+- **color** - Color coding
+- **priority** - For sorting (1-100)
+- **isSevere** - Severity indicator
+
+#### 2️⃣ Helpers
+
+**QualityScoreHelper**
+- `getQualityLevel()` - Determine quality level from score
+- `getQualityColor()` - Get color for score
+- `getQualityLabel()` - Get Arabic label
+- `getQualityPercentage()` - Format as "85%"
+- `getQualityIcon()` - Get appropriate icon
+
+**ReviewStatusHelper**
+- `getStatusIcon()` - Icon for each status
+- `getStatusColor()` - Status-specific color
+- `getRejectionReasonArabic()` - Translate rejection reason
+- `getStatusDescription()` - Detailed description
+
+**QualityFlagHelper**
+- `getMostCritical()` - Get highest priority flag
+- `sortByPriority()` - Sort flags by importance
+- `getSevereFlags()` - Filter severe issues only
+- `groupByCategory()` - Group flags for display
+
+#### 3️⃣ UI Components
+
+**QualityScoreBadge**
+- Compact badge for review cards
+- Large card for detail dialogs
+- Color-coded with gradients
+- Shows percentage and label
+
+**FlagsListWidget**
+- Compact view (max 3 flags)
+- Expanded view with descriptions
+- Grouped by category
+- Auto-sorted by priority
+
+**RejectionReasonCard**
+- Displays rejection information
+- Status-specific styling
+- Arabic translations
+- Icon + description
+
+### Data Flow
+
+```
+Backend Analysis
+  ↓
+Review JSON
+  ↓
+ReviewModel.fromJson()
+  ↓
+Parse status, flags, quality_score
+  ↓
+ReviewStatus.fromString()
+QualityFlag.parseList()
+  ↓
+ReviewCard / ReviewDetailsDialog
+  ↓
+Helpers (colors, labels, icons)
+  ↓
+UI Components
+  ↓
+User sees beautiful, informative display
+```
+
+### Color System
+
+**Quality Score**
+- 🟢 **Green** (≥70%): High quality, trustworthy
+- 🟠 **Orange** (40-70%): Acceptable, needs improvement
+- 🔴 **Red** (<40%): Low quality, questionable
+
+**Review Status**
+- 🟢 **Green**: Processed (accepted)
+- 🔴 **Red**: Rejected - Low Quality
+- 🟠 **Orange**: Rejected - Irrelevant
+- 🔵 **Blue**: Processing
+
+**Quality Flags**
+- 🔴 **Red**: highToxicity, negative issues
+- 🟠 **Orange**: possibleToxicity, warnings
+- 🟢 **Green**: positiveStars
+
+---
+
+## �🔧 Development
 
 ### Code Generation
 
