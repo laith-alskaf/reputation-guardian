@@ -123,7 +123,7 @@ class ProcessReviewUseCase:
             toxicity_status
         )
         
-        if not passes_quality:
+        if not passes_quality :
             rejected_doc = self.quality_processor.create_rejected_quality_document(
                 shop_id=shop_id,
                 email=respondent_email,

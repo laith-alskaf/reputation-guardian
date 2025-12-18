@@ -220,7 +220,7 @@ class SentimentService:
         candidate_labels = [
             target_label,
             "خدمة عملاء وتعامل عام ونظافة",
-            "سياق آخر غير مرتبط"
+            f"سياق آخر غير مرتبط ب{target_label} وايضا غير مرتبط ب خدمة العملاء وتعامل عام ونظافة"
         ]
 
         payload = {
@@ -259,7 +259,7 @@ class SentimentService:
 
                             target_score = result_map.get(target_label, 0.0)+result_map.get(candidate_labels[1], 0.0)
 
-                            if top_score < 0.4:
+                            if top_score < 0.45:
                                 has_mismatch = True
                                 predicted_label = "غير مرتبط"
                             else:
