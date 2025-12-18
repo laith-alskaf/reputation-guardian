@@ -296,7 +296,7 @@ class QualityService:
     def _evaluate_toxicity(self, toxicity_status: str) -> tuple[float, List[str]]:
         """
         تقييم السمية.
-        """
+        """ 
         flags = []
         
         if toxicity_status == "toxic":

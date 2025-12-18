@@ -79,19 +79,45 @@ class QualityGateProcessor:
         Returns:
             True if quality threshold is met, False otherwise
         """
+        toxicity_status = quality_result.get('toxicity_status', 'non-toxic')
         score = quality_result.get('quality_score', 0.0)
         is_suspicious = quality_result.get('is_suspicious', True)
+        flags = quality_result.get('flags', [])
         
-        if is_suspicious:
-            logging.warning(f"Review is suspicious with flags: {quality_result.get('flags')}")
-            return False
-        
-        if score < QUALITY_GATE_THRESHOLD:
+        # 🔴 Priority 1: Immediate rejection for toxic content
+        if toxicity_status == "toxic":
             logging.warning(
-                f"Review quality score ({score}) is below threshold ({QUALITY_GATE_THRESHOLD})"
+                f"❌ Review rejected: Contains toxic/profane content (toxicity=toxic)"
             )
             return False
         
+        # ⚠️ Priority 2: Reject suspicious reviews
+        if is_suspicious:
+            logging.warning(
+                f"❌ Review rejected: Flagged as suspicious with flags: {flags}"
+            )
+            return False
+        
+        # 📊 Priority 3: Check quality score threshold
+        # ⚡ NEW: Use higher threshold for uncertain toxicity (gibberish prevention)
+        threshold = QUALITY_GATE_THRESHOLD
+        
+        if toxicity_status == "uncertain":
+            # Raise threshold by 0.15 for unclear/uncertain content
+            # This helps reject gibberish text that AI can't categorize clearly
+            threshold = QUALITY_GATE_THRESHOLD + 0.15
+            logging.info(
+                f"⚠️ Uncertain toxicity detected, using stricter threshold: {threshold}"
+            )
+        
+        if score < threshold:
+            logging.warning(
+                f"❌ Review rejected: Quality score ({score}) below threshold ({threshold})"
+            )
+            return False
+        
+        # ✅ All checks passed
+        logging.info(f"✅ Review passed quality gate (score={score}, toxicity={toxicity_status})")
         return True
     
     def create_rejected_quality_document(
