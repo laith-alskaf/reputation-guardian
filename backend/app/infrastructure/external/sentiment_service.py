@@ -213,13 +213,14 @@ class SentimentService:
         target_label = shop_types_arabic.get(shop_type, shop_type)
 
         # فئات إضافية لتقليل الأخطاء
+
         cabackendndidate_labels = [
             target_label,
             "خدمة عملاء وتعامل عام ونظافة",
-            # "رياضة وأحداث رياضية",
-            # "سياسة وأخبار عامة",
-            # "ترفيه ومشاهير",
-            # "حياة شخصية أو يوميات",
+            "رياضة وأحداث رياضية",
+            "سياسة وأخبار عامة",
+            "ترفيه ومشاهير",
+            "حياة شخصية أو يوميات",
             "سياق آخر غير مرتبط"
         ]
 
@@ -257,7 +258,7 @@ class SentimentService:
                             result_map = {label: score for label, score in zip(labels, scores)}
                             top_label, top_score = labels[0], scores[0]
 
-                            target_score = result_map.get(target_label, 0.0)+result_map.get(candidate_labels[1], 0.0)
+                            target_score = result_map.get(target_label, 0.0)+result_map.get(cabackendndidate_labels[1], 0.0)
 
                             if top_score < 0.4:
                                 has_mismatch = True
