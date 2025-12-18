@@ -422,7 +422,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 <a name="arabic"></a>
-## 🇸🇦 نسخة عربية
+##  نسخة عربية
 
 للمزيد من التفاصيل باللغة العربية، راجع:
 - [دليل الباك إند](./backend/README.md)
