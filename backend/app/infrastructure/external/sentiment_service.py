@@ -220,7 +220,6 @@ class SentimentService:
         candidate_labels = [
             target_label,
             "خدمة عملاء وتعامل عام ونظافة",
- 
             "سياق آخر غير مرتبط"
         ]
 
@@ -264,7 +263,7 @@ class SentimentService:
                                 has_mismatch = True
                                 predicted_label = "غير مرتبط"
                             else:
-                                has_mismatch = (top_label != target_label and top_score >= 0.5) or (target_score < 0.5)
+                                has_mismatch = (top_label != target_label and top_score >= 0.5) and (target_score < 0.5)
                                 predicted_label = top_label
 
                             return {
