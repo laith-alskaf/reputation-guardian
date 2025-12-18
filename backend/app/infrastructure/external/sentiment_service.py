@@ -257,9 +257,8 @@ class SentimentService:
                             result_map = {label: score for label, score in zip(labels, scores)}
                             top_label, top_score = labels[0], scores[0]
 
-                            target_score = result_map.get(target_label, 0.0)
+                            target_score = result_map.get(target_label, 0.0)+result_map.get(candidate_labels[1], 0.0)
 
-                            # منطق mismatch الجديد
                             if top_score < 0.4:
                                 has_mismatch = True
                                 predicted_label = "غير مرتبط"
