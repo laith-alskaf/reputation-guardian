@@ -218,20 +218,40 @@ class SentimentService:
             return "uncertain"
 
     @staticmethod
-    def detect_review_quality(enjoy_most: str, improve_product: str, additional_feedback: str, pre_calculated_toxicity: str = None) -> dict:
+    def detect_review_quality(enjoy_most: str, improve_product: str, additional_feedback: str, rating: int = 0, pre_calculated_toxicity: str = None) -> dict:
         flags = []
         quality_score = 1.0
 
         parts = [p.strip() for p in [enjoy_most, improve_product, additional_feedback] if p and p.strip()]
         all_text = " ".join(parts)
 
+        # حالة خاصة: تقييم بالنجوم فقط (بدون نص)
         if not all_text or len(all_text) < 3:
-            return {
-                'quality_score': 0.0,
-                'flags': ['empty_content'],
-                'is_suspicious': True,
-                'toxicity_status': pre_calculated_toxicity or "non-toxic"
-            }
+            # إذا كان هناك تقييم بالنجوم، نقبل التقييم
+            if rating > 0:
+                flags_for_stars = ['stars_only']
+                # إضافة flag بناءً على التقييم بالنجوم (اقتراح المستخدم)
+                if rating <= 2:
+                    flags_for_stars.append('negative_stars')
+                elif rating >= 4:
+                    flags_for_stars.append('positive_stars')
+                else:
+                    flags_for_stars.append('neutral_stars')
+                
+                return {
+                    'quality_score': 1.0,
+                    'flags': flags_for_stars,
+                    'is_suspicious': False,
+                    'toxicity_status': pre_calculated_toxicity or "non-toxic"
+                }
+            # إذا لم يكن هناك نجوم ولا نص، نرفض
+            else:
+                return {
+                    'quality_score': 0.0,
+                    'flags': ['empty_content'],
+                    'is_suspicious': True,
+                    'toxicity_status': pre_calculated_toxicity or "non-toxic"
+                }
 
         try:
             arabic_chars = sum(1 for c in all_text if '\u0600' <= c <= '\u06FF')
@@ -268,19 +288,38 @@ class SentimentService:
 
         if len(words) < 2:
             flags.append('too_short')
-            quality_score -= 0.1
+            quality_score -= 0.05  # تقليل العقوبة من 0.1 إلى 0.05
 
         unique_words = set(words)
-        if len(unique_words) < len(words) * 0.5:
+        # تطبيق فحص التكرار فقط إذا كان عدد الكلمات > 3
+        if len(words) > 3 and len(unique_words) < len(words) * 0.4:
             flags.append('repetitive_words')
-            quality_score -= 0.2
+            # عقوبة أكبر للتكرار الشديد
+            repetition_ratio = len(unique_words) / len(words)
+            if repetition_ratio < 0.25:  # تكرار شديد جداً (75%+ من نفس الكلمة)
+                quality_score -= 0.4
+            else:
+                quality_score -= 0.3  # زيادة من 0.2 إلى 0.3
 
         quality_score = max(0, quality_score)
+
+        # تحديد is_suspicious بشكل أكثر ذكاءً
+        is_suspicious = False
+
+        # حالات تلقائية للـ suspicious
+        if quality_score < 0.4:  # تغيير من 0.5 إلى 0.4
+            is_suspicious = True
+        elif toxicity_score == "toxic":  # محتوى سام → suspicious تلقائياً
+            is_suspicious = True
+        elif 'repetitive_words' in flags and quality_score < 0.6:  # تكرار + درجة منخفضة
+            is_suspicious = True
+        elif len(flags) >= 3:  # 3 أعلام أو أكثر
+            is_suspicious = True
 
         return {
             'quality_score': round(quality_score, 2),
             'flags': flags,
-            'is_suspicious': quality_score < 0.5 or len(flags) > 2,
+            'is_suspicious': is_suspicious,
             'toxicity_status': toxicity_score
         }
 

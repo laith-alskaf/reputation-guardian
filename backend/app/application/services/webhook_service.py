@@ -29,10 +29,10 @@ class WebhookService:
         """Extracts key information from the Tally 'fields' array."""
         extracted_data = {
             "rating": 0,
-            "text_parts": [],
             "source_fields": {},
             "shop_id": None,
             "respondent_email": None,
+            "respondent_phone": None,
             "shop_type": "عام",
             "shop_name": None
         }
@@ -48,30 +48,37 @@ class WebhookService:
                 extracted_data["shop_id"] = value
             elif label == 'email':
                 extracted_data["respondent_email"] = value
+            elif label == 'phone':  # إضافة معالجة رقم الهاتف
+                extracted_data["respondent_phone"] = value
             elif label == 'shop_type':
                 extracted_data["shop_type"] = value or "عام"
             elif label == 'shop_name':
                 extracted_data["shop_name"] = value
-            elif field.get('type') == 'RATING':
+            elif field.get('type') == 'RATING' or label == 'stars':
                 try:
                     extracted_data["rating"] = int(value)
                 except (ValueError, TypeError):
                     logging.warning(f"Could not parse rating value: {value}")
                     extracted_data["rating"] = 0
-            elif field.get('type') in ['INPUT_TEXT', 'TEXTAREA']:
-                if isinstance(value, str) and value.strip():
-                    extracted_data["text_parts"].append(value)
         
         return extracted_data
 
     def _prepare_initial_data(self, extracted_fields: Dict[str, Any]) -> Tuple[Source, Processing]:
-        """Builds the source and processing objects from extracted form fields."""
         source_obj = Source(
             rating=extracted_fields.get('rating', 0), 
             fields=extracted_fields.get('source_fields', {})
         )
 
-        concatenated_text = " ".join(extracted_fields.get('text_parts', []))
+        # استخراج الحقول النصية الثلاثة المحددة
+        source_fields = extracted_fields.get('source_fields', {})
+        text_parts = []
+        
+        for field_name in ['enjoy_most', 'improve_product', 'additional_feedback']:
+            field_value = source_fields.get(field_name, '')
+            if field_value and isinstance(field_value, str) and field_value.strip():
+                text_parts.append(field_value.strip())
+        
+        concatenated_text = " ".join(text_parts)
         
         profanity_analysis = self.profanity_service.analyze_and_censor(concatenated_text, use_hf=False)
 
@@ -127,8 +134,18 @@ class WebhookService:
         source, processing = self._prepare_initial_data(extracted_fields)
         
         # --- 3. Quality Gate (Gate 1) ---
-        raw_text = " ".join(extracted_fields.get('text_parts', []))
-        quality_check_result = self.sentiment_service.detect_review_quality(raw_text, "", "")
+        source_fields = extracted_fields.get('source_fields', {})
+        enjoy_most = source_fields.get('enjoy_most', '')
+        improve_product = source_fields.get('improve_product', '')
+        additional_feedback = source_fields.get('additional_feedback', '')
+        
+        quality_check_result = self.sentiment_service.detect_review_quality(
+            enjoy_most=enjoy_most,
+            improve_product=improve_product,
+            additional_feedback=additional_feedback,
+            rating=source.rating,
+            pre_calculated_toxicity=None  
+        )
 
         if not self._is_high_quality(quality_check_result):
             rejected_doc = ReviewDocument(
@@ -150,6 +167,7 @@ class WebhookService:
 
         # --- 4. Relevancy Gate (Gate 2) ---
         shop_type = extracted_fields.get('shop_type', 'عام')
+        raw_text = processing.concatenated_text
         context_check_result = self.sentiment_service.detect_context_mismatch(raw_text, shop_type)
 
         if context_check_result.get('has_mismatch'):
