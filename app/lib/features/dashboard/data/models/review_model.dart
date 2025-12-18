@@ -32,6 +32,9 @@ class ReviewModel {
   @JsonKey(name: 'status')
   final String status;
 
+  @JsonKey(name: 'rejection_reason')
+  final String? rejectionReason;
+
   ReviewModel({
     required this.id,
     required this.shopId,
@@ -42,6 +45,7 @@ class ReviewModel {
     this.generatedContent,
     required this.createdAt,
     required this.status,
+    this.rejectionReason,
   });
 
   factory ReviewModel.fromJson(Map<String, dynamic> json) =>
@@ -54,12 +58,15 @@ class ReviewModel {
       id: id,
       shopId: shopId,
       email: email,
+      phone: source?.fields?['phone']?.toString(),
       rating: source?.rating ?? 0,
       text: processing?.concatenatedText ?? '',
       sentiment: analysis?.sentiment ?? 'محايد',
       category: analysis?.category ?? 'عام',
       qualityScore: analysis?.quality?.qualityScore,
-      isProfane: analysis?.quality?.isProfane ?? false,
+      isProfane: processing?.isProfane ?? false,
+      isSuspicious: analysis?.quality?.isSuspicious ?? false,
+      qualityFlags: analysis?.quality?.flags ?? [],
       keyThemes: analysis?.keyThemes ?? [],
       contextMatch: !(analysis?.context?.hasMismatch ?? false),
       summary: generatedContent?.summary,
@@ -67,6 +74,7 @@ class ReviewModel {
       suggestedReply: generatedContent?.suggestedReply,
       createdAt: DateTime.parse(createdAt),
       status: status,
+      rejectionReason: rejectionReason,
     );
   }
 }
@@ -74,8 +82,9 @@ class ReviewModel {
 @JsonSerializable()
 class SourceData {
   final int rating;
+  final Map<String, dynamic>? fields;
 
-  SourceData({required this.rating});
+  SourceData({required this.rating, this.fields});
 
   factory SourceData.fromJson(Map<String, dynamic> json) =>
       _$SourceDataFromJson(json);
@@ -88,7 +97,10 @@ class ProcessingData {
   @JsonKey(name: 'concatenated_text')
   final String concatenatedText;
 
-  ProcessingData({required this.concatenatedText});
+  @JsonKey(name: 'is_profane')
+  final bool? isProfane;
+
+  ProcessingData({required this.concatenatedText, this.isProfane});
 
   factory ProcessingData.fromJson(Map<String, dynamic> json) =>
       _$ProcessingDataFromJson(json);
@@ -126,11 +138,19 @@ class QualityData {
   final double qualityScore;
 
   @JsonKey(name: 'is_profane')
-  final bool isProfane;
+  final bool? isProfane;
+
+  @JsonKey(name: 'is_suspicious')
+  final bool? isSuspicious;
+
+  @JsonKey(name: 'flags')
+  final List<String>? flags;
 
   QualityData({
     required this.qualityScore,
-    required this.isProfane,
+    this.isProfane,
+    this.isSuspicious,
+    this.flags,
   });
 
   factory QualityData.fromJson(Map<String, dynamic> json) =>

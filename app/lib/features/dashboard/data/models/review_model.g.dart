@@ -26,6 +26,7 @@ ReviewModel _$ReviewModelFromJson(Map<String, dynamic> json) => ReviewModel(
         ),
   createdAt: json['created_at'] as String,
   status: json['status'] as String,
+  rejectionReason: json['rejection_reason'] as String?,
 );
 
 Map<String, dynamic> _$ReviewModelToJson(ReviewModel instance) =>
@@ -39,19 +40,28 @@ Map<String, dynamic> _$ReviewModelToJson(ReviewModel instance) =>
       'generated_content': instance.generatedContent,
       'created_at': instance.createdAt,
       'status': instance.status,
+      'rejection_reason': instance.rejectionReason,
     };
 
-SourceData _$SourceDataFromJson(Map<String, dynamic> json) =>
-    SourceData(rating: (json['rating'] as num).toInt());
+SourceData _$SourceDataFromJson(Map<String, dynamic> json) => SourceData(
+  rating: (json['rating'] as num).toInt(),
+  fields: json['fields'] as Map<String, dynamic>?,
+);
 
 Map<String, dynamic> _$SourceDataToJson(SourceData instance) =>
-    <String, dynamic>{'rating': instance.rating};
+    <String, dynamic>{'rating': instance.rating, 'fields': instance.fields};
 
 ProcessingData _$ProcessingDataFromJson(Map<String, dynamic> json) =>
-    ProcessingData(concatenatedText: json['concatenated_text'] as String);
+    ProcessingData(
+      concatenatedText: json['concatenated_text'] as String,
+      isProfane: json['is_profane'] as bool?,
+    );
 
 Map<String, dynamic> _$ProcessingDataToJson(ProcessingData instance) =>
-    <String, dynamic>{'concatenated_text': instance.concatenatedText};
+    <String, dynamic>{
+      'concatenated_text': instance.concatenatedText,
+      'is_profane': instance.isProfane,
+    };
 
 AnalysisData _$AnalysisDataFromJson(Map<String, dynamic> json) => AnalysisData(
   sentiment: json['sentiment'] as String,
@@ -78,13 +88,17 @@ Map<String, dynamic> _$AnalysisDataToJson(AnalysisData instance) =>
 
 QualityData _$QualityDataFromJson(Map<String, dynamic> json) => QualityData(
   qualityScore: (json['quality_score'] as num).toDouble(),
-  isProfane: json['is_profane'] as bool,
+  isProfane: json['is_profane'] as bool?,
+  isSuspicious: json['is_suspicious'] as bool?,
+  flags: (json['flags'] as List<dynamic>?)?.map((e) => e as String).toList(),
 );
 
 Map<String, dynamic> _$QualityDataToJson(QualityData instance) =>
     <String, dynamic>{
       'quality_score': instance.qualityScore,
       'is_profane': instance.isProfane,
+      'is_suspicious': instance.isSuspicious,
+      'flags': instance.flags,
     };
 
 ContextData _$ContextDataFromJson(Map<String, dynamic> json) =>

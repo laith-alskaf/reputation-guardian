@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../domain/enums/review_status_enum.dart';
+import '../../domain/enums/quality_flag_enum.dart';
+import '../../domain/helpers/review_status_helper.dart';
+import '../../domain/helpers/quality_flag_helper.dart';
+import 'common/quality_score_badge.dart';
+import 'common/flags_list_widget.dart';
 
+/// Enhanced review card with full quality analysis support
 class ReviewCard extends StatelessWidget {
   final dynamic review;
   final String type;
@@ -23,7 +30,6 @@ class ReviewCard extends StatelessWidget {
   String _formatDate(String dateString) {
     try {
       final date = DateTime.parse(dateString);
-      // Format: 15 ديسمبر 2024، 10:30 م
       final formatter = DateFormat('d MMMM yyyy، h:mm a', 'ar');
       return formatter.format(date);
     } catch (e) {
@@ -46,41 +52,26 @@ class ReviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Extract data based on review structure
+    // Extract data
     final sentiment = review['analysis']?['sentiment'] ?? 'غير محدد';
     final rating = review['source']?['rating'] ?? 0;
     final reviewText = review['processing']?['concatenated_text'] ?? '';
     final date = review['created_at'] ?? review['timestamp'] ?? '';
     final qualityScore = review['analysis']?['quality']?['quality_score'];
     final isProfane = review['processing']?['is_profane'] ?? false;
-    final flags = review['analysis']?['quality']?['flags'];
-    final hasFlags = flags != null && (flags as List).isNotEmpty;
+    final isSuspicious =
+        review['analysis']?['quality']?['is_suspicious'] ?? false;
+    final status = ReviewStatus.fromString(review['status'] ?? 'processing');
+    final rejectionReason = review['rejection_reason'];
+
+    // Parse flags
+    final flagsList = review['analysis']?['quality']?['flags'];
+    final flags = QualityFlag.parseList(flagsList);
+    final mostCriticalFlag = QualityFlagHelper.getMostCritical(flags);
 
     final sentimentColor = getSentimentColor(sentiment);
     final sentimentIcon = getSentimentIcon(sentiment);
     final sentimentLabel = getSentimentLabel(sentiment);
-
-    // Get flag label for ribbon
-    String? flagLabel;
-    if (hasFlags) {
-      final firstFlag = flags.first.toString();
-      switch (firstFlag) {
-        case 'high_toxicity':
-          flagLabel = 'سمية عالية';
-          break;
-        case 'spam':
-          flagLabel = 'spam';
-          break;
-        case 'low_quality':
-          flagLabel = 'جودة منخفضة';
-          break;
-        case 'irrelevant':
-          flagLabel = 'غير ذي صلة';
-          break;
-        default:
-          flagLabel = firstFlag;
-      }
-    }
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -97,26 +88,86 @@ class ReviewCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header: Sentiment + Stars
+                  // Header: Status Badge + Sentiment + Stars
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Sentiment badge
-                      Row(
-                        children: [
-                          Icon(sentimentIcon, color: sentimentColor, size: 20),
-                          const SizedBox(width: 8),
-                          Text(
-                            sentimentLabel,
-                            style: TextStyle(
+                      // Left: Sentiment Info
+                      Expanded(
+                        child: Row(
+                          children: [
+                            // Status badge (if not processed)
+                            if (status != ReviewStatus.processed) ...[
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color:
+                                      ReviewStatusHelper.getStatusBackgroundColor(
+                                        status,
+                                      ),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color:
+                                        ReviewStatusHelper.getStatusBorderColor(
+                                          status,
+                                        ),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      ReviewStatusHelper.getStatusIcon(status),
+                                      size: 12,
+                                      color: ReviewStatusHelper.getStatusColor(
+                                        status,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      status.shortLabel,
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color:
+                                            ReviewStatusHelper.getStatusColor(
+                                              status,
+                                            ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                            ],
+
+                            // Sentiment
+                            Icon(
+                              sentimentIcon,
                               color: sentimentColor,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                              size: 20,
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                sentimentLabel,
+                                style: TextStyle(
+                                  color: sentimentColor,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      // Stars rating
+
+                      // Right: Stars
                       _buildStars(rating),
                     ],
                   ),
@@ -129,7 +180,7 @@ class ReviewCard extends StatelessWidget {
                       reviewText,
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: AppColors.text,
                         fontSize: 14,
                         height: 1.5,
@@ -138,7 +189,7 @@ class ReviewCard extends StatelessWidget {
 
                   const SizedBox(height: 12),
 
-                  // Footer: Date + Quality Score
+                  // Footer: Date + Quality Score + Flags
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -159,66 +210,73 @@ class ReviewCard extends StatelessWidget {
                                   color: AppColors.textSecondary,
                                   fontSize: 12,
                                 ),
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
                         ),
                       ),
+
                       // Quality score badge
                       if (qualityScore != null)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            gradient: qualityScore >= 0.7
-                                ? LinearGradient(
-                                    colors: [
-                                      AppColors.success.withOpacity(0.2),
-                                      AppColors.success.withOpacity(0.1),
-                                    ],
-                                  )
-                                : LinearGradient(
-                                    colors: [
-                                      AppColors.warning.withOpacity(0.2),
-                                      AppColors.warning.withOpacity(0.1),
-                                    ],
-                                  ),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: qualityScore >= 0.7
-                                  ? AppColors.success.withOpacity(0.3)
-                                  : AppColors.warning.withOpacity(0.3),
-                              width: 1,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.verified,
-                                size: 14,
-                                color: qualityScore >= 0.7
-                                    ? AppColors.success
-                                    : AppColors.warning,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${(qualityScore * 100).toStringAsFixed(0)}%',
-                                style: TextStyle(
-                                  color: qualityScore >= 0.7
-                                      ? AppColors.success
-                                      : AppColors.warning,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
+                        QualityScoreBadge(
+                          qualityScore: qualityScore,
+                          iconSize: 14,
+                          fontSize: 12,
                         ),
                     ],
                   ),
+
+                  // Flags preview (compact)
+                  if (flags.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    FlagsListWidget(flags: flags, compact: true, maxFlags: 3),
+                  ],
+
+                  // Rejection reason (if rejected)
+                  if (status.isRejected && rejectionReason != null) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: ReviewStatusHelper.getStatusBackgroundColor(
+                          status,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: ReviewStatusHelper.getStatusBorderColor(
+                            status,
+                          ),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            size: 14,
+                            color: ReviewStatusHelper.getStatusColor(status),
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              ReviewStatusHelper.getRejectionReasonArabic(
+                                rejectionReason,
+                              ),
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: ReviewStatusHelper.getStatusColor(
+                                  status,
+                                ),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -261,8 +319,10 @@ class ReviewCard extends StatelessWidget {
               ),
             ),
 
-          // Flags ribbon (top left)
-          if (hasFlags && !isProfane && flagLabel != null)
+          // Critical flag ribbon (top left) - only if not profane and has critical flag
+          if (!isProfane &&
+              mostCriticalFlag != null &&
+              mostCriticalFlag.isSevere)
             Positioned(
               top: 0,
               left: 0,
@@ -271,11 +331,14 @@ class ReviewCard extends StatelessWidget {
                   horizontal: 12,
                   vertical: 6,
                 ),
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Color(0xFFFF9800), Color(0xFFFFA726)],
+                    colors: [
+                      mostCriticalFlag.color,
+                      mostCriticalFlag.color.withOpacity(0.8),
+                    ],
                   ),
-                  borderRadius: BorderRadius.only(
+                  borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(12),
                     bottomRight: Radius.circular(12),
                   ),
@@ -283,13 +346,45 @@ class ReviewCard extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.flag, color: Colors.white, size: 14),
+                    Icon(mostCriticalFlag.icon, color: Colors.white, size: 14),
                     const SizedBox(width: 4),
                     Text(
-                      flagLabel,
+                      mostCriticalFlag.arabicLabel,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+          // Suspicious indicator (bottom right corner)
+          if (isSuspicious && !isProfane)
+            Positioned(
+              bottom: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: const BoxDecoration(
+                  color: AppColors.warning,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(8),
+                    bottomRight: Radius.circular(12),
+                  ),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.report_problem, color: Colors.white, size: 12),
+                    SizedBox(width: 4),
+                    Text(
+                      'مشبوه',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 9,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
