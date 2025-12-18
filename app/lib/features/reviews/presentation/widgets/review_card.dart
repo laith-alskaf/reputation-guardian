@@ -4,7 +4,6 @@ import '../../../../core/theme/app_theme.dart';
 import '../../domain/enums/review_status_enum.dart';
 import '../../domain/enums/quality_flag_enum.dart';
 import '../../domain/helpers/review_status_helper.dart';
-import '../../domain/helpers/quality_flag_helper.dart';
 import 'common/quality_score_badge.dart';
 import 'common/flags_list_widget.dart';
 
@@ -67,7 +66,6 @@ class ReviewCard extends StatelessWidget {
     // Parse flags
     final flagsList = review['analysis']?['quality']?['flags'];
     final flags = QualityFlag.parseList(flagsList);
-    final mostCriticalFlag = QualityFlagHelper.getMostCritical(flags);
 
     final sentimentColor = getSentimentColor(sentiment);
     final sentimentIcon = getSentimentIcon(sentiment);
@@ -227,8 +225,8 @@ class ReviewCard extends StatelessWidget {
                     ],
                   ),
 
-                  // Flags preview (compact)
-                  if (flags.isNotEmpty) ...[
+                  // Flags preview (compact) - only for rejected reviews
+                  if (status.isRejected && flags.isNotEmpty) ...[
                     const SizedBox(height: 8),
                     FlagsListWidget(flags: flags, compact: true, maxFlags: 3),
                   ],
@@ -282,11 +280,11 @@ class ReviewCard extends StatelessWidget {
             ),
           ),
 
-          // Profanity warning ribbon (top right)
-          if (isProfane)
+          // Profanity warning ribbon (top left) - only for rejected reviews
+          if (status.isRejected && isProfane)
             Positioned(
               top: 0,
-              right: 0,
+              left: 0,
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
@@ -297,8 +295,8 @@ class ReviewCard extends StatelessWidget {
                     colors: [AppColors.error, Color(0xFFFF6B6B)],
                   ),
                   borderRadius: BorderRadius.only(
-                    topRight: Radius.circular(12),
-                    bottomLeft: Radius.circular(12),
+                    topLeft: Radius.circular(12),
+                    bottomRight: Radius.circular(12),
                   ),
                 ),
                 child: const Row(
@@ -309,48 +307,6 @@ class ReviewCard extends StatelessWidget {
                     Text(
                       'محتوى غير لائق',
                       style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-          // Critical flag ribbon (top left) - only if not profane and has critical flag
-          if (!isProfane &&
-              mostCriticalFlag != null &&
-              mostCriticalFlag.isSevere)
-            Positioned(
-              top: 0,
-              left: 0,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      mostCriticalFlag.color,
-                      mostCriticalFlag.color.withOpacity(0.8),
-                    ],
-                  ),
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    bottomRight: Radius.circular(12),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(mostCriticalFlag.icon, color: Colors.white, size: 14),
-                    const SizedBox(width: 4),
-                    Text(
-                      mostCriticalFlag.arabicLabel,
-                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 10,
                         fontWeight: FontWeight.bold,

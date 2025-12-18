@@ -117,7 +117,7 @@ class ReviewDetailsDialog extends StatelessWidget {
         review['analysis']?['quality']?['is_suspicious'] ?? false;
     final flagsList = review['analysis']?['quality']?['flags'];
     final flags = QualityFlag.parseList(flagsList);
-    final hasWarnings = isProfane || isSuspicious || flags.isNotEmpty;
+    final hasWarnings = isProfane || isSuspicious;
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

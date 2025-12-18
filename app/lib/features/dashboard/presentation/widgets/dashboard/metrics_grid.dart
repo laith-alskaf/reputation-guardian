@@ -16,41 +16,53 @@ class MetricsGrid extends StatelessWidget {
       padding: EdgeInsets.symmetric(
         horizontal: ResponsiveSpacing.medium(context),
       ),
-      child: GridView.count(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        // Always show 2 columns on mobile for better layout
-        crossAxisCount: context.isMobile
-            ? 2
-            : context.responsive(mobile: 2, tablet: 3, desktop: 4),
-        mainAxisSpacing: ResponsiveSpacing.small(context),
-        crossAxisSpacing: ResponsiveSpacing.small(context),
-        // Adjust aspect ratio for mobile to make cards look good
-        childAspectRatio: context.isMobile ? 1.0 : 1.3,
+      child: Column(
         children: [
-          MetricCard(
-            label: 'إجمالي التقييمات',
-            value: '${metrics.totalReviews}',
-            icon: Icons.rate_review,
-            color: AppColors.primary,
-          ),
+          // Full width: Average Rating Card
           MetricCard(
             label: 'متوسط التقييم',
             value: '${metrics.averageStars.toStringAsFixed(1)}/5',
             icon: Icons.star,
             color: AppColors.warning,
+            isFullWidth: true,
           ),
-          MetricCard(
-            label: 'تقييمات إيجابية',
-            value: '${metrics.positiveReviews}',
-            icon: Icons.thumb_up,
-            color: AppColors.positive,
-          ),
-          MetricCard(
-            label: 'تقييمات سلبية',
-            value: '${metrics.negativeReviews}',
-            icon: Icons.thumb_down,
-            color: AppColors.negative,
+
+          SizedBox(height: ResponsiveSpacing.small(context)),
+
+          // Grid: 2x2
+          GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: 2,
+            mainAxisSpacing: ResponsiveSpacing.small(context),
+            crossAxisSpacing: ResponsiveSpacing.small(context),
+            childAspectRatio: context.isMobile ? 1.0 : 1.3,
+            children: [
+              MetricCard(
+                label: 'إجمالي التقييمات',
+                value: '${metrics.totalReviews}',
+                icon: Icons.rate_review,
+                color: AppColors.primary,
+              ),
+              MetricCard(
+                label: 'تقييمات إيجابية',
+                value: '${metrics.positiveReviews}',
+                icon: Icons.thumb_up,
+                color: AppColors.positive,
+              ),
+              MetricCard(
+                label: 'تقييمات محايدة',
+                value: '${metrics.neutralReviews}',
+                icon: Icons.more_horiz,
+                color: AppColors.info,
+              ),
+              MetricCard(
+                label: 'تقييمات سلبية',
+                value: '${metrics.negativeReviews}',
+                icon: Icons.thumb_down,
+                color: AppColors.negative,
+              ),
+            ],
           ),
         ],
       ),

@@ -169,68 +169,123 @@ class WebhookService:
 
         logging.info(f"Review for shop {shop_id} passed Quality Gate.")
 
-        # --- 5. Relevancy Gate (Gate 2) ---
-        shop_type = extracted_fields.get('shop_type', 'عام')
-        raw_text = processing.concatenated_text
-        context_check_result = self.sentiment_service.detect_context_mismatch(raw_text, shop_type)
+        # --- 4. Relevancy Gate (Gate 2) ---
+        # ✅ تحسين: تخطي context check للتقييمات بالنجوم فقط أو بدون نص
+        has_text_for_context = processing.concatenated_text and len(processing.concatenated_text.strip()) >= 10
+        is_stars_only_review = 'stars_only' in quality_check_result.get('flags', [])
+        
+        if has_text_for_context and not is_stars_only_review:
+            shop_type = extracted_fields.get('shop_type', 'عام')
+            raw_text = processing.concatenated_text
+            context_check_result = self.sentiment_service.detect_context_mismatch(raw_text, shop_type)
 
-        if context_check_result.get('has_mismatch'):
-            rejected_doc = ReviewDocument(
-                id=str(ObjectId()),
-                shop_id=shop_id,
-                email=respondent_email,
-                stars=source.rating,
-                status="rejected_irrelevant", # Use specific status
-                overall_sentiment="محايد",
-                source=source,
-                processing=processing,
-                analysis={
-                    'quality': quality_check_result,
-                    'context': context_check_result
-                }
-            )
-            self.review_repository.create_review(rejected_doc.model_dump(by_alias=True))
-            logging.warning(f"Rejected irrelevant review for shop {shop_id}. Reason: {context_check_result.get('reasons')}")
-            return {"status": "rejected_irrelevant", "reason": "Review content is not relevant to the shop category."}
+            if context_check_result.get('has_mismatch'):
+                rejected_doc = ReviewDocument(
+                    id=str(ObjectId()),
+                    shop_id=shop_id,
+                    email=respondent_email,
+                    stars=source.rating,
+                    status="rejected_irrelevant",
+                    overall_sentiment="محايد",
+                    source=source,
+                    processing=processing,
+                    analysis={
+                        'quality': quality_check_result,
+                        'context': context_check_result
+                    }
+                )
+                self.review_repository.create_review(rejected_doc.model_dump(by_alias=True))
+                logging.warning(f"Rejected irrelevant review for shop {shop_id}. Reason: {context_check_result.get('reasons')}")
+                return {"status": "rejected_irrelevant", "reason": "Review content is not relevant to the shop category."}
+        else:
+            # تخطي context check للتقييمات بالنجوم فقط
+            logging.info(f"⚡ Skipping context check for shop {shop_id} - {'stars-only' if is_stars_only_review else 'insufficient text'}")
+            context_check_result = {
+                'mismatch_score': 0.0,
+                'confidence': 100.0,
+                'reasons': [],
+                'has_mismatch': False,
+                'predicted_label': 'N/A (stars-only)'
+            }
         
         logging.info(f"Review for shop {shop_id} passed Relevancy Gate.")
 
-        # --- 6. Full Analysis (for High-Quality, Relevant Reviews) ---
+        # --- 5. Full Analysis (for High-Quality, Relevant Reviews) ---
         logging.info(f"Proceeding with full analysis for shop {shop_id}.")
         
-        # A) Comprehensive Sentiment & Classification
-        sentiment = self.sentiment_service.analyze_sentiment(processing.concatenated_text)
+        # ✅ تحسين: تحقق إذا كان التقييم يحتاج معالجة AI
+        has_text_content = processing.concatenated_text and len(processing.concatenated_text.strip()) >= 15
+        is_stars_only = 'stars_only' in quality_check_result.get('flags', [])
+        skip_ai_processing = is_stars_only or not has_text_content
         
-        # Reuse pre-calculated toxicity from step 3
-        toxicity = toxicity_status
+        if skip_ai_processing:
+            logging.info(f"⚡ Skipping AI processing for shop {shop_id} - {'stars-only review' if is_stars_only else 'no text content'}")
             
-        
-        # B) Deepseek AI Analysis for insights and replies
-        temp_sentiment_dto = SentimentAnalysisResultDTO(
-            sentiment=sentiment, toxicity=toxicity, category="pending", quality_score=quality_check_result.get('quality_score', 1.0),
-            is_spam=False, context_match=True, quality_flags=[], mismatch_reasons=[]
-        )
-        
-        class TempReviewDTO:
-            def __init__(self, source_obj, processing_obj):
-                self.stars = source_obj.rating
-                self.full_text = processing_obj.concatenated_text
-                self._source_fields = source_obj.fields
-                
-                self.enjoy_most = self._get_field_value("enjoy_most")
-                self.improve_product = self._get_field_value("improve_product")
-                self.additional_feedback = self._get_field_value("additional_feedback")
+            # استنتاج sentiment بسيط من التقييم بالنجوم
+            if source.rating >= 4:
+                sentiment = "إيجابي"
+                category = "مدح"
+            elif source.rating <= 2:
+                sentiment = "سلبي"
+                category = "شكوى"
+            else:
+                sentiment = "محايد"
+                category = "محايد"
+            
+            # استخدام toxicity من quality check
+            toxicity = quality_check_result.get('toxicity_status', 'non-toxic')
+            
+            # إنشاء generated_content بسيط بدون AI
+            generated_content = {
+                "summary": f"تقييم {'⭐' * source.rating} بدون تعليقات نصية",
+                "actionable_insights": [],
+                "suggested_reply": "شكراً لتقييمك!"
+            }
+            
+            key_themes = []
+            
+        else:
+            # A) معالجة AI كاملة للتقييمات التي تحتوي نص
+            logging.info(f"🤖 Running full AI analysis for shop {shop_id}")
+            
+            sentiment = self.sentiment_service.analyze_sentiment(processing.concatenated_text)
+            toxicity = quality_check_result.get('toxicity_status', 'non-toxic')
+            
+            # B) Deepseek AI Analysis for insights and replies
+            temp_sentiment_dto = SentimentAnalysisResultDTO(
+                sentiment=sentiment, toxicity=toxicity, category="pending", 
+                quality_score=quality_check_result.get('quality_score', 1.0),
+                is_spam=False, context_match=True, quality_flags=[], mismatch_reasons=[]
+            )
+            
+            class TempReviewDTO:
+                def __init__(self, source_obj, processing_obj):
+                    self.stars = source_obj.rating
+                    self.full_text = processing_obj.concatenated_text
+                    self._source_fields = source_obj.fields
+                    
+                    self.enjoy_most = self._get_field_value("enjoy_most")
+                    self.improve_product = self._get_field_value("improve_product")
+                    self.additional_feedback = self._get_field_value("additional_feedback")
 
-            def _get_field_value(self, label):
-                return self._source_fields.get(label, "")
+                def _get_field_value(self, label):
+                    return self._source_fields.get(label, "")
 
-        temp_review_dto = TempReviewDTO(source, processing)
-        
-        deepseek_result: AnalysisResultDTO = self.deepseek_service.format_insights_and_reply(
-            dto=temp_review_dto,
-            sentiment_result=temp_sentiment_dto,
-            shop_type=shop_type
-        )
+            temp_review_dto = TempReviewDTO(source, processing)
+            
+            deepseek_result: AnalysisResultDTO = self.deepseek_service.format_insights_and_reply(
+                dto=temp_review_dto,
+                sentiment_result=temp_sentiment_dto,
+                shop_type=shop_type
+            )
+            
+            category = deepseek_result.category
+            key_themes = deepseek_result.key_themes
+            generated_content = {
+                "summary": deepseek_result.summary,
+                "actionable_insights": deepseek_result.actionable_insights,
+                "suggested_reply": deepseek_result.suggested_reply,
+            }
         
         # --- 6. Final Document Assembly & Saving ---
         processed_doc = ReviewDocument(
@@ -245,16 +300,12 @@ class WebhookService:
             analysis={
                 "sentiment": sentiment,
                 "toxicity": toxicity,
-                "category": deepseek_result.category,
+                "category": category,
                 "quality": quality_check_result,
-                "context": context_check_result, # Include context result
-                "key_themes": deepseek_result.key_themes,
+                "context": context_check_result,
+                "key_themes": key_themes,
             },
-            generated_content={
-                "summary": deepseek_result.summary,
-                "actionable_insights": deepseek_result.actionable_insights,
-                "suggested_reply": deepseek_result.suggested_reply,
-            }
+            generated_content=generated_content
         )
 
         review_id = self.review_repository.create_review(processed_doc.model_dump(by_alias=True))
