@@ -259,7 +259,7 @@ class SentimentService:
 
                             target_score = result_map.get(target_label, 0.0)+result_map.get(candidate_labels[1], 0.0)
 
-                            if top_score < 0.5:
+                            if top_score < 0.6:
                                 has_mismatch = True
                                 predicted_label = "غير مرتبط"
                             else:

@@ -105,7 +105,7 @@ class QualityGateProcessor:
         if toxicity_status == "uncertain":
             # Raise threshold by 0.15 for unclear/uncertain content
             # This helps reject gibberish text that AI can't categorize clearly
-            threshold = QUALITY_GATE_THRESHOLD + 0.15
+            threshold = QUALITY_GATE_THRESHOLD
             logging.info(
                 f"⚠️ Uncertain toxicity detected, using stricter threshold: {threshold}"
             )
