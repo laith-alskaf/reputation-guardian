@@ -71,55 +71,55 @@ class QualityGateProcessor:
     
     def _is_high_quality(self, quality_result: dict) -> bool:
         """
-        Determines if a review meets the quality threshold.
-        
-        Args:
-            quality_result: Quality assessment result dictionary
-            
-        Returns:
-            True if quality threshold is met, False otherwise
+        Final quality gate decision logic.
+        Balances human reviews vs spam/toxic content.
         """
+
         toxicity_status = quality_result.get('toxicity_status', 'non-toxic')
         score = quality_result.get('quality_score', 0.0)
-        is_suspicious = quality_result.get('is_suspicious', True)
+        is_suspicious = quality_result.get('is_suspicious', False)
         flags = quality_result.get('flags', [])
-        
-        # 🔴 Priority 1: Immediate rejection for toxic content
+
+        BASE_THRESHOLD = 0.55
+        HARD_REJECT_THRESHOLD = 0.45
+        UNCERTAIN_TOXICITY_THRESHOLD = 0.65
+
+        # 🔴 1. Hard reject: toxic content
         if toxicity_status == "toxic":
+            logging.warning("❌ Rejected: toxic content detected")
+            return False
+
+        # 🔴 2. Hard reject: extremely low quality
+        if score < HARD_REJECT_THRESHOLD:
             logging.warning(
-                f"❌ Review rejected: Contains toxic/profane content (toxicity=toxic)"
+                f"❌ Rejected: very low quality score ({score})"
             )
             return False
-        
-        # ⚠️ Priority 2: Reject suspicious reviews
-        if is_suspicious:
-            logging.warning(
-                f"❌ Review rejected: Flagged as suspicious with flags: {flags}"
-            )
-            return False
-        
-        # 📊 Priority 3: Check quality score threshold
-        # ⚡ NEW: Use higher threshold for uncertain toxicity (gibberish prevention)
-        threshold = QUALITY_GATE_THRESHOLD
-        
+
+        # ⚠️ 3. Uncertain toxicity → stricter quality requirement
         if toxicity_status == "uncertain":
-            # Raise threshold by 0.15 for unclear/uncertain content
-            # This helps reject gibberish text that AI can't categorize clearly
-            threshold = QUALITY_GATE_THRESHOLD
-            logging.info(
-                f"⚠️ Uncertain toxicity detected, using stricter threshold: {threshold}"
-            )
-        
-        if score < threshold:
-            logging.warning(
-                f"❌ Review rejected: Quality score ({score}) below threshold ({threshold})"
-            )
-            return False
-        
-        # ✅ All checks passed
-        logging.info(f"✅ Review passed quality gate (score={score}, toxicity={toxicity_status})")
+            if score < UNCERTAIN_TOXICITY_THRESHOLD:
+                logging.warning(
+                    f"❌ Rejected: uncertain toxicity with insufficient quality "
+                    f"(score={score}, required={UNCERTAIN_TOXICITY_THRESHOLD})"
+                )
+                return False
+
+        # ⚠️ 4. Suspicious signals → require minimum acceptable score
+        if is_suspicious:
+            if score < BASE_THRESHOLD:
+                logging.warning(
+                    f"❌ Rejected: suspicious review with low score "
+                    f"(score={score}, flags={flags})"
+                )
+                return False
+
+        # ✅ 5. Passed all gates
+        logging.info(
+            f"✅ Review accepted (score={score}, toxicity={toxicity_status}, flags={flags})"
+        )
         return True
-    
+
     def create_rejected_quality_document(
         self,
         shop_id: str,

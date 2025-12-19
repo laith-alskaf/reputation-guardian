@@ -13,11 +13,11 @@ from typing import Dict, List, Optional
 @dataclass
 class QualityWeights:
     """Configurable weights for quality scoring factors."""
-    length: float = 0.15
-    diversity: float = 0.25
-    valid_chars: float = 0.15
+    length: float = 0.30
+    diversity: float = 0.20
+    valid_chars: float = 0.25
     repetition: float = 0.15
-    toxicity: float = 0.30
+    toxicity: float = 0.10 
 
 
 @dataclass
