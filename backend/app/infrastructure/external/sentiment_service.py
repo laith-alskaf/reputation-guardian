@@ -148,15 +148,26 @@ class SentimentService:
     @staticmethod
     def _parse_toxicity_response(result, target_toxic_label) -> str:
         try:
-            if isinstance(result, list):
-                result = result[0] if result else {}
+            labels, scores = [], []
 
-            if not isinstance(result, dict):
-                logging.warning("❌ not isinstance(result, dict)  uncertain")
-                return "uncertain"
+            if isinstance(result, dict):
+                 labels = result.get("labels", [])
+                 scores = result.get("scores", [])
+            elif isinstance(result, list):
+                 for item in result:
+                    if isinstance(item, dict):
+                        labels.append(item.get("label"))
+                        scores.append(item.get("score"))
+                        
+            # if isinstance(result, list):
+            #     result = result[0] if result else {}
 
-            labels = result.get("labels", [])
-            scores = result.get("scores", [])
+            # if not isinstance(result, dict):
+            #     logging.warning("❌ not isinstance(result, dict)  uncertain")
+            #     return "uncertain"
+
+            # labels = result.get("labels", [])
+            # scores = result.get("scores", [])
             res_map = dict(zip(labels, scores))
             if not labels or not scores:
                 logging.warning("❌ not labels or not scores")

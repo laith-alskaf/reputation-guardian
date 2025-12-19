@@ -52,7 +52,8 @@ class QualityService:
     
     # الحد الأدنى لنسبة الحروف الصالحة
     MIN_VALID_CHAR_RATIO = 0.3
-    
+    # حد أقصى للنص (للأمان)
+    MAX_TEXT_LENGTH = 5000
     # الحد الأدنى للتنوع
     MIN_DIVERSITY_RATIO = 0.25
     
