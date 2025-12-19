@@ -118,10 +118,21 @@ class AIAnalysisProcessor:
         Returns:
             True if AI processing should be skipped, False otherwise
         """
-        is_stars_only = 'stars_only' in quality_flags
-        has_insufficient_text = not text or len(text.strip()) < 15
+        #  Stars-only reviews
+        if 'stars_only' in quality_flags:
+          return True
+        #  Remove leading/trailing spaces
+        text = text.strip() if text else ""
+        #  Check for very short text
+        char_count = len(text)
+        word_count = len(text.split())
+        MIN_CHARS = 15
+        MIN_WORDS = 3
+        #  Decide skip
+        if char_count < MIN_CHARS or word_count < MIN_WORDS:
+            return True
         
-        return is_stars_only or has_insufficient_text
+        return False
     
     def _generate_simple_analysis(self, rating: int, toxicity: str) -> Dict[str, Any]:
         """
