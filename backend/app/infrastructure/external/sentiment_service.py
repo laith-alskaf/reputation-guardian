@@ -10,7 +10,7 @@ import time
 class SentimentService:
     MAX_RETRIES = 3
     INITIAL_WAIT = 2.0  # ثواني  
-    
+    MIN_TOP_SCORE_SHORT_TEXT = 0.5
     staticmethod
     def clean_text(text: str) -> str:
         try:
@@ -222,9 +222,9 @@ class SentimentService:
             "خدمة عملاء وتعامل عام ونظافة",
             f"سياق آخر غير مرتبط ب{target_label} وايضا غير مرتبط ب خدمة العملاء وتعامل عام ونظافة"
         ]
-
+        text_clean = text.strip()
         payload = {
-            "inputs": text,
+            "inputs": text_clean,
             "parameters": {
                 "candidate_labels": candidate_labels,
                 "multi_label": False
@@ -256,19 +256,26 @@ class SentimentService:
                 if labels and scores:
                             result_map = {label: score for label, score in zip(labels, scores)}
                             top_label, top_score = labels[0], scores[0]
+                            num_words = len(text_clean.split())
+                            if num_words <= 5:
+                                if top_score < SentimentService.MIN_TOP_SCORE_SHORT_TEXT:
+                                    has_mismatch = False
+                                else:
+                                    has_mismatch = top_label != target_label
 
-                            target_score = result_map.get(target_label, 0.0)+result_map.get(candidate_labels[1], 0.0)
-
-                            if top_score < 0.6:
-                                has_mismatch = True
-                                predicted_label = "غير مرتبط"
                             else:
-                                has_mismatch = (top_label != target_label and top_score >= 0.5) and (target_score < 0.5)
-                                predicted_label = top_label
-
+                                
+                                target_score = result_map.get(target_label, 0.0)+result_map.get(candidate_labels[1], 0.0)
+                                if top_score < 0.6 :
+                                    has_mismatch = True
+                                    predicted_label = "غير مرتبط"
+                                else:
+                                    has_mismatch = (top_label != target_label and top_score >= 0.5) and (target_score < 0.5)
+                                    predicted_label = top_label
+                            confidence = round(result_map.get(target_label, 0.0) * 100, 2)
                             return {
                                 'mismatch_score': round(top_score, 2),
-                                'confidence': round(target_score * 100, 2),
+                                'confidence': confidence,
                                 'reasons': [f"النص بعيد عن سياق {shop_type}"] if has_mismatch else [],
                                 'has_mismatch': has_mismatch,
                                 'predicted_label': predicted_label

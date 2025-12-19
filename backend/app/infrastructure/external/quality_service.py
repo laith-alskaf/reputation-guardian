@@ -17,7 +17,7 @@ class QualityWeights:
     diversity: float = 0.20
     valid_chars: float = 0.25
     repetition: float = 0.15
-    toxicity: float = 0.10 
+    toxicity: float = 0.0 
 
 
 @dataclass
@@ -218,9 +218,8 @@ class QualityService:
         """
         flags = []
         
-        if len(words) < 3:
-            # نص قصير جداً، لا يمكن تقييم التنوع
-            return 0.5, flags
+        if len(words) < 5:
+            return 0.3, flags
         
         unique_words = set(word.lower() for word in words)
         diversity_ratio = len(unique_words) / len(words)
