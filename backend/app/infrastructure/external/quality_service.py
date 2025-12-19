@@ -13,12 +13,12 @@ from typing import Dict, List, Optional
 @dataclass
 class QualityWeights:
     """Configurable weights for quality scoring factors."""
-    length: float = 0.30
-    diversity: float = 0.20
-    valid_chars: float = 0.25
-    repetition: float = 0.15
-    toxicity: float = 0.0 
-
+    length: float = 0.25
+    diversity: float = 0.15
+    valid_chars: float = 0.20
+    repetition: float = 0.10
+    toxicity: float = 0.10 
+    rating: float = 0.20
 
 @dataclass
 class QualityResult:
@@ -28,7 +28,6 @@ class QualityResult:
     flags: List[str]
     is_suspicious: bool
     toxicity_status: str
-    
     def to_dict(self) -> dict:
         return {
             'quality_score': self.quality_score,
@@ -93,7 +92,9 @@ class QualityService:
             if p and isinstance(p, str) and p.strip()
         ]
         all_text = " ".join(parts)
-        
+        if len(all_text) > self.MAX_TEXT_LENGTH:
+            logging.warning(f"Text too long ({len(all_text)} chars), truncating")
+            all_text = all_text[:self.MAX_TEXT_LENGTH]
         # 2. معالجة الحالة الفارغة
         if not all_text or len(all_text) < 3:
             return self._handle_empty_review(rating, toxicity_status)
@@ -123,18 +124,23 @@ class QualityService:
         scores['toxicity'], tox_flags = self._evaluate_toxicity(toxicity_status)
         flags.extend(tox_flags)
         
+        # و) التقييم بالنجوم
+        scores['rating'], rating_flags = self._evaluate_rating(rating)
+        flags.extend(rating_flags)
+        
         # 4. حساب الدرجة النهائية (متوسط موزون)
         quality_score = (
             self.weights.length * scores['length'] +
             self.weights.diversity * scores['diversity'] +
             self.weights.valid_chars * scores['valid_chars'] +
             self.weights.repetition * scores['repetition'] +
-            self.weights.toxicity * scores['toxicity']
+            self.weights.toxicity * scores['toxicity']+
+            self.weights.rating * scores['rating']
         )
         
         # 5. تحديد المراجعات المشبوهة
         is_suspicious = (
-            quality_score < 0.4 or 
+            quality_score < 0.5 or 
             toxicity_status == "toxic" or 
             len(flags) >= 3
         )
@@ -162,7 +168,8 @@ class QualityService:
                     'diversity': 0.5,
                     'valid_chars': 1.0,
                     'repetition': 1.0,
-                    'toxicity': 1.0
+                    'toxicity': 1.0,
+                    'rating': 1.0
                 },
                 flags=['rating_only'],
                 is_suspicious=False,
@@ -176,7 +183,8 @@ class QualityService:
                     'diversity': 0.0,
                     'valid_chars': 0.0,
                     'repetition': 0.0,
-                    'toxicity': 1.0
+                    'toxicity': 1.0,
+                    'rating': 0.0
                 },
                 flags=['empty_content'],
                 is_suspicious=True,
@@ -252,7 +260,8 @@ class QualityService:
         digit_chars = sum(1 for c in text if c.isdigit())
         # حساب المسافات
         space_chars = sum(1 for c in text if c.isspace())
-        
+        # حساب الإيموجي 
+        emoji_chars = sum(1 for c in text if '\u1F600' <= c <= '\u1FAFF')
         # الأحرف الصالحة = عربي + إنجليزي + أرقام + مسافات
         valid_chars = arabic_chars + english_chars + digit_chars + space_chars
         total_chars = len(text)
@@ -261,7 +270,8 @@ class QualityService:
             return 0.0, ['empty_text']
         
         valid_ratio = valid_chars / total_chars
-        
+        if emoji_chars / total_chars > 0.2:
+            flags.append('excessive_emoji')
         if valid_ratio < self.MIN_VALID_CHAR_RATIO:
             flags.append('suspicious_chars')
             return 0.2, flags
@@ -291,7 +301,20 @@ class QualityService:
             return 0.7, flags
         else:
             return 1.0, flags
-    
+    def _evaluate_rating(self, rating: int) -> tuple[float, List[str]]:
+        """
+        تقييم rating .
+        """
+        flags = []
+        
+        if rating == 0:
+            flags.append('no_rating')
+            return 0.3, flags
+        elif rating <= 2:
+            flags.append('low_rating')
+            return 0.6, flags  # يعاقب قليلاً إذا منخفض ونص قصير
+        else:
+            return 1.0, flags
     def _evaluate_toxicity(self, toxicity_status: str) -> tuple[float, List[str]]:
         """
         تقييم السمية.

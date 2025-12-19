@@ -143,6 +143,7 @@ class SentimentService:
             except Exception as e:
                 logging.error(f"❌ Toxicity Check Error: {e}")
                 break
+            
         return "uncertain"
     @staticmethod
     def _parse_toxicity_response(result, target_toxic_label) -> str:
@@ -151,30 +152,31 @@ class SentimentService:
                 result = result[0] if result else {}
 
             if not isinstance(result, dict):
+                logging.warning("❌ not isinstance(result, dict)  uncertain")
                 return "uncertain"
 
             labels = result.get("labels", [])
             scores = result.get("scores", [])
-
+            res_map = dict(zip(labels, scores))
             if not labels or not scores:
+                logging.warning("❌ not labels or not scores")
                 return "uncertain"
 
             top_label = labels[0]
             top_score = scores[0]
 
-            if top_label != target_toxic_label:
-                if top_score < 0.60: 
-                    return "uncertain"
+            if top_label == target_toxic_label and top_score >= 0.60:
+                logging.warning("❌ top_label == target_toxic_label and top_score >= 0.60")
+                return "toxic"
+            if top_label == target_toxic_label and top_score >= 0.40:
+                logging.warning("❌  top_label == target_toxic_label and top_score >= 0.40")
+                return "uncertain"
+            if res_map.get(target_toxic_label, 0) < 0.35:
+                logging.warning("❌ res_map.get(target_toxic_label, 0) < 0.35")
                 return "non-toxic"
-            if top_label == target_toxic_label:
-                if top_score >= 0.70:
-                    return "toxic"
-                elif top_score >= 0.50:
-                    return "uncertain"
-                else:
-                    return "non-toxic"
-
-            return "non-toxic"
+       
+            logging.warning("❌ uncertain uncertain")
+            return "uncertain"
 
         except Exception as e:
             logging.error(f"Parsing Toxicity Error: {e}")
@@ -189,34 +191,30 @@ class SentimentService:
         url = HF_TOXICITY_MODEL_URL
 
         shop_types_arabic = {
-            "مطعم": "مطعم وأكل ومشروبات",
-            "مقهى": "مقهى وقهوة ومشروبات",
-            "محل ملابس": "ملابس وأزياء وموضة",
-            "صيدلية": "صيدلية وأدوية وعلاج",
-            "سوبر ماركت": "سوبر ماركت وتسوق ومنتجات",
-            "متجر إلكترونيات": "إلكترونيات وأجهزة وتقنية",
-            "مكتبة": "كتب وقراءة وتعليم",
-            "محل تجميل": "تجميل وشعر وبشرة",
-            "صالة رياضية": "رياضة وتمارين ولياقة",
-            "مدرسة": "دراسة وتعليم وطلاب",
-            "مستشفى": "طب وعلاج ومرضى",
-            "محطة وقود": "وقود وسيارات وبنزين",
-            "متجر أجهزة": "أجهزة وإلكترونيات وتقنية",
-            "محل ألعاب": "ألعاب وترفيه وأطفال",
-            "مكتب سياحي": "سفر وسياحة وفنادق",
-            "محل هدايا": "هدايا وتذكارات ومناسبات",
-            "مغسلة ملابس": "غسيل وتنظيف وملابس",
-            "متجر هواتف": "هواتف وموبايلات وتقنية",
-            "عام": "نشاط تجاري عام"
+            "مطعم": "أكل وطعام ووجبات ومنيو ومطاعم وطبخ وأطباق وجوع",
+            "مقهى": "قهوة وكافيه وحلا ومشروبات وباريستا وجلسة روقان",
+            "محل ملابس": "أزياء ولبس وقماش وموضة ومقاسات وتفصيل وبراندات",
+            "صيدلية": "دواء وعلاج وصيدليات ووصفة طبية وفيتامينات وشاش",
+            "سوبر ماركت": "بقالة ومقاضي وتسوق ومنتجات غذائية ومعلبات وخضار",
+            "متجر إلكترونيات": "أجهزة ذكية وشاشات وكمبيوترات وتقنية وقطع غيار وصيانة",
+            "مكتبة": "كتب وقراءة وقرطاسية وأدوات مدرسية وروايات وتعليم",
+            "محل تجميل": "مكياج وبشرة وشعر وعطورات ومستحضرات تجميل وعناية",
+            "صالة رياضية": "جيم وتمارين وحديد ولياقة ورياضة ومدرب وعضلات",
+            "مدرسة": "تعليم وطلاب ومدرسين وكتب ودوام مدرسي وفصول ودراسة",
+            "مستشفى": "طب ومرضى وعلاج ودكاترة وعيادات وفحوصات وعمليات",
+            "محطة وقود": "بنزين وسيارات وزيت ووقود وتعبئة وإطارات ومغسلة سيارات",
+            "متجر أجهزة": "أجهزة كهربائية ومنزلية وغسالات وثلاجات ومكيفات",
+            "محل ألعاب": "ألعاب أطفال وترفيه وهدايا صغار وبلايستيشن وعرائس",
+            "مكتب سياحي": "سفر وسياحة وطيران وفنادق وحجوزات ورحلات وتذاكر",
+            "محل هدايا": "هدايا وتغليف وورد ومناسبات وتذكارات وتحف",
+            "مغسلة ملابس": "غسيل وكوي وتنظيف جاف وبقع ملابس ومصبغة",
+            "متجر هواتف": "جوالات وموبايلات وإكسسوارات هواتف وشواحن وصيانة موبايل",
+            "عام": "تجربة العميل ومستوى الخدمة والمكان والتعامل والأسعار"
         }
 
         target_label = shop_types_arabic.get(shop_type, shop_type)
 
-        # فئات إضافية لتقليل الأخطاء
-        #    "رياضة وأحداث رياضية",
-        #     "سياسة وأخبار عامة",
-        #     "ترفيه ومشاهير",
-        #     "حياة شخصية أو يوميات",
+
         candidate_labels = [
             target_label,
             "خدمة عملاء وتعامل عام ونظافة",
