@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حارس السمعة - لوحة التحكم الشاملة</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/dashboard-v2.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <i class="fas fa-shield-alt"></i>
+                <span>حارس السمعة</span>
+            </div>
+
+            <nav class="nav-menu">
+                <div class="nav-item">
+                    <a href="#" class="nav-link active" onclick="DashboardV2.switchView('dashboard', event)">
+                        <i class="fas fa-th-large"></i>
+                        <span>لوحة التحكم</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" onclick="DashboardV2.switchView('reviews', event)">
+                        <i class="fas fa-star"></i>
+                        <span>التعليقات</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" onclick="DashboardV2.switchView('analytics', event)">
+                        <i class="fas fa-chart-line"></i>
+                        <span>التحليلات</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" onclick="DashboardV2.switchView('settings', event)">
+                        <i class="fas fa-cog"></i>
+                        <span>الإعدادات</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="#" class="nav-link" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>تسجيل الخروج</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- App Bar -->
+            <header class="v2-appbar">
+                <div class="welcome-msg">
+                    <h1>مرحباً، <span id="userName">المستخدم</span> 👋</h1>
+                    <p>إليك آخر تحديثات سمعتك الرقمية اليوم.</p>
+                </div>
+
+                <div class="actions-bar">
+                    <button class="btn-v2 btn-glass-v2" onclick="DashboardV2.syncData()">
+                        <i class="fas fa-sync-alt"></i>
+                        تحديث البيانات
+                    </button>
+                    <button class="btn-v2 btn-primary-v2" onclick="DashboardV2.showNewAnalysis()">
+                        <i class="fas fa-plus"></i>
+                        تحليل جديد
+                    </button>
+                </div>
+            </header>
+
+            <!-- Page Views -->
+
+            <!-- 1. DASHBOARD VIEW -->
+            <div id="view-dashboard" class="page-view active">
+                <section class="stats-grid section-v2 stagger-1">
+                    <div class="stat-card-v2">
+                        <div class="card-icon-v2"><i class="fas fa-comments"></i></div>
+                        <h3 id="totalReviewsCount">0</h3>
+                        <span>إجمالي التعليقات</span>
+                    </div>
+                    <div class="stat-card-v2">
+                        <div class="card-icon-v2" style="color: var(--success);"><i class="fas fa-smile"></i></div>
+                        <h3 id="positiveReviewsCount">0</h3>
+                        <span>التعليقات الإيجابية</span>
+                    </div>
+                    <div class="stat-card-v2">
+                        <div class="card-icon-v2" style="color: var(--error);"><i class="fas fa-frown"></i></div>
+                        <h3 id="negativeReviewsCount">0</h3>
+                        <span>التعليقات السلبية</span>
+                    </div>
+                    <div class="stat-card-v2">
+                        <div class="card-icon-v2" style="color: var(--accent);"><i class="fas fa-percentage"></i></div>
+                        <h3 id="reputationScore">0%</h3>
+                        <span>مؤشر السمعة</span>
+                    </div>
+                </section>
+
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+                    <section class="section-v2 stagger-2">
+                        <div class="feed-header">
+                            <h2>أحدث التعليقات</h2>
+                            <button class="btn-v2 btn-glass-v2" onclick="DashboardV2.switchView('reviews')">عرض
+                                الكل</button>
+                        </div>
+                        <div class="review-list-v2" id="dashboardReviewsContainer">
+                            <div class="loading-inline-v2">جاري تحميل التعليقات...</div>
+                        </div>
+                    </section>
+
+                    <section class="section-v2 stagger-3">
+                        <div class="stat-card-v2" style="margin-bottom: 2rem;">
+                            <h3>اتجاه السمعة</h3>
+                            <div style="height: 180px; margin-top: 1rem;">
+                                <canvas id="reputationTrendChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="stat-card-v2">
+                            <h3>رمز التقييم السريع</h3>
+                            <div id="qrQuickContainer" style="text-align: center; margin-top: 1rem;">
+                                <div class="loading-inline-v2">جاري التحميل...</div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- 2. REVIEWS VIEW -->
+            <div id="view-reviews" class="page-view">
+                <section class="section-v2">
+                    <div class="reviews-page-header">
+                        <div class="search-v2">
+                            <i class="fas fa-search"></i>
+                            <input type="text" placeholder="بحث في كافة التعليقات..."
+                                oninput="DashboardV2.handleSearch(event)">
+                        </div>
+                        <div class="tabs-v2" style="margin-bottom: 0;">
+                            <button class="tab-btn-v2 active" onclick="DashboardV2.switchTab('processed', event)"
+                                data-tab="processed">المقبولة</button>
+                            <button class="tab-btn-v2" onclick="DashboardV2.switchTab('rejected-quality', event)"
+                                data-tab="rejected-quality">جودة منخفضة</button>
+                            <button class="tab-btn-v2" onclick="DashboardV2.switchTab('rejected-irrelevant', event)"
+                                data-tab="rejected-irrelevant">غير صلة</button>
+                        </div>
+                    </div>
+
+                    <div class="feed-filters-v2" style="margin-top: 1rem;">
+                        <span style="font-weight: 700; margin-left: 1rem;">تصفية حسب:</span>
+                        <select class="select-v2" id="sentimentFilter"
+                            onchange="DashboardV2.applyFilters('fullReviewsContainer')">
+                            <option value="">كل المشاعر</option>
+                            <option value="إيجابي">إيجابي</option>
+                            <option value="سلبي">سلبي</option>
+                            <option value="محايد">محايد</option>
+                        </select>
+                        <select class="select-v2" id="categoryFilter"
+                            onchange="DashboardV2.applyFilters('fullReviewsContainer')">
+                            <option value="">كل الفئات</option>
+                            <option value="عام">عام</option>
+                            <option value="خدمة العملاء">خدمة العملاء</option>
+                            <option value="جودة المنتج">جودة المنتج</option>
+                            <option value="السعر">السعر</option>
+                        </select>
+                    </div>
+
+                    <div class="review-list-v2" id="fullReviewsContainer" style="margin-top: 2rem;">
+                        <!-- Full list injected here -->
+                    </div>
+                </section>
+            </div>
+
+            <!-- 3. ANALYTICS VIEW -->
+            <div id="view-analytics" class="page-view">
+                <section class="section-v2">
+                    <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr);">
+                        <div class="stat-card-v2">
+                            <h3>توزيع التقييمات</h3>
+                            <div style="height: 250px; margin-top: 1.5rem;">
+                                <canvas id="ratingDistributionChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="stat-card-v2">
+                            <h3>تحليل مشاعر العملاء</h3>
+                            <div style="height: 250px; margin-top: 1.5rem;">
+                                <canvas id="sentimentPieChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card-v2" style="margin-top: 2rem;">
+                        <h3>الاتجاه الزمني للسمعة الرقمية</h3>
+                        <div style="height: 300px; margin-top: 1.5rem;">
+                            <canvas id="reputationTrendChartAnalytics"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <h2 style="margin-bottom: 1.5rem;">رؤى واقتراحات ذكية (AI Insights)</h2>
+                        <div class="insights-grid-v2" id="insightsContainerV2">
+                            <!-- Injected by JS -->
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- 4. SETTINGS VIEW -->
+            <div id="view-settings" class="page-view">
+                <section class="section-v2">
+                    <div class="settings-grid-v2">
+                        <div class="settings-card-v2">
+                            <h3><i class="fas fa-user-shield"></i> الأمان والحساب</h3>
+                            <div class="settings-list-v2" id="profileSettings"></div>
+                        </div>
+                        <div class="settings-card-v2">
+                            <h3><i class="fas fa-store-alt"></i> تفاصيل المتجر</h3>
+                            <div class="settings-list-v2" id="shopSettings"></div>
+                        </div>
+                        <div class="settings-card-v2">
+                            <h3><i class="fas fa-sync"></i> عمليات الربط</h3>
+                            <div class="settings-list-v2" id="notificationSettings"></div>
+                        </div>
+                        <div class="settings-card-v2">
+                            <h3><i class="fas fa-info-circle"></i> المعلومات والدعم</h3>
+                            <div class="settings-list-v2" id="infoSettings">
+                                <!-- Will be injected via JS -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="reviewDetailsModal" class="modal-v2">
+        <div class="modal-content-v2 animate-scale">
+            <div class="modal-header-v2">
+                <h2>تفاصيل التعليق الذكية</h2>
+                <button class="close-btn-v2" onclick="DashboardV2.closeModal('reviewDetailsModal')">&times;</button>
+            </div>
+            <div class="modal-body-v2">
+                <div id="modalReviewDetails"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="newAnalysisModal" class="modal-v2">
+        <div class="modal-content-v2 animate-scale">
+            <div class="modal-header-v2">
+                <h2>إضافة تحليل جديد</h2>
+                <button class="close-btn-v2" onclick="DashboardV2.closeModal('newAnalysisModal')">&times;</button>
+            </div>
+            <div class="modal-body-v2">
+                <div class="form-group-v2">
+                    <label>رابط التقييم</label>
+                    <input type="text" id="analysisUrl" class="input-v2" placeholder="أدخل الرابط المراد تحليله...">
+                </div>
+                <div class="modal-actions-v2">
+                    <button class="btn-v2 btn-primary-v2" onclick="DashboardV2.startAnalysis()">بدء التحليل</button>
+                    <button class="btn-v2 btn-glass-v2"
+                        onclick="DashboardV2.closeModal('newAnalysisModal')">إلغاء</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- UI Overlay -->
+    <div id="loadingOverlay" class="loading-overlay-v2">
+        <div class="spinner-v2"></div>
+        <p>جاري تحديث البيانات...</p>
+    </div>
+
+    <div id="messageToast" class="toast-v2">
+        <div class="toast-content-v2">
+            <i class="fas fa-check-circle"></i>
+            <span id="messageText">عملية ناجحة</span>
+        </div>
+        <div class="toast-progress-v2"></div>
+    </div>
+
+    <!-- About App Modal -->
+    <div id="aboutModal" class="modal-v2">
+        <div class="modal-content-v2 animate-scale">
+            <div class="modal-header-v2">
+                <h2>حول التطبيق</h2>
+                <button class="close-btn-v2" onclick="DashboardV2.closeModal('aboutModal')">&times;</button>
+            </div>
+            <div class="modal-body-v2">
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <i class="fas fa-shield-alt"
+                        style="font-size: 4rem; color: var(--primary); margin-bottom: 1rem; display: block;"></i>
+                    <h3 style="font-weight: 800; font-size: 1.5rem;">حارس السمعة</h3>
+                    <p style="color: var(--text-secondary); font-weight: 600;">Reputation Guardian</p>
+                    <p style="color: var(--primary); font-size: 0.9rem; margin-top: 0.5rem; font-weight: 700;">الإصدار
+                        1.0.0</p>
+                </div>
+                <div class="detail-item">
+                    <h5>نبذة عن النظام</h5>
+                    <p>حارس السمعة هو منصة احترافية متكاملة تهدف إلى مساعدة أصحاب الأعمال على إدارة سمعتهم الرقمية
+                        بذكاء. باستخدام تقنيات الذكاء الاصطناعي، نقوم بتحليل التقييمات وتصفيتها لضمان حصولك على رؤى
+                        دقيقة وحلول فورية.</p>
+                </div>
+                <div class="detail-item">
+                    <h5>المميزات الرئيسية</h5>
+                    <ul style="list-style: none; padding: 0; margin-top: 0.5rem;">
+                        <li style="margin-bottom: 0.5rem;"><i class="fas fa-check-circle"
+                                style="color: var(--success); margin-left: 0.5rem;"></i> تحليل المشاعر بدقة عالية
+                            باستخدام AI</li>
+                        <li style="margin-bottom: 0.5rem;"><i class="fas fa-check-circle"
+                                style="color: var(--success); margin-left: 0.5rem;"></i> نظام ذكي لتصفية التقييمات
+                            السلبية المضللة</li>
+                        <li style="margin-bottom: 0.5rem;"><i class="fas fa-check-circle"
+                                style="color: var(--success); margin-left: 0.5rem;"></i> لوحة بيانات تحليلية فورية
+                            وشاملة</li>
+                        <li style="margin-bottom: 0.5rem;"><i class="fas fa-check-circle"
+                                style="color: var(--success); margin-left: 0.5rem;"></i> تنبيهات فورية عبر Telegram
+                            لسرعة المتابعة</li>
+                    </ul>
+                </div>
+                <div class="detail-item">
+                    <h5>المطور التقني</h5>
+                    <p>تم التصميم والتطوير بواسطة <strong>المهندس ليث السكاف</strong>.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help & Support Modal -->
+    <div id="supportModal" class="modal-v2">
+        <div class="modal-content-v2 animate-scale">
+            <div class="modal-header-v2">
+                <h2>المساعدة والدعم</h2>
+                <button class="close-btn-v2" onclick="DashboardV2.closeModal('supportModal')">&times;</button>
+            </div>
+            <div class="modal-body-v2">
+                <div
+                    style="text-align: center; margin-bottom: 1.5rem; background: var(--primary-gradient); padding: 2rem; border-radius: 20px; color: white;">
+                    <i class="fas fa-headset" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                    <h3 style="font-weight: 700;">نحن هنا للمساعدة</h3>
+                    <p style="opacity: 0.9; font-size: 0.9rem;">تواصل معنا في أي وقت، فريقنا جاهز لخدمتك</p>
+                </div>
+
+                <div class="settings-list-v2">
+                    <div class="settings-tile-v2"
+                        onclick="window.open('https://wa.me/963982055788?text=مرحباً، لدي استفسار حول تطبيق حارس السمعة', '_blank')">
+                        <div class="tile-icon-v2" style="background: rgba(37, 211, 102, 0.1); color: #25D366;"><i
+                                class="fab fa-whatsapp"></i></div>
+                        <div class="tile-info-v2">
+                            <h4>واتساب (الدعم السريع)</h4>
+                            <p>+963 982 055 788</p>
+                        </div>
+                        <i class="fas fa-chevron-left" style="font-size: 0.7rem; opacity: 0.3;"></i>
+                    </div>
+                    <div class="settings-tile-v2"
+                        onclick="window.open('mailto:laithalskaf@gmail.com?subject=حارس السمعة - استفسار')">
+                        <div class="tile-icon-v2" style="background: rgba(99, 102, 241, 0.1); color: var(--primary);"><i
+                                class="fas fa-envelope"></i></div>
+                        <div class="tile-info-v2">
+                            <h4>البريد الإلكتروني</h4>
+                            <p>laithalskaf@gmail.com</p>
+                        </div>
+                        <i class="fas fa-chevron-left" style="font-size: 0.7rem; opacity: 0.3;"></i>
+                    </div>
+                </div>
+
+                <div
+                    style="margin-top: 1.5rem; padding: 1rem; border-radius: 12px; background: rgba(99, 102, 241, 0.05); border: 1px dashed var(--primary);">
+                    <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem;">
+                        <i class="fas fa-lightbulb" style="color: var(--primary);"></i>
+                        <strong style="font-size: 0.9rem;">نصيحة للحصول على أفضل خدمة</strong>
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5;">لضمان سرعة الاستجابة
+                        ودقة الحل، يرجى تزويدنا بكافة التفاصيل المتعلقة باستفسارك عند التواصل معنا.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Core Scripts -->
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/dashboard-v2.js"></script>
+</body>
+
+</html>

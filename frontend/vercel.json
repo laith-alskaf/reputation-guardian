@@ -16,8 +16,8 @@
       "dest": "/css/$1"
     },
     {
-      "src": "/dashboard",
-      "dest": "/dashboard.html"
+      "src": "/dashboard-v2",
+      "dest": "/dashboard-v2.html"
     },
     {
       "src": "/",
