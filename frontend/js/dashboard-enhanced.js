@@ -231,7 +231,12 @@ const DashboardManager = {
     const shopInfo = this.state.allData.shop_info;
     const container = document.querySelector('.shop-info');
 
-    if (!container || !shopInfo.shop_name) {
+    if (!container) {
+      console.warn('Shop info container not found');
+      return;
+    }
+
+    if (!shopInfo.shop_name) {
       container.innerHTML = '<p class="no-data">معلومات المتجر غير متوفرة</p>';
       return;
     }

@@ -1,25 +1,20 @@
-@import 'design-tokens.css';
-
-/* Accessibility Utilities */
-.visually-hidden {
-  position: absolute !important;
-  width: 1px !important;
-  height: 1px !important;
-  padding: 0 !important;
-  margin: -1px !important;
-  overflow: hidden !important;
-  clip: rect(0, 0, 0, 0) !important;
-  white-space: nowrap !important;
-  border: 0 !important;
-}
+/* =========================================
+   Reputation Guardian - Main Stylesheet
+   Version: 3.0.0
+   ========================================= */
 
 :root {
-  /* Legacy mapping - bridging old styles to new tokens */
+  /* ----------------------------------
+     Legacy Mappings (Bridging old vars to new tokens)
+     ---------------------------------- */
+
+  /* Colors */
   --primary: var(--primary);
   --primary-light: var(--primary-light);
   --primary-dark: var(--primary-dark);
-  --secondary: #64748b;
   --accent: var(--accent);
+  --secondary: #64748b;
+  /* Generic neutral */
 
   --success: var(--success);
   --error: var(--error);
@@ -30,31 +25,30 @@
   --bg: var(--bg-main);
   --bg-light: var(--bg-surface);
   --bg-dark: var(--bg-dark);
-  --bg-glass: var(--grad-glass);
+  --bg-glass: var(--glass-bg);
 
-  /* Text */
+  /* Typography */
   --text-primary: var(--text-main);
   --text-secondary: var(--text-secondary);
-  --text-light: var(--text-light);
+  --text-light: var(--text-invert);
+  --font-main: var(--font-family-base);
 
-  /* Borders */
-  --border: var(--border);
+  /* Borders & Radius */
+  --border: var(--border-light);
   --border-focus: var(--primary-light);
-
-  /* Shadows */
-  --shadow-sm: var(--shadow-soft);
-  --shadow: var(--shadow-card);
-  --shadow-md: var(--shadow-card);
-  --shadow-lg: var(--shadow-elevated);
-
-  /* Radius */
-  --radius-sm: 8px;
+  --radius-sm: var(--radius-sm);
   --radius: var(--radius-md);
   --radius-lg: var(--radius-lg);
-  --radius-full: 9999px;
+  --radius-full: var(--radius-full);
+
+  /* Shadows */
+  --shadow-sm: var(--shadow-sm);
+  --shadow: var(--shadow-md);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
 
   /* Transitions */
-  --transition: var(--transition-main);
+  --transition: var(--transition-base);
 
   /* Spacing */
   --spacing-xs: 0.25rem;
@@ -62,9 +56,6 @@
   --spacing: 1rem;
   --spacing-lg: 1.5rem;
   --spacing-xl: 3rem;
-
-  /* Font */
-  --font-main: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 * {
