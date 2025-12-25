@@ -23,72 +23,117 @@ class AboutPage extends StatelessWidget {
             // App Logo
             AppAnimations.scaleIn(
               child: Container(
-                padding: const EdgeInsets.all(32),
+                padding: const EdgeInsets.all(40),
                 decoration: BoxDecoration(
                   gradient: AppColors.primaryGradient,
                   shape: BoxShape.circle,
-                  boxShadow: AppColors.elevatedShadow,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.4),
+                      blurRadius: 30,
+                      offset: const Offset(0, 15),
+                    ),
+                  ],
                 ),
-                child: const Icon(Icons.shield, size: 80, color: Colors.white),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // App Name
-            AppAnimations.fadeSlideIn(
-              delay: const Duration(milliseconds: 100),
-              child: const Text(
-                'حارس السمعة',
-                style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            const SizedBox(height: 8),
-
-            AppAnimations.fadeSlideIn(
-              delay: const Duration(milliseconds: 200),
-              child: const Text(
-                'Reputation Guardian',
-                style: TextStyle(fontSize: 18, color: AppColors.textSecondary),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            const SizedBox(height: 8),
-
-            AppAnimations.fadeSlideIn(
-              delay: const Duration(milliseconds: 300),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Text(
-                  'الإصدار 1.0.0',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
+                child: const Icon(
+                  Icons.shield_rounded,
+                  size: 80,
+                  color: Colors.white,
                 ),
               ),
             ),
             const SizedBox(height: 32),
 
+            // App Name
+            AppAnimations.fadeSlideIn(
+              delay: const Duration(milliseconds: 100),
+              child: Column(
+                children: [
+                  Text(
+                    'حارس السمعة',
+                    style: TextStyle(
+                      fontSize: 34,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                      color: AppColors.text,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Reputation Guardian',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary.withOpacity(0.8),
+                      letterSpacing: 1.5,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            AppAnimations.fadeSlideIn(
+              delay: const Duration(milliseconds: 300),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(
+                    color: AppColors.primary.withOpacity(0.15),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'الإصدار 1.0.0',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 40),
+
             // Description Card
             AppAnimations.fadeSlideIn(
               delay: const Duration(milliseconds: 400),
               child: Container(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(28),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.white, AppColors.surface],
+                  color: AppColors.surface.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(
+                    color: AppColors.primary.withOpacity(0.1),
+                    width: 1,
                   ),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: AppColors.cardShadow,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.02),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,20 +141,20 @@ class AboutPage extends StatelessWidget {
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            gradient: AppColors.primaryGradient,
+                            color: AppColors.primary.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Icon(
-                            Icons.info_outline,
-                            color: Colors.white,
+                            Icons.dashboard_customize_rounded,
+                            color: AppColors.primary,
                             size: 24,
                           ),
                         ),
                         const SizedBox(width: 16),
                         const Text(
-                          'نبذة عن التطبيق',
+                          'نبذة عن النظام',
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -117,31 +162,37 @@ class AboutPage extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 24),
                     const Text(
-                      'حارس السمعة هو تطبيق ذكي متخصص في إدارة وتحليل تقييمات العملاء باستخدام تقنيات الذكاء الاصطناعي المتقدمة.',
+                      'حارس السمعة هو منصة احترافية متكاملة تهدف إلى مساعدة أصحاب الأعمال على إدارة سمعتهم الرقمية بذكاء. باستخدام تقنيات الذكاء الاصطناعي، نقوم بتحليل التقييمات وتصفيتها لضمان حصولك على رؤى دقيقة وحلول فورية.',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 15,
                         height: 1.6,
                         color: AppColors.text,
                       ),
                       textAlign: TextAlign.right,
                     ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'يساعدك التطبيق على:',
+                    const SizedBox(height: 24),
+                    Text(
+                      'المميزات الرئيسية:',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
+                        color: AppColors.primary.withOpacity(0.9),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    _buildFeatureItem('تحليل مشاعر العملاء تلقائياً'),
-                    _buildFeatureItem('الحصول على رؤى قابلة للتنفيذ'),
-                    _buildFeatureItem('إنشاء ردود احترافية مقترحة'),
-                    _buildFeatureItem('تصفية التقييمات منخفضة الجودة'),
-                    _buildFeatureItem('تتبع أداء متجرك بشكل مستمر'),
-                    _buildFeatureItem('استقبال إشعارات فورية عبر Telegram'),
+                    const SizedBox(height: 16),
+                    _buildFeatureItem('تحليل المشاعر بدقة عالية باستخدام AI'),
+                    _buildFeatureItem(
+                      'نظام ذكي لاكتشاف وتصفية التقييمات السلبية المضللة',
+                    ),
+                    _buildFeatureItem('لوحة بيانات تحليلية فورية وشاملة'),
+                    _buildFeatureItem(
+                      'تنبيهات فورية عبر Telegram لسرعة المتابعة',
+                    ),
+                    _buildFeatureItem(
+                      'اقتراح ردود احترافية لتحسين تجربة العميل',
+                    ),
                   ],
                 ),
               ),
@@ -151,54 +202,40 @@ class AboutPage extends StatelessWidget {
             // Features Grid
             AppAnimations.fadeSlideIn(
               delay: const Duration(milliseconds: 500),
-              child: Row(
+              child: GridView.count(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisCount: 2,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: 1.1,
                 children: [
-                  Expanded(
-                    child: _buildStatCard(
-                      icon: Icons.psychology,
-                      title: 'ذكاء اصطناعي',
-                      subtitle: 'تحليل متقدم',
-                      gradient: AppColors.primaryGradient,
-                    ),
+                  _buildStatCard(
+                    icon: Icons.psychology_rounded,
+                    title: 'ذكاء اصطناعي',
+                    subtitle: 'تحليل لغوي متقدم',
+                    gradient: AppColors.primaryGradient,
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildStatCard(
-                      icon: Icons.speed,
-                      title: 'سريع',
-                      subtitle: 'نتائج فورية',
-                      gradient: AppColors.successGradient,
-                    ),
+                  _buildStatCard(
+                    icon: Icons.auto_awesome_rounded,
+                    title: 'أتمتة ذكية',
+                    subtitle: 'ردود فورية مقترحة',
+                    gradient: AppColors.successGradient,
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            AppAnimations.fadeSlideIn(
-              delay: const Duration(milliseconds: 600),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _buildStatCard(
-                      icon: Icons.security,
-                      title: 'آمن',
-                      subtitle: 'بيانات محمية',
-                      gradient: AppColors.errorGradient,
-                    ),
+                  _buildStatCard(
+                    icon: Icons.security_rounded,
+                    title: 'حماية رقمية',
+                    subtitle: 'تصفية للمحتوى الضار',
+                    gradient: AppColors.errorGradient,
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildStatCard(
-                      icon: Icons.support_agent,
-                      title: 'دعم 24/7',
-                      subtitle: 'متواجدون دائماً',
-                      gradient: LinearGradient(
-                        colors: [
-                          AppColors.warning,
-                          AppColors.warning.withOpacity(0.7),
-                        ],
-                      ),
+                  _buildStatCard(
+                    icon: Icons.analytics_rounded,
+                    title: 'تحليلات',
+                    subtitle: 'رؤى دقيقة للأداء',
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
                     ),
                   ),
                 ],
@@ -212,24 +249,33 @@ class AboutPage extends StatelessWidget {
 
   Widget _buildFeatureItem(String text) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            margin: const EdgeInsets.only(top: 4),
+            margin: const EdgeInsets.only(top: 2),
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              gradient: AppColors.primaryGradient,
+              color: AppColors.primary.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.check, size: 12, color: Colors.white),
+            child: const Icon(
+              Icons.check_rounded,
+              size: 14,
+              color: AppColors.primary,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(fontSize: 15, height: 1.4),
+              style: TextStyle(
+                fontSize: 14,
+                height: 1.5,
+                color: AppColors.text.withOpacity(0.85),
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],
@@ -244,34 +290,51 @@ class AboutPage extends StatelessWidget {
     required Gradient gradient,
   }) {
     return Container(
-      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: gradient,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: AppColors.cardShadow,
-      ),
-      child: Column(
-        children: [
-          Icon(icon, size: 40, color: Colors.white),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            subtitle,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.white.withOpacity(0.9),
-            ),
-            textAlign: TextAlign.center,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: (gradient as LinearGradient).colors.first.withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
           ),
         ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 32, color: Colors.white),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.white.withOpacity(0.85),
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }

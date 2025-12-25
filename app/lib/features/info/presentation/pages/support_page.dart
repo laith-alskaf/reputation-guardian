@@ -23,17 +23,6 @@ class SupportPage extends StatelessWidget {
     }
   }
 
-  Future<void> _launchPhone() async {
-    final Uri phoneUri = Uri(
-      scheme: 'tel',
-      path: '+${AppConstants.whatsappNumber}',
-    );
-
-    if (await canLaunchUrl(phoneUri)) {
-      await launchUrl(phoneUri);
-    }
-  }
-
   Future<void> _launchWhatsApp(BuildContext context) async {
     final Uri whatsappUri = Uri.parse(
       'https://wa.me/${AppConstants.whatsappNumber}?text=مرحباً، لدي استفسار حول تطبيق حارس السمعة',
@@ -71,31 +60,45 @@ class SupportPage extends StatelessWidget {
                 padding: const EdgeInsets.all(32),
                 decoration: BoxDecoration(
                   gradient: AppColors.primaryGradient,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: AppColors.elevatedShadow,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.3),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
                 ),
                 child: Column(
                   children: [
-                    const Icon(
-                      Icons.support_agent,
-                      size: 64,
-                      color: Colors.white,
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.support_agent_rounded,
+                        size: 48,
+                        color: Colors.white,
+                      ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
                     const Text(
                       'نحن هنا للمساعدة',
                       style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 26,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
+                        letterSpacing: 0.5,
                       ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'تواصل معنا في أي وقت',
+                      'تواصل معنا في أي وقت، فريقنا جاهز لخدمتك',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 15,
                         color: Colors.white.withOpacity(0.9),
                       ),
                       textAlign: TextAlign.center,
@@ -112,11 +115,19 @@ class SupportPage extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.white, AppColors.surface],
+                  color: AppColors.surface.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: AppColors.primary.withOpacity(0.15),
+                    width: 1,
                   ),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: AppColors.cardShadow,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.03),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -126,12 +137,12 @@ class SupportPage extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            gradient: AppColors.primaryGradient,
-                            borderRadius: BorderRadius.circular(12),
+                            color: AppColors.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(16),
                           ),
                           child: const Icon(
-                            Icons.person,
-                            color: Colors.white,
+                            Icons.code_rounded,
+                            color: AppColors.primary,
                             size: 24,
                           ),
                         ),
@@ -141,18 +152,20 @@ class SupportPage extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'المطور',
+                                'المطور التقني',
                                 style: TextStyle(
-                                  fontSize: 14,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
                                   color: AppColors.textSecondary,
                                 ),
                               ),
-                              SizedBox(height: 4),
+                              SizedBox(height: 2),
                               Text(
                                 'المهندس ليث السكاف',
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.2,
                                 ),
                               ),
                             ],
@@ -160,12 +173,13 @@ class SupportPage extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'طرق التواصل:',
+                    const SizedBox(height: 28),
+                    Text(
+                      'قنوات التواصل المباشرة',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
+                        color: AppColors.text.withOpacity(0.8),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -173,7 +187,7 @@ class SupportPage extends StatelessWidget {
                     // Email
                     _buildContactItem(
                       context: context,
-                      icon: Icons.email,
+                      icon: Icons.alternate_email_rounded,
                       title: 'البريد الإلكتروني',
                       value: 'laithalskaf@gmail.com',
                       color: AppColors.primary,
@@ -189,11 +203,11 @@ class SupportPage extends StatelessWidget {
                     // Phone
                     _buildContactItem(
                       context: context,
-                      icon: Icons.phone,
-                      title: 'رقم الهاتف',
+                      icon: Icons.phone_android_rounded,
+                      title: 'رقم الهاتف / WhatsApp',
                       value: '+963 982 055 788',
-                      color: AppColors.positive,
-                      onTap: _launchPhone,
+                      color: Color(0xFF25D366),
+                      onTap: () => _launchWhatsApp(context),
                       onCopy: () => _copyToClipboard(
                         context,
                         '+963982055788',
@@ -212,61 +226,60 @@ class SupportPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
-                    'إجراءات سريعة:',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 8,
+                    ),
+                    child: Text(
+                      'إجراءات سريعة',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.text.withOpacity(0.9),
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
 
                   // WhatsApp Button
                   _buildActionButton(
                     context: context,
-                    icon: Icons.chat,
+                    icon: Icons.chat_bubble_rounded,
                     title: 'تواصل عبر WhatsApp',
-                    subtitle: 'رد سريع ومباشر',
+                    subtitle: 'رد سريع واستفسارات مباشرة',
                     gradient: LinearGradient(
                       colors: [Color(0xFF25D366), Color(0xFF128C7E)],
                     ),
                     onTap: () => _launchWhatsApp(context),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
 
                   // Email Button
                   _buildActionButton(
                     context: context,
-                    icon: Icons.mail_outline,
+                    icon: Icons.alternate_email_rounded,
                     title: 'إرسال بريد إلكتروني',
-                    subtitle: 'للاستفسارات التفصيلية',
+                    subtitle: 'للاستفسارات والطلبات الرسمية',
                     gradient: AppColors.primaryGradient,
                     onTap: _launchEmail,
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Call Button
-                  _buildActionButton(
-                    context: context,
-                    icon: Icons.phone_in_talk,
-                    title: 'اتصال هاتفي',
-                    subtitle: 'للحالات العاجلة',
-                    gradient: AppColors.successGradient,
-                    onTap: _launchPhone,
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 32),
 
-            // FAQ Section
+            // Tip Section
             AppAnimations.fadeSlideIn(
               delay: const Duration(milliseconds: 300),
               child: Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: AppColors.info.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(16),
+                  color: AppColors.primary.withOpacity(0.03),
+                  borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: AppColors.info.withOpacity(0.3),
-                    width: 2,
+                    color: AppColors.primary.withOpacity(0.1),
+                    width: 1,
                   ),
                 ),
                 child: Column(
@@ -274,10 +287,21 @@ class SupportPage extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.help_outline, color: AppColors.info),
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.lightbulb_rounded,
+                            color: AppColors.primary,
+                            size: 20,
+                          ),
+                        ),
                         const SizedBox(width: 12),
                         const Text(
-                          'نصيحة',
+                          'نصيحة للحصول على أفضل خدمة',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -285,10 +309,14 @@ class SupportPage extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'للحصول على أفضل خدمة، يرجى تضمين معلومات واضحة عن المشكلة أو الاستفسار عند التواصل معنا.',
-                      style: TextStyle(fontSize: 14, height: 1.5),
+                    const SizedBox(height: 16),
+                    Text(
+                      'لضمان سرعة الاستجابة ودقة الحل، يرجى تزويدنا بكافة التفاصيل المتعلقة باستفسارك عند التواصل معنا.',
+                      style: TextStyle(
+                        fontSize: 14,
+                        height: 1.6,
+                        color: AppColors.text.withOpacity(0.7),
+                      ),
                     ),
                   ],
                 ),
@@ -309,55 +337,66 @@ class SupportPage extends StatelessWidget {
     required VoidCallback onTap,
     required VoidCallback onCopy,
   }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.3)),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(10),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.background.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.1), width: 1),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: color, size: 22),
               ),
-              child: Icon(icon, color: Colors.white, size: 20),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textSecondary,
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary.withOpacity(0.7),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    value,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
+                    const SizedBox(height: 4),
+                    Text(
+                      value,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.3,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.copy, size: 20),
-              onPressed: onCopy,
-              color: color,
-            ),
-          ],
+              IconButton(
+                icon: Icon(
+                  Icons.copy_rounded,
+                  size: 18,
+                  color: color.withOpacity(0.6),
+                ),
+                onPressed: onCopy,
+                style: IconButton.styleFrom(
+                  backgroundColor: color.withOpacity(0.05),
+                  padding: const EdgeInsets.all(8),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -371,45 +410,67 @@ class SupportPage extends StatelessWidget {
     required Gradient gradient,
     required VoidCallback onTap,
   }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          gradient: gradient,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: AppColors.cardShadow,
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: Colors.white, size: 32),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: gradient,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: (gradient as LinearGradient).colors.first.withOpacity(0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(24),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.white.withOpacity(0.9),
-                    ),
+                  child: Icon(icon, color: Colors.white, size: 28),
+                ),
+                const SizedBox(width: 20),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.white.withOpacity(0.85),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+                const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  color: Colors.white,
+                  size: 18,
+                ),
+              ],
             ),
-            const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 20),
-          ],
+          ),
         ),
       ),
     );

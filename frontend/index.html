@@ -406,16 +406,18 @@
         <div class="contact-form-container">
           <form id="contactForm">
             <div class="form-group">
-              <label>الاسم الكامل</label>
-              <input type="text" placeholder="أدخل اسمك هنا">
+              <label for="contactName">الاسم الكامل</label>
+              <input type="text" id="contactName" name="name" autocomplete="name" placeholder="أدخل اسمك هنا" required>
             </div>
             <div class="form-group">
-              <label>البريد الإلكتروني</label>
-              <input type="email" placeholder="example@email.com">
+              <label for="contactEmail">البريد الإلكتروني</label>
+              <input type="email" id="contactEmail" name="email" autocomplete="email" placeholder="example@email.com"
+                required>
             </div>
             <div class="form-group">
-              <label>الرسالة</label>
-              <textarea rows="4" placeholder="كيف يمكننا مساعدتك؟"></textarea>
+              <label for="contactMessage">الرسالة</label>
+              <textarea id="contactMessage" name="message" rows="4" placeholder="كيف يمكننا مساعدتك؟"
+                required></textarea>
             </div>
             <button type="submit" class="btn btn-primary btn-block">إرسال الرسالة</button>
           </form>
@@ -481,12 +483,12 @@
       </div>
       <form id="loginForm" class="auth-form">
         <div class="form-group">
-          <label>البريد الإلكتروني</label>
-          <input type="email" id="loginEmail" name="email" required>
+          <label for="loginEmail">البريد الإلكتروني</label>
+          <input type="email" id="loginEmail" name="email" autocomplete="email" required>
         </div>
         <div class="form-group">
-          <label>كلمة المرور</label>
-          <input type="password" id="loginPassword" name="password" required>
+          <label for="loginPassword">كلمة المرور</label>
+          <input type="password" id="loginPassword" name="password" autocomplete="current-password" required>
         </div>
         <button type="submit" id="loginSubmitBtn" class="btn btn-primary btn-block">دخول</button>
       </form>
@@ -505,16 +507,16 @@
       </div>
       <form id="registerForm" class="auth-form">
         <div class="form-group">
-          <label>البريد الإلكتروني</label>
-          <input type="email" id="registerEmail" name="email" required>
+          <label for="registerEmail">البريد الإلكتروني</label>
+          <input type="email" id="registerEmail" name="email" autocomplete="email" required>
         </div>
         <div class="form-group">
-          <label>كلمة المرور</label>
-          <input type="password" id="registerPassword" name="password" required>
+          <label for="registerPassword">كلمة المرور</label>
+          <input type="password" id="registerPassword" name="password" autocomplete="new-password" required>
         </div>
         <div class="form-group">
-          <label>اسم المتجر</label>
-          <input type="text" id="shopName" name="shop_name" required>
+          <label for="shopName">اسم المتجر</label>
+          <input type="text" id="shopName" name="shop_name" autocomplete="organization" required>
         </div>
         <div class="form-group">
           <label for="shopType">نوع المتجر</label>

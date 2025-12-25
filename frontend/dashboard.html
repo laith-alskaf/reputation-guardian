@@ -110,75 +110,94 @@
         <!-- Filters & Search Bar -->
         <div class="filters-section">
           <div class="search-bar">
-            <i class="fas fa-search"></i>
-            <input type="text" id="searchInput" placeholder="ابحث عن تقييمات..." class="search-input">
-            <button class="btn-clear-search" id="clearSearchBtn" onclick="DashboardManager.clearSearch()"
-              style="display:none;">
-              <i class="fas fa-times"></i>
+            <label for="searchInput" class="visually-hidden">ابحث عن تقييمات</label>
+            <i class="fas fa-search" aria-hidden="true"></i>
+            <input type="text" id="searchInput" name="search" autocomplete="on" placeholder="ابحث عن تقييمات..."
+              class="search-input">
+            <button type="button" class="btn-clear-search" id="clearSearchBtn" onclick="DashboardManager.clearSearch()"
+              style="display:none;" aria-label="مسح البحث">
+              <i class="fas fa-times" aria-hidden="true"></i>
             </button>
           </div>
 
           <div class="filters-group" id="activeFilters">
-            <select id="sentimentFilter" class="filter-select" onchange="DashboardManager.applyFilters()">
-              <option value="">جميع المشاعر</option>
-              <option value="إيجابي">إيجابي 🟢</option>
-              <option value="سلبي">سلبي 🔴</option>
-              <option value="محايد">محايد 🟡</option>
-            </select>
+            <div class="filter-item">
+              <label for="sentimentFilter" class="visually-hidden">تصفية حسب المشاعر</label>
+              <select id="sentimentFilter" name="sentiment" class="filter-select"
+                onchange="DashboardManager.applyFilters()">
+                <option value="">جميع المشاعر</option>
+                <option value="إيجابي">إيجابي 🟢</option>
+                <option value="سلبي">سلبي 🔴</option>
+                <option value="محايد">محايد 🟡</option>
+              </select>
+            </div>
 
-            <select id="categoryFilter" class="filter-select" onchange="DashboardManager.applyFilters()">
-              <option value="">جميع الفئات</option>
-              <option value="شكوى">شكوى 🗣️</option>
-              <option value="اقتراح">اقتراح 💡</option>
-              <option value="مدح">مدح 👍</option>
-              <option value="استفسار">استفسار ❓</option>
-              <option value="عام">عام 📝</option>
-            </select>
+            <div class="filter-item">
+              <label for="categoryFilter" class="visually-hidden">تصفية حسب الفئة</label>
+              <select id="categoryFilter" name="category" class="filter-select"
+                onchange="DashboardManager.applyFilters()">
+                <option value="">جميع الفئات</option>
+                <option value="شكوى">شكوى 🗣️</option>
+                <option value="اقتراح">اقتراح 💡</option>
+                <option value="مدح">مدح 👍</option>
+                <option value="استفسار">استفسار ❓</option>
+                <option value="عام">عام 📝</option>
+              </select>
+            </div>
 
-            <select id="starsFilter" class="filter-select" onchange="DashboardManager.applyFilters()">
-              <option value="">كل التقييمات ⭐</option>
-              <option value="5">5 نجوم</option>
-              <option value="4">4 نجوم</option>
-              <option value="3">3 نجوم</option>
-              <option value="2">2 نجوم</option>
-              <option value="1">نجمة واحدة</option>
-            </select>
+            <div class="filter-item">
+              <label for="starsFilter" class="visually-hidden">تصفية حسب النجوم</label>
+              <select id="starsFilter" name="stars" class="filter-select" onchange="DashboardManager.applyFilters()">
+                <option value="">كل التقييمات ⭐</option>
+                <option value="5">5 نجوم</option>
+                <option value="4">4 نجوم</option>
+                <option value="3">3 نجوم</option>
+                <option value="2">2 نجوم</option>
+                <option value="1">نجمة واحدة</option>
+              </select>
+            </div>
 
-            <select id="sortBy" class="filter-select" onchange="DashboardManager.applyFilters()">
-              <option value="latest">الأحدث أولاً</option>
-              <option value="oldest">الأقدم أولاً</option>
-              <option value="highest-stars">أعلى التقييمات</option>
-              <option value="lowest-stars">أقل التقييمات</option>
-            </select>
+            <div class="filter-item">
+              <label for="sortBy" class="visually-hidden">ترتيب حسب</label>
+              <select id="sortBy" name="sort" class="filter-select" onchange="DashboardManager.applyFilters()">
+                <option value="latest">الأحدث أولاً</option>
+                <option value="oldest">الأقدم أولاً</option>
+                <option value="highest-stars">أعلى التقييمات</option>
+                <option value="lowest-stars">أقل التقييمات</option>
+              </select>
+            </div>
 
-            <button class="btn btn-sm btn-outline" id="toggleAdvancedFilters"
+            <button type="button" class="btn btn-sm btn-outline" id="toggleAdvancedFilters"
               onclick="DashboardManager.toggleAdvancedFilters()">
-              <i class="fas fa-sliders-h"></i> <span class="filter-text">متقدم</span>
+              <i class="fas fa-sliders-h" aria-hidden="true"></i> <span class="filter-text">متقدم</span>
             </button>
           </div>
 
           <!-- Advanced Filters (Hidden by default) -->
           <div class="advanced-filters" id="advancedFilters" style="display: none;">
             <div class="filter-item">
-              <label>نطاق درجات الجودة</label>
-              <input type="range" id="qualityScoreFilter" min="0" max="100" value="0"
+              <label for="qualityScoreFilter">نطاق درجات الجودة</label>
+              <input type="range" id="qualityScoreFilter" name="qualityScore" min="0" max="100" value="0"
                 onchange="DashboardManager.applyFilters()" class="range-input">
               <div class="range-value"><span id="qualityScoreValue">0</span>%</div>
             </div>
 
             <div class="filter-item">
-              <label>من التاريخ</label>
-              <input type="date" id="dateFromFilter" onchange="DashboardManager.applyFilters()" class="filter-input">
+              <label for="dateFromFilter">من التاريخ</label>
+              <input type="date" id="dateFromFilter" name="dateFrom" onchange="DashboardManager.applyFilters()"
+                class="filter-input">
             </div>
 
             <div class="filter-item">
-              <label>إلى التاريخ</label>
-              <input type="date" id="dateToFilter" onchange="DashboardManager.applyFilters()" class="filter-input">
+              <label for="dateToFilter">إلى التاريخ</label>
+              <input type="date" id="dateToFilter" name="dateTo" onchange="DashboardManager.applyFilters()"
+                class="filter-input">
             </div>
 
             <div class="filter-item">
-              <label class="checkbox-label">
-                <input type="checkbox" id="contextMatchFilter" onchange="DashboardManager.applyFilters()">
+              <label class="checkbox-label" for="contextMatchFilter">
+                <input type="checkbox" id="contextMatchFilter" name="contextMatch"
+                  onchange="DashboardManager.applyFilters()">
                 <span>التقييمات المطابقة فقط</span>
               </label>
             </div>
@@ -214,7 +233,8 @@
           </div>
           <h3>تحليلات ذكية</h3>
           <div class="card-actions">
-            <select id="chartTypeFilter" class="filter-select filter-sm"
+            <label for="chartTypeFilter" class="visually-hidden">نوع التقرير</label>
+            <select id="chartTypeFilter" name="chartType" class="filter-select filter-sm"
               onchange="DashboardManager.updateAnalyticsChart()">
               <option value="sentiment">توزيع المشاعر</option>
               <option value="rating">توزيع النجوم</option>
@@ -316,6 +336,12 @@
           </button>
           <button class="s-tab-btn" onclick="DashboardManager.switchSettingsTab('notifications')">
             <i class="fas fa-bell"></i> التنبيهات
+          </button>
+          <button class="s-tab-btn" onclick="DashboardManager.switchSettingsTab('support')">
+            <i class="fas fa-headset"></i> الدعم الفني
+          </button>
+          <button class="s-tab-btn" onclick="DashboardManager.switchSettingsTab('about')">
+            <i class="fas fa-info-circle"></i> حول النظام
           </button>
         </div>
 

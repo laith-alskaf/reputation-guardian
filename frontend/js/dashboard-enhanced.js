@@ -1189,6 +1189,10 @@ const DashboardManager = {
       this.renderShopSettings(content);
     } else if (tabName === 'notifications') {
       this.renderNotificationSettings(content);
+    } else if (tabName === 'support') {
+      this.renderSupportSettings(content);
+    } else if (tabName === 'about') {
+      this.renderAboutSettings(content);
     }
   },
 
@@ -1196,16 +1200,16 @@ const DashboardManager = {
     container.innerHTML = `
       <div class="settings-section animate-fade-in">
         <div class="settings-form-group">
-          <label><i class="fas fa-user"></i> اسم المستخدم</label>
-          <input type="text" class="settings-input" id="set-username" value="${this.state.allData.shop_info?.owner_name || 'المستخدم'}">
+          <label for="set-username"><i class="fas fa-user"></i> اسم المستخدم</label>
+          <input type="text" id="set-username" name="username" autocomplete="username" class="settings-input" value="${this.state.allData.shop_info?.owner_name || 'المستخدم'}">
         </div>
         <div class="settings-form-group">
-          <label><i class="fas fa-envelope"></i> البريد الإلكتروني</label>
-          <input type="email" class="settings-input" id="set-email" value="${this.state.allData.shop_info?.email || ''}" disabled>
+          <label for="set-email"><i class="fas fa-envelope"></i> البريد الإلكتروني</label>
+          <input type="email" id="set-email" name="email" autocomplete="email" class="settings-input" value="${this.state.allData.shop_info?.email || ''}" disabled>
           <small class="text-secondary">لا يمكن تغيير البريد الإلكتروني حالياً</small>
         </div>
         <div class="settings-action-bar">
-          <button class="btn btn-primary" onclick="DashboardManager.saveSettings('profile')">
+          <button type="button" class="btn btn-primary" onclick="DashboardManager.saveSettings('profile')">
             <i class="fas fa-save"></i> حفظ التغييرات
           </button>
         </div>
@@ -1217,12 +1221,12 @@ const DashboardManager = {
     container.innerHTML = `
       <div class="settings-section animate-fade-in">
         <div class="settings-form-group">
-          <label><i class="fas fa-store"></i> اسم المتجر</label>
-          <input type="text" class="settings-input" id="set-shopname" value="${this.state.allData.shop_info?.shop_name || ''}">
+          <label for="set-shopname"><i class="fas fa-store"></i> اسم المتجر</label>
+          <input type="text" id="set-shopname" name="shopname" autocomplete="organization" class="settings-input" value="${this.state.allData.shop_info?.shop_name || ''}">
         </div>
         <div class="settings-form-group">
-          <label><i class="fas fa-tag"></i> نوع النشاط</label>
-          <select class="settings-input" id="set-shoptype">
+          <label for="set-shoptype"><i class="fas fa-tag"></i> نوع النشاط</label>
+          <select id="set-shoptype" name="shoptype" class="settings-input">
             <option value="مطعم" ${this.state.allData.shop_info?.shop_type === 'مطعم' ? 'selected' : ''}>مطعم</option>
             <option value="كافيه" ${this.state.allData.shop_info?.shop_type === 'كافيه' ? 'selected' : ''}>كافيه</option>
             <option value="تجزئة" ${this.state.allData.shop_info?.shop_type === 'تجزئة' ? 'selected' : ''}>تجزئة</option>
@@ -1231,7 +1235,7 @@ const DashboardManager = {
           </select>
         </div>
         <div class="settings-action-bar">
-          <button class="btn btn-primary" onclick="DashboardManager.saveSettings('shop')">
+          <button type="button" class="btn btn-primary" onclick="DashboardManager.saveSettings('shop')">
             <i class="fas fa-save"></i> حفظ الإعدادات
           </button>
         </div>
@@ -1262,6 +1266,64 @@ const DashboardManager = {
               <i class="fas fa-link"></i> ${isTelegramLinked ? 'إعادة الربط' : 'ربط الآن'}
             </a>
           </div>
+        </div>
+      </div>
+    `;
+  },
+
+  renderSupportSettings(container) {
+    container.innerHTML = `
+      <div class="settings-section animate-fade-in">
+        <div class="support-header-glass mb-4">
+          <h4><i class="fas fa-heart"></i> نحن هنا للمساعدة</h4>
+          <p>تواصل مع المطور مباشرة للحصول على دعم فني ممتاز</p>
+        </div>
+        
+        <div class="support-grid">
+          <div class="support-card-premium">
+            <div class="s-icon"><i class="fab fa-whatsapp"></i></div>
+            <div class="s-info">
+              <h5>WhatsApp</h5>
+              <p>+963 982 055 788</p>
+            </div>
+            <a href="https://wa.me/963982055788" target="_blank" class="btn btn-glass btn-sm">تواصل الآن</a>
+          </div>
+          
+          <div class="support-card-premium">
+            <div class="s-icon"><i class="fas fa-envelope"></i></div>
+            <div class="s-info">
+              <h5>البريد الإلكتروني</h5>
+              <p>laithalskaf@gmail.com</p>
+            </div>
+            <a href="mailto:laithalskaf@gmail.com" class="btn btn-glass btn-sm">إرسال بريد</a>
+          </div>
+        </div>
+      </div>
+    `;
+  },
+
+  renderAboutSettings(container) {
+    container.innerHTML = `
+      <div class="settings-section animate-fade-in text-center">
+        <div class="about-logo-premium mb-4">
+          <i class="fas fa-shield-alt"></i>
+        </div>
+        <h3 class="mb-1">حارس السمعة</h3>
+        <p class="text-secondary mb-3">Reputation Guardian v1.0.0</p>
+        
+        <div class="about-description-glass text-right mb-4">
+          <p>نظام احترافي مدعوم بالذكاء الاصطناعي لإدارة وتحليل سمعة العلامات التجارية. نهدف إلى توفير رؤى دقيقة وحماية رقمية متكاملة لعملك.</p>
+        </div>
+        
+        <div class="features-pill-grid">
+          <span class="f-pill"><i class="fas fa-check"></i> تحليل مشاعر AI</span>
+          <span class="f-pill"><i class="fas fa-check"></i> تصفية ذكية</span>
+          <span class="f-pill"><i class="fas fa-check"></i> تقارير فورية</span>
+          <span class="f-pill"><i class="fas fa-check"></i> ربط Telegram</span>
+        </div>
+        
+        <div class="mt-4 text-secondary" style="font-size: 0.85rem;">
+          حقوق الطبع والنشر &copy; 2024 م. ليث السكاف. جميع الحقوق محفوظة.
         </div>
       </div>
     `;
