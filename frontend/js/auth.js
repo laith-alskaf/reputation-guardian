@@ -66,7 +66,7 @@ const AuthManager = {
       window.UI.Modal.hide('loginModal');
       this.updateUIForAuthenticatedUser();
       setTimeout(() => {
-        window.location.href = 'dashboard.html';
+        window.location.href = 'dashboard-v2.html';
       }, 800);
     } catch (error) {
       window.UI.Toast.show(error.message || 'فشل تسجيل الدخول', 'error');
