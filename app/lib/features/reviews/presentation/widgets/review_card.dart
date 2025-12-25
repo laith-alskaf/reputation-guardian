@@ -71,108 +71,95 @@ class ReviewCard extends StatelessWidget {
     final sentimentIcon = getSentimentIcon(sentiment);
     final sentimentLabel = getSentimentLabel(sentiment);
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          // Sentiment Aura (Soft Glow)
+          BoxShadow(
+            color: sentimentColor.withOpacity(0.08),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+          ...AppColors.cardShadow,
+        ],
+        border: Border.all(color: sentimentColor.withOpacity(0.15), width: 1),
+      ),
       clipBehavior: Clip.antiAlias,
       child: Stack(
         children: [
+          // Subtle Background Icon
+          Positioned(
+            right: -20,
+            top: -10,
+            child: Icon(
+              sentimentIcon,
+              size: 100,
+              color: sentimentColor.withOpacity(0.03),
+            ),
+          ),
+
           InkWell(
             onTap: onTap,
-            borderRadius: BorderRadius.circular(12),
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header: Status Badge + Sentiment + Stars
+                  // Header: Sentiment + Stars
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Left: Sentiment Info
-                      Expanded(
-                        child: Row(
-                          children: [
-                            // Status badge (if not processed)
-                            if (status != ReviewStatus.processed) ...[
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color:
-                                      ReviewStatusHelper.getStatusBackgroundColor(
-                                        status,
-                                      ),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color:
-                                        ReviewStatusHelper.getStatusBorderColor(
-                                          status,
-                                        ),
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      ReviewStatusHelper.getStatusIcon(status),
-                                      size: 12,
-                                      color: ReviewStatusHelper.getStatusColor(
-                                        status,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      status.shortLabel,
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                        color:
-                                            ReviewStatusHelper.getStatusColor(
-                                              status,
-                                            ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                            ],
-
-                            // Sentiment
-                            Icon(
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: sentimentColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
                               sentimentIcon,
                               color: sentimentColor,
-                              size: 20,
+                              size: 18,
                             ),
-                            const SizedBox(width: 8),
-                            Flexible(
-                              child: Text(
+                          ),
+                          const SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
                                 sentimentLabel,
                                 style: TextStyle(
                                   color: sentimentColor,
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 16,
+                                  fontSize: 15,
                                 ),
-                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-                          ],
-                        ),
+                              if (status != ReviewStatus.processed)
+                                Text(
+                                  status.shortLabel,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                    color: ReviewStatusHelper.getStatusColor(
+                                      status,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
                       ),
-
-                      // Right: Stars
                       _buildStars(rating),
                     ],
                   ),
 
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
 
-                  // Review text
+                  // Review text with improved typography
                   if (reviewText.isNotEmpty)
                     Text(
                       reviewText,
@@ -181,41 +168,35 @@ class ReviewCard extends StatelessWidget {
                       style: const TextStyle(
                         color: AppColors.text,
                         fontSize: 14,
-                        height: 1.5,
+                        height: 1.6,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
 
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 20),
 
-                  // Footer: Date + Quality Score + Flags
+                  // Footer: Date + Quality Score
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Date
-                      Expanded(
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.access_time,
-                              size: 14,
-                              color: AppColors.textSecondary,
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_today_rounded,
+                            size: 14,
+                            color: AppColors.textSecondary.withOpacity(0.6),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            _formatDate(date),
+                            style: TextStyle(
+                              color: AppColors.textSecondary.withOpacity(0.8),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
                             ),
-                            const SizedBox(width: 4),
-                            Expanded(
-                              child: Text(
-                                _formatDate(date),
-                                style: const TextStyle(
-                                  color: AppColors.textSecondary,
-                                  fontSize: 12,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-
-                      // Quality score badge
                       if (qualityScore != null)
                         QualityScoreBadge(
                           qualityScore: qualityScore,
@@ -225,39 +206,39 @@ class ReviewCard extends StatelessWidget {
                     ],
                   ),
 
-                  // Flags preview (compact) - only for rejected reviews
-                  if (status.isRejected && flags.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    FlagsListWidget(flags: flags, compact: true, maxFlags: 3),
-                  ],
+                  // Compact Flags (Rejection context)
+                  if (status.isRejected &&
+                      (flags.isNotEmpty || rejectionReason != null)) ...[
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: Divider(height: 1, thickness: 0.5),
+                    ),
+                    if (flags.isNotEmpty)
+                      FlagsListWidget(flags: flags, compact: true, maxFlags: 3),
 
-                  // Rejection reason (if rejected)
-                  if (status.isRejected && rejectionReason != null) ...[
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: ReviewStatusHelper.getStatusBackgroundColor(
-                          status,
+                    if (rejectionReason != null) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
                         ),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: ReviewStatusHelper.getStatusBorderColor(
+                        decoration: BoxDecoration(
+                          color: ReviewStatusHelper.getStatusBackgroundColor(
                             status,
-                          ),
-                          width: 1,
+                          ).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.info_outline,
-                            size: 14,
-                            color: ReviewStatusHelper.getStatusColor(status),
-                          ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.info_outline_rounded,
+                              size: 13,
+                              color: ReviewStatusHelper.getStatusColor(status),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
                               ReviewStatusHelper.getRejectionReasonArabic(
                                 rejectionReason,
                               ),
@@ -266,21 +247,20 @@ class ReviewCard extends StatelessWidget {
                                 color: ReviewStatusHelper.getStatusColor(
                                   status,
                                 ),
+                                fontWeight: FontWeight.bold,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ],
               ),
             ),
           ),
 
-          // Profanity warning ribbon (top left) - only for rejected reviews
+          // Top Left Badges (Profanity/Suspicious)
           if (status.isRejected && isProfane)
             Positioned(
               top: 0,
@@ -295,17 +275,16 @@ class ReviewCard extends StatelessWidget {
                     colors: [AppColors.error, Color(0xFFFF6B6B)],
                   ),
                   borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    bottomRight: Radius.circular(12),
+                    bottomRight: Radius.circular(15),
                   ),
                 ),
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.warning_rounded, color: Colors.white, size: 14),
-                    SizedBox(width: 4),
+                    SizedBox(width: 6),
                     Text(
-                      'محتوى غير لائق',
+                      'محتوى مسيئ',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 10,
@@ -315,32 +294,36 @@ class ReviewCard extends StatelessWidget {
                   ],
                 ),
               ),
-            ),
-
-          // Suspicious indicator (bottom right corner)
-          if (isSuspicious && !isProfane)
+            )
+          else if (isSuspicious)
             Positioned(
-              bottom: 0,
-              right: 0,
+              top: 0,
+              left: 0,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: const BoxDecoration(
-                  color: AppColors.warning,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.warning.withOpacity(0.9),
+                  borderRadius: const BorderRadius.only(
                     bottomRight: Radius.circular(12),
                   ),
                 ),
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.report_problem, color: Colors.white, size: 12),
+                    Icon(
+                      Icons.report_problem_rounded,
+                      color: Colors.white,
+                      size: 12,
+                    ),
                     SizedBox(width: 4),
                     Text(
                       'مشبوه',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 9,
+                        fontSize: 10,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

@@ -59,34 +59,94 @@ class _ShopEditPageState extends State<ShopEditPage> {
               SizedBox(height: ResponsiveSpacing.large(context)),
 
               // Shop Info Card
-              Card(
+              // Shop Info Card
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.surface.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: AppColors.primary.withOpacity(0.15),
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.03),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
                 child: Padding(
                   padding: EdgeInsets.all(ResponsiveSpacing.medium(context)),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'بيانات المتجر',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.store_rounded,
+                              color: AppColors.primary,
+                              size: 22,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            'بيانات المتجر',
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 24),
 
                       // Shop Name Field
                       TextFormField(
                         controller: _shopNameController,
-                        decoration: const InputDecoration(
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        decoration: InputDecoration(
                           labelText: 'اسم المتجر',
-                          prefixIcon: Icon(Icons.store),
-                          hintText: 'مثال: متجر الأناقة',
+                          labelStyle: TextStyle(
+                            color: AppColors.textSecondary.withOpacity(0.7),
+                          ),
+                          prefixIcon: const Icon(
+                            Icons.store_rounded,
+                            color: AppColors.primary,
+                            size: 20,
+                          ),
+                          filled: true,
+                          fillColor: AppColors.background.withOpacity(0.5),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide(
+                              color: AppColors.primary.withOpacity(0.1),
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide(
+                              color: AppColors.primary.withOpacity(0.1),
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: const BorderSide(
+                              color: AppColors.primary,
+                              width: 1.5,
+                            ),
+                          ),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'الرجاء إدخال اسم المتجر';
-                          }
-                          if (value.length < 2) {
-                            return 'اسم المتجر يجب أن يكون حرفين على الأقل';
                           }
                           return null;
                         },
@@ -96,9 +156,42 @@ class _ShopEditPageState extends State<ShopEditPage> {
                       // Shop Type Dropdown
                       DropdownButtonFormField<String>(
                         value: _selectedShopType,
-                        decoration: const InputDecoration(
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.text,
+                        ),
+                        decoration: InputDecoration(
                           labelText: 'نوع المتجر',
-                          prefixIcon: Icon(Icons.category),
+                          labelStyle: TextStyle(
+                            color: AppColors.textSecondary.withOpacity(0.7),
+                          ),
+                          prefixIcon: const Icon(
+                            Icons.category_rounded,
+                            color: AppColors.primary,
+                            size: 20,
+                          ),
+                          filled: true,
+                          fillColor: AppColors.background.withOpacity(0.5),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide(
+                              color: AppColors.primary.withOpacity(0.1),
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide(
+                              color: AppColors.primary.withOpacity(0.1),
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: const BorderSide(
+                              color: AppColors.primary,
+                              width: 1.5,
+                            ),
+                          ),
                         ),
                         items: _shopTypes.map((type) {
                           return DropdownMenuItem<String>(
@@ -111,29 +204,48 @@ class _ShopEditPageState extends State<ShopEditPage> {
                             _selectedShopType = value!;
                           });
                         },
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'الرجاء اختيار نوع المتجر';
-                          }
-                          return null;
-                        },
                       ),
 
                       if (_selectedShopType == 'أخرى') ...[
                         const SizedBox(height: 16),
                         TextFormField(
                           controller: _shopTypeController,
-                          decoration: const InputDecoration(
-                            labelText: 'حدد نوع المتجر',
-                            prefixIcon: Icon(Icons.edit),
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
                           ),
-                          validator: (value) {
-                            if (_selectedShopType == 'أخرى' &&
-                                (value == null || value.isEmpty)) {
-                              return 'الرجاء تحديد نوع المتجر';
-                            }
-                            return null;
-                          },
+                          decoration: InputDecoration(
+                            labelText: 'حدد نوع المتجر',
+                            labelStyle: TextStyle(
+                              color: AppColors.textSecondary.withOpacity(0.7),
+                            ),
+                            prefixIcon: const Icon(
+                              Icons.edit_rounded,
+                              color: AppColors.primary,
+                              size: 20,
+                            ),
+                            filled: true,
+                            fillColor: AppColors.background.withOpacity(0.5),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide(
+                                color: AppColors.primary.withOpacity(0.1),
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide(
+                                color: AppColors.primary.withOpacity(0.1),
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: const BorderSide(
+                                color: AppColors.primary,
+                                width: 1.5,
+                              ),
+                            ),
+                          ),
                         ),
                       ],
                     ],
@@ -144,46 +256,71 @@ class _ShopEditPageState extends State<ShopEditPage> {
               SizedBox(height: ResponsiveSpacing.medium(context)),
 
               // Info Card
-              Card(
-                color: AppColors.primary.withOpacity(0.1),
-                child: Padding(
-                  padding: EdgeInsets.all(ResponsiveSpacing.medium(context)),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.info_outline, color: AppColors.primary),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          'معلومات متجرك تساعد عملاءك في التعرف عليك بشكل أفضل',
-                          style: TextStyle(
-                            color: AppColors.primary.withOpacity(0.8),
-                            fontSize: 13,
-                          ),
+              Container(
+                padding: EdgeInsets.all(ResponsiveSpacing.medium(context)),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.info_outline_rounded,
+                      color: AppColors.primary,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'معلومات متجرك تساعد عملاءك في التعرف عليك بشكل أفضل',
+                        style: TextStyle(
+                          color: AppColors.primary.withOpacity(0.8),
+                          fontSize: 13,
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
 
               SizedBox(height: ResponsiveSpacing.large(context)),
 
               // Save Button
-              ElevatedButton(
-                onPressed: _isLoading ? null : _saveChanges,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+              Container(
+                height: 56,
+                decoration: BoxDecoration(
+                  gradient: AppColors.primaryGradient,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: AppColors.elevatedShadow,
                 ),
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _saveChanges,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          'حفظ التغييرات',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      )
-                    : const Text('حفظ التغييرات'),
+                ),
               ),
             ],
           ),

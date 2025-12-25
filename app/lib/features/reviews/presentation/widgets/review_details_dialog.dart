@@ -4,85 +4,15 @@ import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/utils/app_snackbar.dart';
 import '../../domain/enums/review_status_enum.dart';
 import '../../domain/enums/quality_flag_enum.dart';
+import '../../domain/helpers/review_status_helper.dart';
 import 'common/quality_score_badge.dart';
 import 'common/flags_list_widget.dart';
-import 'common/rejection_reason_card.dart';
 
 /// Enhanced review details dialog with comprehensive quality analysis
 class ReviewDetailsDialog extends StatelessWidget {
   final dynamic review;
 
   const ReviewDetailsDialog({super.key, required this.review});
-
-  Widget _buildDetailSection(
-    String title,
-    IconData icon,
-    List<Widget> children,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(icon, size: 20, color: AppColors.primary),
-            const SizedBox(width: 8),
-            Text(
-              title,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        ...children,
-      ],
-    );
-  }
-
-  Widget _buildDetailRow(
-    String label,
-    String value, {
-    bool copyable = false,
-    BuildContext? context,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 90,
-            child: Text(
-              '$label:',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-            ),
-          ),
-          Expanded(
-            child: Row(
-              children: [
-                SelectableText(
-                  value,
-                  style: const TextStyle(fontSize: 13),
-                  textDirection: label.contains('هاتف')
-                      ? TextDirection.ltr
-                      : null,
-                ),
-                if (copyable && context != null)
-                  IconButton(
-                    icon: const Icon(Icons.copy, size: 16),
-                    padding: const EdgeInsets.all(4),
-                    constraints: const BoxConstraints(),
-                    tooltip: 'نسخ',
-                    onPressed: () {
-                      Clipboard.setData(ClipboardData(text: value));
-                      AppSnackbar.showSuccess(context, 'تم النسخ');
-                    },
-                  ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -109,7 +39,6 @@ class ReviewDetailsDialog extends StatelessWidget {
     // Analysis
     final category = review['analysis']?['category'] ?? 'عام';
     final qualityScore = review['analysis']?['quality']?['quality_score'];
-    final keyThemes = review['analysis']?['key_themes'] ?? [];
 
     // Quality analysis
     final isProfane = review['processing']?['is_profane'] ?? false;
@@ -120,64 +49,69 @@ class ReviewDetailsDialog extends StatelessWidget {
     final hasWarnings = isProfane || isSuspicious;
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      backgroundColor: Colors.transparent,
+      elevation: 0,
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 600, maxHeight: 700),
+        constraints: const BoxConstraints(maxWidth: 600, maxHeight: 750),
+        decoration: BoxDecoration(
+          color: AppColors.background,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: AppColors.elevatedShadow,
+        ),
         child: Column(
           children: [
-            // Header
+            // Premium Header with Gradient
             Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+              decoration: const BoxDecoration(
                 gradient: AppColors.primaryGradient,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
                 ),
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    child: Row(
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.description_rounded,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'تفاصيل التقييم',
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 20,
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
+                            fontFamily: 'Cairo',
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        // Status badge in header
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.3),
-                              width: 1,
-                            ),
-                          ),
-                          child: Text(
-                            status.shortLabel,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                        Text(
+                          'تحليل شامل للجودة والمحتوى',
+                          style: TextStyle(color: Colors.white70, fontSize: 11),
                         ),
                       ],
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white),
+                    icon: const Icon(
+                      Icons.close_rounded,
+                      color: Colors.white,
+                      size: 28,
+                    ),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -187,303 +121,396 @@ class ReviewDetailsDialog extends StatelessWidget {
             // Content
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.all(24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Review Status & Rejection Reason
+                    // Status & Rejection (Priority)
                     if (status.isRejected) ...[
-                      RejectionReasonCard(
-                        rejectionReason: rejectionReason,
-                        status: status,
-                      ),
-                      const SizedBox(height: 20),
+                      _buildPremiumRejectionCard(status, rejectionReason),
+                      const SizedBox(height: 24),
                     ],
 
-                    // Review Content
-                    _buildDetailSection('المحتوى', Icons.article, [
-                      if (content.isNotEmpty)
+                    // Core Content
+                    _buildPremiumSection(
+                      context,
+                      'نص التقييم',
+                      Icons.chat_bubble_outline_rounded,
+                      [
                         Container(
-                          padding: const EdgeInsets.all(12),
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: AppColors.surface,
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: AppColors.primary.withOpacity(0.05),
+                            ),
+                            boxShadow: AppColors.softShadow,
                           ),
                           child: SelectableText(
                             content,
-                            style: const TextStyle(fontSize: 14, height: 1.6),
+                            style: const TextStyle(
+                              fontSize: 15,
+                              height: 1.6,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.text,
+                            ),
                           ),
                         ),
-                    ]),
+                      ],
+                    ),
 
-                    const Divider(height: 32),
+                    const SizedBox(height: 24),
 
-                    // Reviewer Info
-                    _buildDetailSection('معلومات المقيم', Icons.person, [
-                      _buildDetailRow(
-                        'البريد الإلكتروني',
-                        email,
-                        copyable: true,
-                        context: context,
+                    // AI Insights (Glass Cards)
+                    if (summary != null ||
+                        (insights is List && insights.isNotEmpty)) ...[
+                      _buildPremiumSection(
+                        context,
+                        'تحليل الذكاء الاصطناعي',
+                        Icons.auto_awesome_rounded,
+                        [
+                          if (summary != null)
+                            _buildAIInsightCard(
+                              'الملخص الذكي',
+                              summary.toString(),
+                              Icons.summarize_rounded,
+                              AppColors.info,
+                            ),
+                          if (insights is List && insights.isNotEmpty)
+                            ...insights.map(
+                              (insight) => Padding(
+                                padding: const EdgeInsets.only(top: 12),
+                                child: _buildAIInsightCard(
+                                  'رؤية تحليلية',
+                                  insight.toString(),
+                                  Icons.lightbulb_outline_rounded,
+                                  AppColors.success,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
-                      if (phone != null)
-                        _buildDetailRow(
-                          'رقم الهاتف',
-                          phone,
-                          copyable: true,
-                          context: context,
-                        ),
-                      _buildDetailRow('التاريخ', displayDate),
-                      _buildDetailRow('التقييم', '$stars نجوم⭐'),
-                      _buildDetailRow('المشاعر', sentiment.toString()),
-                      _buildDetailRow('الفئة', category.toString()),
-                    ]),
-
-                    const Divider(height: 32),
-
-                    // Quality Analysis Section
-                    _buildDetailSection('تحليل الجودة', Icons.analytics, [
-                      // Quality Score
-                      if (qualityScore != null) ...[
-                        QualityScoreCard(qualityScore: qualityScore),
-                        const SizedBox(height: 16),
-                      ],
-
-                      // Quality Flags
-                      if (flags.isNotEmpty) ...[
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.flag,
-                              size: 16,
-                              color: AppColors.warning,
-                            ),
-                            const SizedBox(width: 6),
-                            const Text(
-                              'علامات الجودة',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        FlagsListWidget(
-                          flags: flags,
-                          compact: false,
-                          showDescriptions: true,
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-
-                      // Quality Warnings
-                      if (hasWarnings) ...[
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: AppColors.error.withOpacity(0.08),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: AppColors.error.withOpacity(0.3),
-                              width: 1.5,
-                            ),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.report_problem,
-                                    color: AppColors.error,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const Text(
-                                    'تحذيرات الجودة',
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.error,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-
-                              if (isProfane)
-                                _buildWarningRow(
-                                  Icons.warning_amber,
-                                  'محتوى غير لائق',
-                                  'يحتوي على ألفاظ نابية أو مسيئة',
-                                  AppColors.error,
-                                ),
-
-                              if (isSuspicious)
-                                _buildWarningRow(
-                                  Icons.report_problem,
-                                  'تقييم مشبوه',
-                                  'هذا التقييم قد يكون غير حقيقي أو متلاعب',
-                                  AppColors.warning,
-                                ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ]),
-
-                    const Divider(height: 32),
-
-                    // Generated Content
-                    if (summary != null) ...[
-                      _buildDetailSection('الملخص', Icons.summarize, [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: AppColors.info.withOpacity(0.08),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: AppColors.info.withOpacity(0.2),
-                            ),
-                          ),
-                          child: Text(
-                            summary.toString(),
-                            style: const TextStyle(fontSize: 13, height: 1.6),
-                          ),
-                        ),
-                      ]),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 24),
                     ],
 
-                    if (insights != null && (insights as List).isNotEmpty) ...[
-                      _buildDetailSection('رؤى تحليلية', Icons.lightbulb, [
-                        ...((insights)).map(
-                          (insight) => Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: AppColors.success.withOpacity(0.08),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: AppColors.success.withOpacity(0.2),
-                                ),
-                              ),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Icon(
-                                    Icons.check_circle,
-                                    size: 16,
-                                    color: AppColors.success,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      insight.toString(),
-                                      style: const TextStyle(fontSize: 13),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ]),
-                      const SizedBox(height: 16),
-                    ],
-
+                    // Suggested Reply
                     if (suggestedReply != null) ...[
-                      _buildDetailSection('الرد المقترح', Icons.reply, [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.05),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: AppColors.primary.withOpacity(0.2),
-                            ),
+                      _buildPremiumSection(
+                        context,
+                        'الرد المقترح',
+                        Icons.reply_rounded,
+                        [
+                          _buildSuggestedReplyCard(
+                            context,
+                            suggestedReply.toString(),
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SelectableText(
-                                suggestedReply.toString(),
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  height: 1.6,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              ElevatedButton.icon(
-                                onPressed: () {
-                                  Clipboard.setData(
-                                    ClipboardData(
-                                      text: suggestedReply.toString(),
-                                    ),
-                                  );
-                                  AppSnackbar.showSuccess(
-                                    context,
-                                    'تم نسخ الرد المقترح',
-                                  );
-                                },
-                                icon: const Icon(Icons.copy, size: 16),
-                                label: const Text('نسخ الرد'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primary,
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 8,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ]),
-                      const SizedBox(height: 16),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
                     ],
 
-                    // Key Themes
-                    if (keyThemes.isNotEmpty) ...[
-                      _buildDetailSection('المواضيع الرئيسية', Icons.label, [
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: (keyThemes as List).map((theme) {
-                            return Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: AppColors.primary.withOpacity(0.3),
-                                ),
-                              ),
-                              child: Text(
-                                theme.toString(),
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                            );
-                          }).toList(),
+                    // Quality Analysis
+                    _buildPremiumSection(
+                      context,
+                      'تحليل الجودة',
+                      Icons.verified_user_rounded,
+                      [
+                        if (qualityScore != null) ...[
+                          QualityScoreBadge(qualityScore: qualityScore),
+                          const SizedBox(height: 16),
+                        ],
+                        if (flags.isNotEmpty)
+                          FlagsListWidget(
+                            flags: flags,
+                            compact: false,
+                            showDescriptions: true,
+                          ),
+                        if (hasWarnings) ...[
+                          const SizedBox(height: 16),
+                          _buildPremiumWarningBox(isProfane, isSuspicious),
+                        ],
+                      ],
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Reviewer Info Grid
+                    _buildPremiumSection(
+                      context,
+                      'معلومات المقيم',
+                      Icons.person_outline_rounded,
+                      [
+                        _buildInfoGrid(
+                          context,
+                          email,
+                          phone,
+                          displayDate,
+                          stars,
+                          sentiment,
+                          category,
                         ),
-                      ]),
-                    ],
+                      ],
+                    ),
                   ],
                 ),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildPremiumSection(
+    BuildContext context,
+    String title,
+    IconData icon,
+    List<Widget> children,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 20, color: AppColors.primary),
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Cairo',
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        ...children,
+      ],
+    );
+  }
+
+  Widget _buildAIInsightCard(
+    String title,
+    String content,
+    IconData icon,
+    Color color,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 16, color: color),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            content,
+            style: const TextStyle(
+              fontSize: 13,
+              height: 1.6,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSuggestedReplyCard(BuildContext context, String reply) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.primary.withOpacity(0.08),
+            AppColors.primary.withOpacity(0.02),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SelectableText(
+            reply,
+            style: const TextStyle(
+              fontSize: 13,
+              height: 1.6,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton.icon(
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: reply));
+              AppSnackbar.showSuccess(context, 'تم نسخ الرد المقترح');
+            },
+            icon: const Icon(Icons.copy_rounded, size: 16),
+            label: const Text('نسخ الرد المقترح'),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              minimumSize: const Size(0, 40),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPremiumRejectionCard(ReviewStatus status, dynamic reason) {
+    final color = ReviewStatusHelper.getStatusColor(status);
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.gpp_bad_rounded, color: color, size: 28),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'تقييم مرفوض',
+                  style: TextStyle(
+                    color: color,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                ),
+                Text(
+                  ReviewStatusHelper.getRejectionReasonArabic(reason),
+                  style: TextStyle(color: color.withOpacity(0.8), fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPremiumWarningBox(bool isProfane, bool isSuspicious) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.error.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.error.withOpacity(0.2)),
+      ),
+      child: Column(
+        children: [
+          if (isProfane)
+            _buildWarningRow(
+              Icons.warning_amber_rounded,
+              'محتوى مسيئ',
+              'يحتوي على ألفاظ غير لائقة',
+              AppColors.error,
+            ),
+          if (isSuspicious)
+            _buildWarningRow(
+              Icons.report_problem_rounded,
+              'نشاط مشبوه',
+              'قد يكون تقييم غير حقيقي',
+              AppColors.warning,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoGrid(
+    BuildContext context,
+    String email,
+    String? phone,
+    String date,
+    int stars,
+    dynamic sentiment,
+    dynamic category,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.primary.withOpacity(0.05)),
+      ),
+      child: Wrap(
+        spacing: 24,
+        runSpacing: 16,
+        children: [
+          _buildInfoItem('البريد', email, Icons.email_outlined),
+          if (phone != null)
+            _buildInfoItem('الهاتف', phone, Icons.phone_outlined),
+          _buildInfoItem('التاريخ', date, Icons.calendar_today_outlined),
+          _buildInfoItem('التقييم', '$stars نجوم', Icons.star_outline_rounded),
+          _buildInfoItem(
+            'المشاعر',
+            sentiment.toString(),
+            Icons.sentiment_satisfied_alt_rounded,
+          ),
+          _buildInfoItem('الفئة', category.toString(), Icons.category_outlined),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoItem(String label, String value, IconData icon) {
+    return SizedBox(
+      width: 140,
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: AppColors.textSecondary),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

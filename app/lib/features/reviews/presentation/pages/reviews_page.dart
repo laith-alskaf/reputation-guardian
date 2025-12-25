@@ -7,7 +7,6 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/responsive_scaffold.dart';
 import '../widgets/review_card.dart';
-import '../widgets/review_search_bar.dart';
 import '../widgets/review_details_dialog.dart';
 import '../widgets/sentiment_helpers.dart';
 
@@ -21,17 +20,20 @@ class ReviewsPage extends StatefulWidget {
 class _ReviewsPageState extends State<ReviewsPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  late TextEditingController _searchController;
   String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _searchController = TextEditingController();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -92,49 +94,74 @@ class _ReviewsPageState extends State<ReviewsPage>
   }
 
   Widget _buildSearchBar() {
-    final searchController = TextEditingController(text: _searchQuery);
-    searchController.addListener(() {
-      if (searchController.text != _searchQuery) {
-        setState(() {
-          _searchQuery = searchController.text;
-        });
-      }
-    });
-
-    return ReviewSearchBar(controller: searchController);
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: AppColors.softShadow,
+        border: Border.all(color: AppColors.primary.withOpacity(0.05)),
+      ),
+      child: TextField(
+        controller: _searchController,
+        onChanged: (value) {
+          setState(() {
+            _searchQuery = value;
+          });
+        },
+        decoration: InputDecoration(
+          hintText: 'البحث في التقييمات...',
+          prefixIcon: const Icon(
+            Icons.search_rounded,
+            color: AppColors.primary,
+          ),
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(vertical: 15),
+        ),
+      ),
+    );
   }
 
   Widget _buildTabs() {
     return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: AppColors.primary.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(15),
       ),
       child: TabBar(
         controller: _tabController,
         labelColor: Colors.white,
         unselectedLabelColor: AppColors.textSecondary,
+        dividerColor: Colors.transparent,
         indicator: BoxDecoration(
           gradient: AppColors.primaryGradient,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withOpacity(0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         indicatorSize: TabBarIndicatorSize.tab,
-        indicatorPadding: const EdgeInsets.symmetric(
-          horizontal: 8,
-          vertical: 8,
+        labelStyle: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 13,
+          fontFamily: 'Cairo',
         ),
-        labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-        unselectedLabelStyle: const TextStyle(fontSize: 14),
+        unselectedLabelStyle: const TextStyle(
+          fontSize: 13,
+          fontFamily: 'Cairo',
+        ),
         tabs: const [
           Tab(text: 'المقبولة'),
           Tab(text: 'مرفوضة - جودة'),
-          Tab(text: 'مرفوضة - غير ذات صلة'),
+          Tab(text: 'مرفوضة - صلة'),
         ],
       ),
     );
@@ -175,8 +202,13 @@ class _ReviewsPageState extends State<ReviewsPage>
     }
 
     return ListView.builder(
-      padding: EdgeInsets.all(ResponsiveSpacing.medium(context)),
+      padding: EdgeInsets.symmetric(
+        horizontal: ResponsiveSpacing.medium(context),
+        vertical: 8,
+      ),
       itemCount: filteredReviews.length,
+      physics: const BouncingScrollPhysics(),
+      addAutomaticKeepAlives: true,
       itemBuilder: (context, index) {
         final review = filteredReviews[index];
         return _buildReviewCard(review, type);

@@ -23,7 +23,7 @@ class ResponsiveScaffold extends StatelessWidget {
     this.bottomNavigationBar,
     this.showBackButton = false,
     this.onBackPressed,
-    this.useAnimatedAppBar = false,
+    this.useAnimatedAppBar = true,
   });
 
   @override

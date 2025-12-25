@@ -1,47 +1,50 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Primary Colors
-  static const Color primary = Color(0xFF2563EB);
-  static const Color primaryLight = Color(0xFF3B82F6);
-  static const Color primaryDark = Color(0xFF1E40AF);
+  // Primary & Secondary (Premium Indigo/Blue)
+  static const Color primary = Color(0xFF4F46E5); // Indigo 600
+  static const Color primaryLight = Color(0xFF818CF8); // Indigo 400
+  static const Color primaryDark = Color(0xFF3730A3); // Indigo 800
+  static const Color accent = Color(0xFF06B6D4); // Cyan 500
 
-  // Semantic Colors
+  // Semantic Colors (Softened)
   static const Color success = Color(0xFF10B981);
   static const Color error = Color(0xFFEF4444);
   static const Color warning = Color(0xFFF59E0B);
-  static const Color info = Color(0xFF2196F3);
-  static const Color neutral = Color(0xFF6B7280);
+  static const Color info = Color(0xFF3B82F6);
+  static const Color neutral = Color(0xFF64748B);
 
-  // Backgrounds
-  static const Color background = Color(0xFFFFFFFF);
-  static const Color surface = Color(0xFFF9FAFB);
-  static const Color surfaceDark = Color(0xFF111827);
+  // Backgrounds (Modern Deep Slate/White)
+  static const Color background = Color(0xFFF8FAFC);
+  static const Color surface = Color(0xFFFFFFFF);
+  static const Color surfaceDark = Color(0xFF0F172A); // Slate 900
+  static const Color surfaceElevated = Color(0xFF1E293B); // Slate 800
 
-  // Text
-  static const Color text = Color(0xFF111827);
-  static const Color textSecondary = Color(0xFF6B7280);
+  // Text (High Contrast)
+  static const Color text = Color(0xFF0F172A);
+  static const Color textSecondary = Color(0xFF64748B);
   static const Color textLight = Color(0xFFFFFFFF);
 
-  // Borders
-  static const Color border = Color(0xFFE5E7EB);
+  // Borders & Dividers
+  static const Color border = Color(0xFFE2E8F0);
+  static const Color divider = Color(0xFFF1F5F9);
 
-  // Sentiment Colors
+  // Sentiment Colors (Vibrant)
   static const Color positive = Color(0xFF10B981);
   static const Color negative = Color(0xFFEF4444);
   static const Color neutralSentiment = Color(0xFFF59E0B);
 
-  // Gradients
+  // Premium Gradients
   static const LinearGradient primaryGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFF2563EB), Color(0xFF7C3AED)],
+    colors: [Color(0xFF4F46E5), Color(0xFF7C3AED)],
   );
 
-  static const LinearGradient cardGradient = LinearGradient(
+  static const LinearGradient surfaceGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFFFFFFFF), Color(0xFFF9FAFB)],
+    colors: [Color(0xFFFFFFFF), Color(0xFFF8FAFC)],
   );
 
   static const LinearGradient successGradient = LinearGradient(
@@ -56,28 +59,34 @@ class AppColors {
     colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
   );
 
-  // Shadows
+  static final LinearGradient glassGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Colors.white.withOpacity(0.1), Colors.white.withOpacity(0.05)],
+  );
+
+  // Shadows (Soft & Deep)
   static List<BoxShadow> get cardShadow => [
     BoxShadow(
-      color: Colors.black.withOpacity(0.08),
-      blurRadius: 16,
-      offset: const Offset(0, 4),
+      color: const Color(0xFF0F172A).withOpacity(0.05),
+      blurRadius: 20,
+      offset: const Offset(0, 10),
     ),
   ];
 
   static List<BoxShadow> get elevatedShadow => [
     BoxShadow(
-      color: Colors.black.withOpacity(0.12),
-      blurRadius: 24,
-      offset: const Offset(0, 8),
+      color: const Color(0xFF4F46E5).withOpacity(0.15),
+      blurRadius: 30,
+      offset: const Offset(0, 15),
     ),
   ];
 
   static List<BoxShadow> get softShadow => [
     BoxShadow(
-      color: Colors.black.withOpacity(0.04),
-      blurRadius: 8,
-      offset: const Offset(0, 2),
+      color: Colors.black.withOpacity(0.03),
+      blurRadius: 10,
+      offset: const Offset(0, 4),
     ),
   ];
 }

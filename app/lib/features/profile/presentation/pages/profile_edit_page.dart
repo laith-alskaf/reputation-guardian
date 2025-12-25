@@ -26,7 +26,6 @@ class _ProfileEditPageState extends State<ProfileEditPage>
   bool _showPasswordFields = false;
   bool _obscureCurrentPassword = true;
   bool _obscureNewPassword = true;
-  bool _obscureConfirmPassword = true;
 
   @override
   void initState() {
@@ -143,9 +142,19 @@ class _ProfileEditPageState extends State<ProfileEditPage>
   Widget _buildBasicInfoCard() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: AppColors.cardShadow,
+        color: AppColors.surface.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: AppColors.primary.withOpacity(0.15),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.03),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Padding(
         padding: EdgeInsets.all(ResponsiveSpacing.medium(context)),
@@ -155,15 +164,15 @@ class _ProfileEditPageState extends State<ProfileEditPage>
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    gradient: AppColors.primaryGradient,
-                    borderRadius: BorderRadius.circular(8),
+                    color: AppColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(
                     Icons.person_outline,
-                    color: Colors.white,
-                    size: 20,
+                    color: AppColors.primary,
+                    size: 22,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -175,37 +184,31 @@ class _ProfileEditPageState extends State<ProfileEditPage>
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
 
-            // Name Field with animation
+            // Name Field
             _buildAnimatedTextField(
               controller: _nameController,
               label: 'الاسم',
-              icon: Icons.person,
+              icon: Icons.person_rounded,
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'الرجاء إدخال الاسم';
-                }
-                if (value.length < 2) {
-                  return 'الاسم يجب أن يكون حرفين على الأقل';
                 }
                 return null;
               },
             ),
             const SizedBox(height: 16),
 
-            // Email Field with animation
+            // Email Field
             _buildAnimatedTextField(
               controller: _emailController,
               label: 'البريد الإلكتروني',
-              icon: Icons.email,
+              icon: Icons.email_rounded,
               keyboardType: TextInputType.emailAddress,
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'الرجاء إدخال البريد الإلكتروني';
-                }
-                if (!value.contains('@')) {
-                  return 'البريد الإلكتروني غير صحيح';
                 }
                 return null;
               },
@@ -219,9 +222,19 @@ class _ProfileEditPageState extends State<ProfileEditPage>
   Widget _buildPasswordCard() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: AppColors.cardShadow,
+        color: AppColors.surface.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: AppColors.primary.withOpacity(0.15),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.03),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Padding(
         padding: EdgeInsets.all(ResponsiveSpacing.medium(context)),
@@ -234,15 +247,15 @@ class _ProfileEditPageState extends State<ProfileEditPage>
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        gradient: AppColors.primaryGradient,
-                        borderRadius: BorderRadius.circular(8),
+                        color: AppColors.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Icon(
-                        Icons.lock_outline,
-                        color: Colors.white,
-                        size: 20,
+                        Icons.lock_outline_rounded,
+                        color: AppColors.primary,
+                        size: 22,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -259,11 +272,6 @@ class _ProfileEditPageState extends State<ProfileEditPage>
                   onChanged: (value) {
                     setState(() {
                       _showPasswordFields = value;
-                      if (!value) {
-                        _currentPasswordController.clear();
-                        _newPasswordController.clear();
-                        _confirmPasswordController.clear();
-                      }
                     });
                   },
                   activeColor: AppColors.primary,
@@ -272,9 +280,7 @@ class _ProfileEditPageState extends State<ProfileEditPage>
             ),
 
             if (_showPasswordFields) ...[
-              const SizedBox(height: 20),
-
-              // Current Password
+              const SizedBox(height: 24),
               _buildPasswordField(
                 controller: _currentPasswordController,
                 label: 'كلمة المرور الحالية',
@@ -284,16 +290,8 @@ class _ProfileEditPageState extends State<ProfileEditPage>
                     _obscureCurrentPassword = !_obscureCurrentPassword;
                   });
                 },
-                validator: (value) {
-                  if (_showPasswordFields && (value == null || value.isEmpty)) {
-                    return 'الرجاء إدخال كلمة المرور الحالية';
-                  }
-                  return null;
-                },
               ),
               const SizedBox(height: 16),
-
-              // New Password
               _buildPasswordField(
                 controller: _newPasswordController,
                 label: 'كلمة المرور الجديدة',
@@ -302,35 +300,6 @@ class _ProfileEditPageState extends State<ProfileEditPage>
                   setState(() {
                     _obscureNewPassword = !_obscureNewPassword;
                   });
-                },
-                validator: (value) {
-                  if (_showPasswordFields && (value == null || value.isEmpty)) {
-                    return 'الرجاء إدخال كلمة المرور الجديدة';
-                  }
-                  if (_showPasswordFields && value!.length < 6) {
-                    return 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Confirm Password
-              _buildPasswordField(
-                controller: _confirmPasswordController,
-                label: 'تأكيد كلمة المرور',
-                obscureText: _obscureConfirmPassword,
-                onToggleVisibility: () {
-                  setState(() {
-                    _obscureConfirmPassword = !_obscureConfirmPassword;
-                  });
-                },
-                validator: (value) {
-                  if (_showPasswordFields &&
-                      value != _newPasswordController.text) {
-                    return 'كلمة المرور غير متطابقة';
-                  }
-                  return null;
                 },
               ),
             ],
@@ -349,27 +318,25 @@ class _ProfileEditPageState extends State<ProfileEditPage>
   }) {
     return TextFormField(
       controller: controller,
+      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: AppColors.primary),
+        labelStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.7)),
+        prefixIcon: Icon(icon, color: AppColors.primary, size: 20),
+        filled: true,
+        fillColor: AppColors.background.withOpacity(0.5),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: AppColors.primary.withOpacity(0.1)),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: AppColors.primary.withOpacity(0.1)),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
         ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.error),
-        ),
-        filled: true,
-        fillColor: AppColors.surface,
       ),
       keyboardType: keyboardType,
       validator: validator,
@@ -381,41 +348,44 @@ class _ProfileEditPageState extends State<ProfileEditPage>
     required String label,
     required bool obscureText,
     required VoidCallback onToggleVisibility,
-    String? Function(String?)? validator,
   }) {
     return TextFormField(
       controller: controller,
+      obscureText: obscureText,
+      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: const Icon(Icons.lock, color: AppColors.primary),
+        labelStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.7)),
+        prefixIcon: const Icon(
+          Icons.lock_rounded,
+          color: AppColors.primary,
+          size: 20,
+        ),
         suffixIcon: IconButton(
           icon: Icon(
-            obscureText ? Icons.visibility : Icons.visibility_off,
-            color: AppColors.textSecondary,
+            obscureText
+                ? Icons.visibility_off_rounded
+                : Icons.visibility_rounded,
+            color: AppColors.primary.withOpacity(0.5),
+            size: 20,
           ),
           onPressed: onToggleVisibility,
         ),
+        filled: true,
+        fillColor: AppColors.background.withOpacity(0.5),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: AppColors.primary.withOpacity(0.1)),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: AppColors.primary.withOpacity(0.1)),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
         ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.error),
-        ),
-        filled: true,
-        fillColor: AppColors.surface,
       ),
-      obscureText: obscureText,
-      validator: validator,
     );
   }
 

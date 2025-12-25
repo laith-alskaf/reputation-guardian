@@ -1,0 +1,47 @@
+/* Professional Design Tokens - Reputation Guardian */
+
+:root {
+    /* Color Palette - Cyber Pro */
+    --primary: #4f46e5;
+    --primary-light: #818cf8;
+    --primary-dark: #3730a3;
+    --accent: #06b6d4;
+    
+    --success: #10b981;
+    --error: #ef4444;
+    --warning: #f59e0b;
+    --info: #3b82f6;
+    
+    /* Neutral / Grayscale */
+    --bg-main: #f8fafc;
+    --bg-surface: #ffffff;
+    --bg-dark: #0f172a;
+    --bg-elevated: #1e293b;
+    
+    --text-main: #0f172a;
+    --text-secondary: #64748b;
+    --text-light: #ffffff;
+    
+    --border: #e2e8f0;
+    --divider: #f1f5f9;
+
+    /* Gradients */
+    --grad-primary: linear-gradient(135deg, #4f46e5 0%, #7c3AED 100%);
+    --grad-surface: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    --grad-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+
+    /* Shadows */
+    --shadow-card: 0 10px 20px -5px rgba(15, 23, 42, 0.05);
+    --shadow-elevated: 0 15px 30px -10px rgba(79, 70, 229, 0.15);
+    --shadow-soft: 0 4px 10px rgba(0, 0, 0, 0.03);
+
+    /* Border Radius */
+    --radius-sm: 8px;
+    --radius-md: 16px;
+    --radius-lg: 24px;
+    --radius-full: 9999px;
+
+    /* Transitions */
+    --transition-fast: 0.15s ease;
+    --transition-main: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}

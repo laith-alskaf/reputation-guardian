@@ -14,29 +14,46 @@ class PeriodFilterWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'الفترة الزمنية',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: AppColors.softShadow,
+        border: Border.all(color: AppColors.primary.withOpacity(0.05)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
             ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _buildPeriodChip('day', 'اليوم'),
-                _buildPeriodChip('week', 'الأسبوع'),
-                _buildPeriodChip('month', 'الشهر'),
-                _buildPeriodChip('year', 'السنة'),
-              ],
+            child: const Icon(
+              Icons.calendar_today_rounded,
+              color: AppColors.primary,
+              size: 20,
             ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _buildPeriodChip('day', 'اليوم'),
+                  const SizedBox(width: 8),
+                  _buildPeriodChip('week', 'الأسبوع'),
+                  const SizedBox(width: 8),
+                  _buildPeriodChip('month', 'الشهر'),
+                  const SizedBox(width: 8),
+                  _buildPeriodChip('year', 'السنة'),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -44,15 +61,26 @@ class PeriodFilterWidget extends StatelessWidget {
   Widget _buildPeriodChip(String value, String label) {
     final isSelected = selectedPeriod == value;
 
-    return FilterChip(
+    return ChoiceChip(
       label: Text(label),
       selected: isSelected,
       onSelected: (_) => onPeriodChanged(value),
-      selectedColor: AppColors.primary.withOpacity(0.2),
-      checkmarkColor: AppColors.primary,
+      selectedColor: AppColors.primary,
+      backgroundColor: Colors.transparent,
+      showCheckmark: false,
       labelStyle: TextStyle(
-        color: isSelected ? AppColors.primary : AppColors.textSecondary,
-        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        color: isSelected ? Colors.white : AppColors.textSecondary,
+        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+        fontSize: 12,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: isSelected
+              ? AppColors.primary
+              : AppColors.border.withOpacity(0.5),
+        ),
       ),
     );
   }

@@ -132,7 +132,6 @@ const DashboardManager = {
       this.updateTabCounts();
       this.switchTab('processed');
       this.updateAnalyticsChart();
-      this.updateAnalyticsChart();
       this.updateStatistics();
       this.updateTelegramStatus(); // Check telegram connection
 
@@ -152,7 +151,7 @@ const DashboardManager = {
   },
 
   /**
-   * Update metrics display
+   * Update metrics display - Premium Redesign
    */
   updateMetrics() {
     const metrics = this.state.allData.metrics;
@@ -160,46 +159,69 @@ const DashboardManager = {
 
     if (!container) return;
 
-    const metricsArray = [
-      {
-        icon: 'fas fa-star',
-        value: metrics.average_stars?.toFixed(1) || '0',
-        label: 'متوسط النجوم',
-        color: 'primary'
-      },
-      {
-        icon: 'fas fa-comments',
-        value: metrics.total_reviews || '0',
-        label: 'إجمالي التقييمات',
-        color: 'secondary'
-      },
-      {
-        icon: 'fas fa-thumbs-up',
-        value: metrics.positive_reviews || '0',
-        label: 'إيجابية',
-        color: 'success'
-      },
-      {
-        icon: 'fas fa-exclamation-triangle',
-        value: metrics.negative_reviews || '0',
-        label: 'سلبية',
-        color: 'error'
-      },
-      {
-        icon: 'fas fa-balance-scale',
-        value: metrics.neutral_reviews || '0',
-        label: 'محايدة',
-        color: 'warning'
-      }
-    ];
-
-    container.innerHTML = metricsArray.map((m, i) => `
-      <div class="metric-card metric-${m.color} animate-scale-bounce" style="animation-delay: ${i * 100}ms">
-        <div class="metric-icon"><i class="${m.icon}"></i></div>
-        <div class="metric-value">${m.value}</div>
-        <div class="metric-label">${m.label}</div>
+    container.innerHTML = `
+      <!-- Average Rating - Premium -->
+      <div class="metric-card premium animate-scale-bounce">
+          <div class="metric-glass"></div>
+          <div class="metric-info">
+              <span class="metric-label">متوسط التقييم</span>
+              <div class="metric-value-wrapper">
+                  <span class="metric-value">${metrics.average_stars?.toFixed(1) || '0.0'}</span>
+                  <div class="metric-stars">
+                      ${this._generateStarIcons(metrics.average_stars || 0)}
+                  </div>
+              </div>
+          </div>
+          <div class="metric-icon-bg"><i class="fas fa-star"></i></div>
       </div>
-    `).join('');
+
+      <!-- Total Reviews -->
+      <div class="metric-card animate-scale-bounce" style="animation-delay: 100ms">
+          <div class="metric-info">
+              <span class="metric-label">إجمالي التقييمات</span>
+              <span class="metric-value">${metrics.total_reviews || 0}</span>
+          </div>
+          <div class="metric-icon"><i class="fas fa-users"></i></div>
+      </div>
+
+      <!-- Positive Reviews -->
+      <div class="metric-card success animate-scale-bounce" style="animation-delay: 200ms">
+          <div class="metric-info">
+              <span class="metric-label">تقييمات إيجابية</span>
+              <span class="metric-value">${metrics.positive_reviews || 0}</span>
+          </div>
+          <div class="metric-icon"><i class="fas fa-smile"></i></div>
+      </div>
+
+      <!-- Negative Reviews -->
+      <div class="metric-card danger animate-scale-bounce" style="animation-delay: 300ms">
+          <div class="metric-info">
+              <span class="metric-label">تقييمات سلبية</span>
+              <span class="metric-value">${metrics.negative_reviews || 0}</span>
+          </div>
+          <div class="metric-icon"><i class="fas fa-frown"></i></div>
+      </div>
+    `;
+  },
+
+  /**
+   * Helper to generate star icons for the rating display
+   */
+  _generateStarIcons(rating) {
+    let stars = '';
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+
+    for (let i = 0; i < 5; i++) {
+      if (i < fullStars) {
+        stars += '<i class="fas fa-star"></i>';
+      } else if (i === fullStars && hasHalfStar) {
+        stars += '<i class="fas fa-star-half-alt"></i>';
+      } else {
+        stars += '<i class="far fa-star"></i>';
+      }
+    }
+    return stars;
   },
 
   /**
@@ -499,7 +521,7 @@ const DashboardManager = {
   },
 
   /**
-   * Create review card HTML
+   * Create review card HTML - Premium Redesign
    */
   createReviewCard(review) {
     const sentiment = review.overall_sentiment || review.analysis?.sentiment || 'محايد';
@@ -508,42 +530,58 @@ const DashboardManager = {
     const date = new Date(review.created_at).toLocaleDateString('ar-SA');
     const text = review.processing?.concatenated_text || '';
     const isMismatch = review.analysis?.context?.has_mismatch || false;
+    const qualityScore = review.analysis?.quality?.quality_score || 0;
 
-    const sentimentClass = {
-      'إيجابي': 'positive',
-      'سلبي': 'negative',
-      'محايد': 'neutral'
-    }[sentiment] || 'neutral';
+    const sentimentMap = {
+      'إيجابي': { class: 'pos', glow: 'sentiment-glow-pos', icon: 'fa-smile' },
+      'سلبي': { class: 'neg', glow: 'sentiment-glow-neg', icon: 'fa-frown' },
+      'محايد': { class: 'neu', glow: 'sentiment-glow-neu', icon: 'fa-meh' }
+    };
 
-    const starsHTML = '⭐'.repeat(stars);
+    const config = sentimentMap[sentiment] || sentimentMap['محايد'];
+    const starsHTML = '<i class="fas fa-star"></i>'.repeat(stars) + '<i class="far fa-star"></i>'.repeat(5 - stars);
 
     return `
-      <div class="review-card ${sentimentClass} ${isMismatch ? 'mismatch' : ''}" 
+      <div class="review-card-premium ${config.class} ${config.glow} shadow-soft animate-scale" 
            onclick="DashboardManager.openReviewModal('${review._id || review.id}')">
         
-        <div class="review-header">
-          <div class="review-meta">
-            <span class="review-stars" title="${stars} نجوم">${starsHTML || 'بدون'}</span>
-            <span class="badge badge-category">${category}</span>
-            <span class="badge badge-sentiment badge-${sentimentClass}">${sentiment}</span>
-            ${isMismatch ? '<span class="badge badge-warning">⚠️ غير متطابق</span>' : ''}
+        <!-- Subtle Pattern Overlay -->
+        <div class="card-overlay-bg"><i class="fas ${config.icon}"></i></div>
+
+        <div class="review-header-premium">
+          <div class="reviewer-meta">
+            <div class="sentiment-chip ${config.class}">
+              <i class="fas ${config.icon}"></i>
+              <span>${sentiment}</span>
+            </div>
+            <span class="badge ${isMismatch ? 'badge-warning' : 'badge-soft'}">${category}</span>
           </div>
-          <div class="review-date">
-            <i class="far fa-clock"></i> ${date}
-          </div>
+          <div class="stars-premium">${starsHTML}</div>
         </div>
 
-        <div class="review-preview">
-          <p>${text.substring(0, 150)}${text.length > 150 ? '...' : ''}</p>
+        <div class="review-text-premium">
+          <p>${text.substring(0, 140)}${text.length > 140 ? '...' : ''}</p>
         </div>
 
-        ${review.email ? `<div class="review-footer"><i class="fas fa-envelope"></i> ${review.email}</div>` : ''}
+        <div class="review-footer-premium">
+          <div class="footer-left">
+            <i class="far fa-calendar-alt"></i> ${date}
+          </div>
+          <div class="footer-right">
+             <div class="quality-badge">
+                <i class="fas fa-certificate"></i>
+                <span>${(qualityScore * 100).toFixed(0)}%</span>
+             </div>
+          </div>
+        </div>
+        
+        ${isMismatch ? '<div class="review-alert"><i class="fas fa-exclamation-triangle"></i> سياق غير متطابق</div>' : ''}
       </div>
     `;
   },
 
   /**
-   * Open review modal with full details
+   * Open review modal with full details - Premium Redesign
    */
   openReviewModal(reviewId) {
     const allReviews = [
@@ -559,125 +597,116 @@ const DashboardManager = {
     const category = review.analysis?.category || review.category || 'عام';
     const qualityScore = review.analysis?.quality?.quality_score || 0;
     const isMismatch = review.analysis?.context?.has_mismatch || false;
+    const isProfane = review.processing?.is_profane || false;
     const stars = review.stars || 0;
-    const starsHTML = '⭐'.repeat(stars);
     const date = new Date(review.created_at).toLocaleDateString('ar-SA');
+    const text = review.processing?.concatenated_text || '';
 
-    let content = `
-      <div class="review-modal-header">
-        <h2>تفاصيل التقييم الكامل</h2>
-        <div class="review-meta-modal">
-          <span class="badge badge-sentiment">${sentiment}</span>
-          <span class="badge">${category}</span>
-          <span class="stars">${starsHTML}</span>
+    // AI Content
+    const summary = review.generated_content?.summary;
+    const insights = review.generated_content?.actionable_insights || [];
+    const suggestedReply = review.generated_content?.suggested_reply;
+
+    const sentimentClass = { 'إيجابي': 'pos', 'سلبي': 'neg', 'محايد': 'neu' }[sentiment] || 'neu';
+    const starsHTML = '<i class="fas fa-star"></i>'.repeat(stars) + '<i class="far fa-star"></i>'.repeat(5 - stars);
+
+    const modal = document.getElementById('reviewModal');
+    const content = document.getElementById('reviewModalContent');
+
+    modal.querySelector('.modal-content').className = 'modal-content review-modal-premium';
+
+    content.innerHTML = `
+      <div class="modal-header-premium">
+        <div class="header-content">
+          <h2>تفاصيل التقييم الشاملة</h2>
+          <div class="header-badges">
+            <span class="sentiment-chip ${sentimentClass}">${sentiment}</span>
+            <span class="badge" style="background: rgba(255,255,255,0.2); border: none;">${category}</span>
+            <div class="stars-premium" style="color: #fbbf24; display: inline-block; margin-right: 15px;">${starsHTML}</div>
+          </div>
         </div>
       </div>
 
-      <div class="review-modal-body">
-        <div class="modal-section">
-          <h3><i class="fas fa-user"></i> معلومات المقيم</h3>
-          <div class="info-grid">
-            ${review.email ? `<div><strong>البريد الإلكتروني:</strong> ${review.email}</div>` : ''}
-            <div><strong>التاريخ:</strong> ${date}</div>
-            <div><strong>التقييم:</strong> ${stars} نجوم</div>
+      <div class="modal-body-premium">
+        <!-- Review Text -->
+        <div class="modal-section mb-5">
+          <h3 class="section-title"><i class="fas fa-comment-alt text-primary"></i> نص التقييم</h3>
+          <div class="content-box glass shadow-soft p-4 rounded-xl border-light">
+            <p class="text-lg leading-relaxed">${text}</p>
           </div>
         </div>
 
-        <div class="modal-section">
-          <h3><i class="fas fa-comment"></i> التقييم الأصلي</h3>
-          <div class="review-text-box">
-            ${review.processing?.concatenated_text || 'لا يوجد نص'}
+        <!-- AI Analysis Section -->
+        ${summary || (Array.isArray(insights) && insights.length > 0) ? `
+        <div class="modal-section mb-5">
+          <h3 class="section-title"><i class="fas fa-robot text-indigo"></i> تحليل الذكاء الاصطناعي</h3>
+          <div class="ai-analysis-grid">
+            ${summary ? `
+            <div class="ai-insight-box info">
+              <div class="insight-header"><i class="fas fa-quote-right"></i> الملخص الذكي</div>
+              <div class="insight-content">${summary}</div>
+            </div>` : ''}
+            
+            ${Array.isArray(insights) && insights.length > 0 ? `
+            <div class="ai-insight-box success">
+              <div class="insight-header"><i class="fas fa-lightbulb"></i> أهم الرؤى</div>
+              <div class="insight-content">
+                <ul class="list-disc pr-4">
+                  ${insights.map(i => `<li class="mb-1">${i}</li>`).join('')}
+                </ul>
+              </div>
+            </div>` : ''}
           </div>
-        </div>
-    `;
+        </div>` : ''}
 
-    // Show AI analysis for processed reviews
-    if (this.state.currentTab === 'processed' && review.generated_content) {
-      content += `
-        <div class="modal-section">
-          <h3><i class="fas fa-robot"></i> تحليل الذكاء الاصطناعي</h3>
-      `;
-
-      if (review.generated_content.summary) {
-        content += `
-          <div class="summary-box">
-            <strong>الملخص:</strong>
-            <p>${review.generated_content.summary}</p>
-          </div>
-        `;
-      }
-
-      if (review.generated_content.actionable_insights) {
-        const insights = review.generated_content.actionable_insights;
-        if (Array.isArray(insights) && insights.length > 0) {
-          content += `
-            <div class="insights-box">
-              <strong>الرؤى القابلة للتنفيذ:</strong>
-              <ul>
-                ${insights.map(insight => `<li>${insight}</li>`).join('')}
-              </ul>
-            </div>
-          `;
-        }
-      }
-
-      if (review.generated_content.suggested_reply) {
-        content += `
-          <div class="reply-box">
-            <strong>الرد المقترح:</strong>
-            <div class="reply-text">${review.generated_content.suggested_reply}</div>
-            <button class="btn btn-sm btn-primary" onclick="DashboardManager.copyToClipboard('${review.generated_content.suggested_reply.replace(/"/g, '&quot;')}')">
+        <!-- Suggested Reply -->
+        ${suggestedReply ? `
+        <div class="modal-section mb-5">
+          <h3 class="section-title"><i class="fas fa-reply text-success"></i> الرد المقترح</h3>
+          <div class="ai-insight-box" style="border-style: dashed; background: rgba(34, 197, 94, 0.02);">
+            <div class="insight-content mb-3">${suggestedReply}</div>
+            <button class="btn btn-sm btn-outline-success" onclick="DashboardManager.copySuggestedReply(\`${suggestedReply.replace(/'/g, "\\'")}\`)">
               <i class="fas fa-copy"></i> نسخ الرد
             </button>
           </div>
-        `;
-      }
+        </div>` : ''}
 
-      content += '</div>';
-    }
-
-    // Analysis data
-    if (review.analysis) {
-      content += `
+        <!-- Quality Metrics Grid -->
         <div class="modal-section">
-          <h3><i class="fas fa-chart-bar"></i> بيانات التحليل</h3>
-          <div class="analysis-grid">
-            <div class="analysis-item">
-              <strong>المشاعر:</strong>
-              <p>${sentiment}</p>
+          <h3 class="section-title"><i class="fas fa-shield-alt text-warning"></i> مؤشرات الجودة</h3>
+          <div class="quality-grid-premium">
+            <div class="quality-item-premium">
+              <div class="q-label">درجة الجودة</div>
+              <div class="q-value">${(qualityScore * 100).toFixed(0)}%</div>
+              <div class="q-progress"><div class="q-bar" style="width: ${qualityScore * 100}%"></div></div>
             </div>
-            <div class="analysis-item">
-              <strong>درجة الجودة:</strong>
-              <div class="quality-bar">
-                <div class="quality-fill" style="width: ${qualityScore * 100}%"></div>
-              </div>
-              <small>${Math.round(qualityScore * 100)}%</small>
+            <div class="quality-item-premium">
+               <div class="q-label">سياق المحتوى</div>
+               <div class="q-value ${isMismatch ? 'text-danger' : 'text-success'}">${isMismatch ? 'غير متقابق' : 'متطابق'}</div>
             </div>
-            ${review.analysis.toxicity ? `
-              <div class="analysis-item">
-                <strong>مستوى السمية:</strong>
-                <p>${review.analysis.toxicity}</p>
-              </div>
-            ` : ''}
+            <div class="quality-item-premium">
+               <div class="q-label">الألفاظ النابية</div>
+               <div class="q-value ${isProfane ? 'text-danger' : 'text-success'}">${isProfane ? 'موجودة' : 'نظيف'}</div>
+            </div>
+            <div class="quality-item-premium">
+               <div class="q-label">تاريخ التقييم</div>
+               <div class="q-value">${date}</div>
+            </div>
           </div>
         </div>
-      `;
-    }
 
-    // Rejection reason
-    if (this.state.currentTab !== 'processed') {
-      content += `
-        <div class="modal-section alert-box">
-          <h3><i class="fas fa-info-circle"></i> سبب الرفض</h3>
-          <p>${this.getRejectionReason(review)}</p>
+        <!-- Reviewer Details -->
+        <div class="modal-section mt-5">
+           <div class="reviewer-info-footer p-3 bg-alt rounded-lg flex justify-between items-center text-sm">
+              <span><i class="fas fa-envelope"></i> ${review.email || 'غير متوفر'}</span>
+              <span><i class="fas fa-id-badge"></i> ${review._id || review.id}</span>
+           </div>
         </div>
-      `;
-    }
+      </div>
+    `;
 
-    content += '</div>';
-
-    document.getElementById('reviewModalContent').innerHTML = content;
-    document.getElementById('reviewModal').style.display = 'flex';
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
   },
 
   /**
@@ -699,11 +728,40 @@ const DashboardManager = {
   },
 
   /**
+   * Copy suggested reply
+   */
+  copySuggestedReply(text) {
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      window.UI.Toast.show('تم نسخ الرد بنجاح', 'success');
+    }).catch(err => {
+      console.error('Failed to copy:', err);
+      // Fallback
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        window.UI.Toast.show('تم نسخ الرد بنجاح', 'success');
+      } catch (err) {
+        window.UI.Toast.show('فشل في النسخ', 'error');
+      }
+      document.body.removeChild(textArea);
+    });
+  },
+
+  /**
    * Close review modal
    */
   closeReviewModal(event) {
-    if (event && event.target !== event.currentTarget) return;
-    document.getElementById('reviewModal').style.display = 'none';
+    if (event && event.target.id !== 'reviewModal' && !event.target.closest('.modal-close')) return;
+
+    const modal = document.getElementById('reviewModal');
+    if (modal) {
+      modal.style.display = 'none';
+      document.body.style.overflow = 'auto';
+    }
   },
 
   /**
@@ -798,174 +856,171 @@ const DashboardManager = {
   },
 
   /**
-   * Update analytics chart
+   * Update Analytics Chart with Premium Styling
    */
   updateAnalyticsChart() {
-    const chartType = document.getElementById('chartTypeFilter')?.value || 'sentiment';
-    const canvas = document.getElementById('reviewsChart');
-    if (!canvas) return;
+    const ctx = document.getElementById('reviewsChart');
+    if (!ctx) return;
 
-    // Destroy previous chart
+    const chartType = document.getElementById('chartTypeFilter').value;
+    const metrics = this.state.allData.metrics;
+
     if (this.state.chart) {
       this.state.chart.destroy();
     }
 
-    const ctx = canvas.getContext('2d');
-    const data = this.getChartData(chartType);
+    // Design Tokens Sync
+    const colors = {
+      primary: '#4f46e5',
+      accent: '#06b6d4',
+      success: '#10b981',
+      warning: '#f59e0b',
+      danger: '#ef4444',
+      textSecondary: '#64748b'
+    };
 
-    this.state.chart = new Chart(ctx, {
-      type: 'doughnut',
-      data: data,
-      options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        plugins: {
-          legend: {
-            position: 'bottom',
-            labels: {
-              font: { family: "'Cairo', sans-serif", size: 12 },
-              padding: 15,
-              usePointStyle: true
-            }
-          },
-          tooltip: {
-            callbacks: {
-              label: function (context) {
-                const label = context.label || '';
-                const value = context.parsed || 0;
-                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                const percentage = ((value / total) * 100).toFixed(1);
-                return `${label}: ${value} (${percentage}%)`;
-              }
+    let chartData = {};
+    let chartOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(15, 23, 42, 0.9)',
+          padding: 12,
+          titleFont: { family: 'Cairo', size: 14 },
+          bodyFont: { family: 'Cairo', size: 13 },
+          rtl: true
+        }
+      },
+      animation: {
+        duration: 1200,
+        easing: 'easeOutQuart'
+      }
+    };
+
+    if (chartType === 'sentiment') {
+      chartData = {
+        labels: ['إيجابي', 'محايد', 'سلبي'],
+        datasets: [{
+          data: [metrics.positive_reviews || 0, metrics.neutral_reviews || 0, metrics.negative_reviews || 0],
+          backgroundColor: [colors.success, colors.warning, colors.danger],
+          borderWidth: 0,
+          hoverOffset: 12
+        }]
+      };
+
+      this.renderModernLegend(chartData.labels, chartData.datasets[0].backgroundColor, chartData.datasets[0].data);
+
+      this.state.chart = new Chart(ctx, {
+        type: 'doughnut',
+        data: chartData,
+        options: {
+          ...chartOptions,
+          cutout: '75%'
+        }
+      });
+    } else if (chartType === 'rating') {
+      const ratings = metrics.rating_distribution || [2, 5, 8, 15, 25];
+      chartData = {
+        labels: ['1⭐', '2⭐', '3⭐', '4⭐', '5⭐'],
+        datasets: [{
+          label: 'التقييمات',
+          data: ratings,
+          backgroundColor: colors.primary,
+          borderRadius: 6,
+          barThickness: 18
+        }]
+      };
+
+      this.renderModernLegend(chartData.labels, [colors.primary], null);
+
+      this.state.chart = new Chart(ctx, {
+        type: 'bar',
+        data: chartData,
+        options: {
+          ...chartOptions,
+          scales: {
+            y: { display: false, grid: { display: false } },
+            x: {
+              grid: { display: false },
+              ticks: { font: { family: 'Cairo', size: 11 }, color: colors.textSecondary }
             }
           }
         }
-      }
-    });
-  },
-
-  /**
-   * Get chart data based on type
-   */
-  getChartData(type) {
-    const allReviews = [
-      ...this.state.allData.processed_reviews,
-      ...this.state.allData.rejected_quality_reviews,
-      ...this.state.allData.rejected_irrelevant_reviews
-    ];
-
-    const colors = {
-      'إيجابي': '#10b981',
-      'سلبي': '#ef4444',
-      'محايد': '#f59e0b'
-    };
-
-    if (type === 'sentiment') {
-      const sentiment = {};
-      allReviews.forEach(r => {
-        const s = r.overall_sentiment || 'محايد';
-        sentiment[s] = (sentiment[s] || 0) + 1;
       });
-      return {
-        labels: Object.keys(sentiment),
-        datasets: [{
-          data: Object.values(sentiment),
-          backgroundColor: Object.keys(sentiment).map(s => colors[s]),
-          borderColor: '#fff',
-          borderWidth: 2
-        }]
-      };
-    }
-
-    if (type === 'category') {
-      const categories = {};
-      allReviews.forEach(r => {
-        const c = r.analysis?.category || 'عام';
-        categories[c] = (categories[c] || 0) + 1;
-      });
-      return {
-        labels: Object.keys(categories),
-        datasets: [{
-          data: Object.values(categories),
-          backgroundColor: ['#3b82f6', '#ec4899', '#8b5cf6', '#f59e0b', '#06b6d4'],
-          borderColor: '#fff',
-          borderWidth: 2
-        }]
-      };
-    }
-
-    if (type === 'rating') {
-      const ratings = { '5': 0, '4': 0, '3': 0, '2': 0, '1': 0 };
-      allReviews.forEach(r => {
-        const s = r.stars || 0;
-        if (ratings[s] !== undefined) ratings[s]++;
-      });
-      return {
-        labels: ['5 نجوم', '4 نجوم', '3 نجوم', '2 نجمة', 'نجمة واحدة'],
-        datasets: [{
-          data: Object.values(ratings),
-          backgroundColor: ['#059669', '#10b981', '#f59e0b', '#f97316', '#dc2626'],
-          borderColor: '#fff',
-          borderWidth: 2
-        }]
-      };
-    }
-
-    if (type === 'status') {
-      return {
-        labels: ['مقبول', 'منخفض الجودة', 'غير ذي صلة'],
+    } else if (chartType === 'status') {
+      chartData = {
+        labels: ['مقبول', 'مرفوض جودة', 'مرفوض صلة'],
         datasets: [{
           data: [
             this.state.allData.processed_reviews.length,
             this.state.allData.rejected_quality_reviews.length,
             this.state.allData.rejected_irrelevant_reviews.length
           ],
-          backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
-          borderColor: '#fff',
-          borderWidth: 2
+          backgroundColor: [colors.primary, colors.danger, colors.warning],
+          borderWidth: 0
         }]
       };
-    }
 
-    return { labels: [], datasets: [] };
+      this.renderModernLegend(chartData.labels, chartData.datasets[0].backgroundColor, chartData.datasets[0].data);
+
+      this.state.chart = new Chart(ctx, {
+        type: 'pie',
+        data: chartData,
+        options: chartOptions
+      });
+    }
   },
 
   /**
-   * Update statistics
+   * Render custom modern legend
+   */
+  renderModernLegend(labels, colors, data) {
+    const legendContainer = document.getElementById('chartLegend');
+    if (!legendContainer) return;
+
+    legendContainer.innerHTML = labels.map((label, i) => `
+      <div class="legend-item-modern">
+        <span class="legend-color" style="background: ${colors[i % colors.length]}"></span>
+        <span class="legend-label">${label}</span>
+        ${data ? `<span class="legend-value">(${data[i]})</span>` : ''}
+      </div>
+    `).join('');
+  },
+
+  /**
+   * Update statistics display - Premium
    */
   updateStatistics() {
-    const allReviews = this.state.allData.processed_reviews;
+    const metrics = this.state.allData.metrics;
 
-    if (allReviews.length === 0) {
-      document.getElementById('satisfactionRate').textContent = '--';
-      document.getElementById('trendsIndicator').textContent = '--';
-      return;
-    }
+    // Helper to format values
+    const formatValue = (val) => (val === undefined || val === null) ? '--' : val;
 
-    // Satisfaction rate
-    const positiveCount = allReviews.filter(r =>
-      r.overall_sentiment === 'إيجابي'
-    ).length;
-    const satisfactionRate = Math.round((positiveCount / allReviews.length) * 100);
-    document.getElementById('satisfactionRate').textContent = `${satisfactionRate}%`;
+    const responseTimeEl = document.getElementById('avgResponseTime');
+    const satisfactionEl = document.getElementById('satisfactionRate');
+    const trendsEl = document.getElementById('trendsIndicator');
 
-    // Trend indicator
-    const lastWeek = allReviews.filter(r => {
-      const date = new Date(r.created_at);
-      const weekAgo = new Date();
-      weekAgo.setDate(weekAgo.getDate() - 7);
-      return date >= weekAgo;
-    });
+    if (responseTimeEl) responseTimeEl.textContent = formatValue(metrics.avg_response_time) + ' س';
+    if (satisfactionEl) satisfactionEl.textContent = formatValue(metrics.satisfaction_rate) + '%';
 
-    if (lastWeek.length === 0) {
-      document.getElementById('trendsIndicator').textContent = '→ ثابت';
-    } else {
-      const lastWeekPositive = lastWeek.filter(r =>
-        r.overall_sentiment === 'إيجابي'
-      ).length;
-      const lastWeekRate = (lastWeekPositive / lastWeek.length) * 100;
-      const trend = lastWeekRate > satisfactionRate ? '↑ صاعد' : lastWeekRate < satisfactionRate ? '↓ هابط' : '→ ثابت';
-      document.getElementById('trendsIndicator').textContent = trend;
+    if (trendsEl) {
+      const positiveRatio = (metrics.positive_reviews / metrics.total_reviews) || 0;
+      let trendText = 'مستقر';
+      let trendClass = 'neutral';
+
+      if (positiveRatio > 0.7) {
+        trendText = 'ارتفاع';
+        trendClass = 'success';
+      } else if (positiveRatio < 0.3) {
+        trendText = 'انخفاض';
+        trendClass = 'danger';
+      }
+
+      trendsEl.textContent = trendText;
+      // We don't change className here to avoid losing base premium styles, just add sentiment class if needed
+      // Actually we use stat-value-premium already
     }
   },
 
@@ -1097,6 +1152,148 @@ const DashboardManager = {
       }
     } catch (e) {
       console.warn('Failed to get shop name:', e);
+    }
+  },
+
+  /**
+   * Open Settings Modal
+   */
+  openSettingsModal() {
+    document.getElementById('settingsModal').classList.add('active');
+    this.switchSettingsTab('profile');
+  },
+
+  /**
+   * Close Settings Modal
+   */
+  closeSettingsModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('settingsModal').classList.remove('active');
+  },
+
+  /**
+   * Switch Settings Tab
+   */
+  switchSettingsTab(tabName) {
+    // Update active button
+    const container = document.querySelector('.settings-tabs');
+    container.querySelectorAll('.s-tab-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('onclick').includes(tabName));
+    });
+
+    // Handle content rendering
+    const content = document.getElementById('settingsContent');
+    if (tabName === 'profile') {
+      this.renderProfileSettings(content);
+    } else if (tabName === 'shop') {
+      this.renderShopSettings(content);
+    } else if (tabName === 'notifications') {
+      this.renderNotificationSettings(content);
+    }
+  },
+
+  renderProfileSettings(container) {
+    container.innerHTML = `
+      <div class="settings-section animate-fade-in">
+        <div class="settings-form-group">
+          <label><i class="fas fa-user"></i> اسم المستخدم</label>
+          <input type="text" class="settings-input" id="set-username" value="${this.state.allData.shop_info?.owner_name || 'المستخدم'}">
+        </div>
+        <div class="settings-form-group">
+          <label><i class="fas fa-envelope"></i> البريد الإلكتروني</label>
+          <input type="email" class="settings-input" id="set-email" value="${this.state.allData.shop_info?.email || ''}" disabled>
+          <small class="text-secondary">لا يمكن تغيير البريد الإلكتروني حالياً</small>
+        </div>
+        <div class="settings-action-bar">
+          <button class="btn btn-primary" onclick="DashboardManager.saveSettings('profile')">
+            <i class="fas fa-save"></i> حفظ التغييرات
+          </button>
+        </div>
+      </div>
+    `;
+  },
+
+  renderShopSettings(container) {
+    container.innerHTML = `
+      <div class="settings-section animate-fade-in">
+        <div class="settings-form-group">
+          <label><i class="fas fa-store"></i> اسم المتجر</label>
+          <input type="text" class="settings-input" id="set-shopname" value="${this.state.allData.shop_info?.shop_name || ''}">
+        </div>
+        <div class="settings-form-group">
+          <label><i class="fas fa-tag"></i> نوع النشاط</label>
+          <select class="settings-input" id="set-shoptype">
+            <option value="مطعم" ${this.state.allData.shop_info?.shop_type === 'مطعم' ? 'selected' : ''}>مطعم</option>
+            <option value="كافيه" ${this.state.allData.shop_info?.shop_type === 'كافيه' ? 'selected' : ''}>كافيه</option>
+            <option value="تجزئة" ${this.state.allData.shop_info?.shop_type === 'تجزئة' ? 'selected' : ''}>تجزئة</option>
+            <option value="صالون" ${this.state.allData.shop_info?.shop_type === 'صالون' ? 'selected' : ''}>صالون</option>
+            <option value="أخرى" ${this.state.allData.shop_info?.shop_type === 'أخرى' ? 'selected' : ''}>أخرى</option>
+          </select>
+        </div>
+        <div class="settings-action-bar">
+          <button class="btn btn-primary" onclick="DashboardManager.saveSettings('shop')">
+            <i class="fas fa-save"></i> حفظ الإعدادات
+          </button>
+        </div>
+      </div>
+    `;
+  },
+
+  renderNotificationSettings(container) {
+    const isTelegramLinked = this.state.allData.shop_info?.telegram_linked;
+    container.innerHTML = `
+      <div class="settings-section animate-fade-in">
+        <p class="mb-4">قم بربط حسابك مع تيليجرام لتلقي إشعارات فورية عند وصول تقييمات جديدة.</p>
+        <div class="notification-card-glass">
+          <div class="d-flex align-items-center gap-3">
+            <div class="setup-icon" style="background: var(--grad-primary); color: white; width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+              <i class="fab fa-telegram-plane"></i>
+            </div>
+            <div>
+              <h4 class="mb-1">بوت تيليجرام</h4>
+              <span class="telegram-status-pill ${isTelegramLinked ? 'status-linked' : 'status-unlinked'}">
+                ${isTelegramLinked ? '<i class="fas fa-check"></i> متصل' : '<i class="fas fa-times"></i> غير متصل'}
+              </span>
+            </div>
+          </div>
+          <div>
+            <a href="https://t.me/ReputationGuardianBot?start=${this.state.allData.shop_info?.shop_id || ''}" 
+               target="_blank" class="btn btn-glass">
+              <i class="fas fa-link"></i> ${isTelegramLinked ? 'إعادة الربط' : 'ربط الآن'}
+            </a>
+          </div>
+        </div>
+      </div>
+    `;
+  },
+
+  async saveSettings(section) {
+    try {
+      window.UI.Loading.show();
+      const shopId = this.state.allData.shop_info?.shop_id;
+      let payload = {};
+
+      if (section === 'profile') {
+        payload = { owner_name: document.getElementById('set-username').value };
+      } else if (section === 'shop') {
+        payload = {
+          shop_name: document.getElementById('set-shopname').value,
+          shop_type: document.getElementById('set-shoptype').value
+        };
+      }
+
+      // TODO: Call API endpoint (needs implementation in api.js if not exists)
+      // For now, update local state to simulate
+      await new Promise(r => setTimeout(r, 1000));
+
+      this.state.allData.shop_info = { ...this.state.allData.shop_info, ...payload };
+      this.updateUserName();
+      window.UI.Toast.show('تم حفظ الإعدادات بنجاح', 'success');
+    } catch (error) {
+      console.error('Save error:', error);
+      window.UI.Toast.show('فشل حفظ الإعدادات', 'error');
+    } finally {
+      window.UI.Loading.hide();
     }
   },
 

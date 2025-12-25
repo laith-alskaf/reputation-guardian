@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>لوحة التحكم - حارس السمعة</title>
 
+  <link rel="stylesheet" href="css/design-tokens.css">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/schema-enhancements.css">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
+
 <body>
   <div class="container">
     <!-- Navigation -->
@@ -22,6 +25,9 @@
       </div>
       <div class="user-info" id="userInfo" style="display: none;">
         <span class="user-name" id="userName">جاري التحميل...</span>
+        <button class="btn btn-glass btn-sm" onclick="DashboardManager.openSettingsModal()" title="الإعدادات">
+          <i class="fas fa-cog"></i>
+        </button>
         <button class="btn btn-outline btn-sm" onclick="AuthManager.logout()">
           <i class="fas fa-sign-out-alt"></i> خروج
         </button>
@@ -33,8 +39,8 @@
       <div class="header-content">
         <div class="header-top">
           <div>
-            <h1 class="dashboard-title"><i class="fas fa-tachometer-alt"></i> لوحة التحكم</h1>
-            <p class="dashboard-subtitle">مراقبة أداء متجرك وإدارة التقييمات</p>
+            <h1 class="dashboard-title"><i class="fas fa-chart-line"></i> مركز إدارة السمعة</h1>
+            <p class="dashboard-subtitle">نظرة شاملة على أداء متجرك وتفاعل العملاء</p>
           </div>
           <div class="header-actions">
             <button class="btn btn-primary" id="refreshDashboard" title="تحديث البيانات">
@@ -51,20 +57,13 @@
 
     <!-- Content -->
     <div class="dashboard-content" id="dashboardContainer">
-      <!-- Shop info -->
-      <div class="dashboard-card shop-info-card animate-float-up">
-        <div class="card-header">
-          <h3><i class="fas fa-store"></i> معلومات المتجر</h3>
-        </div>
-        <div class="card-content shop-info">
-          <div class="loading-dots">جاري تحميل البيانات<span></span></div>
-        </div>
-      </div>
 
-      <!-- Metrics Grid -->
-      <div class="metrics-grid" id="metricsContainer">
-        <!-- Metrics will be populated by JavaScript -->
-      </div>
+      <!-- Main Metrics -->
+      <section class="metrics-section">
+        <div class="metrics-grid" id="metricsContainer">
+          <!-- Metrics will be populated by JavaScript -->
+        </div>
+      </section>
 
       <!-- QR Card -->
       <div class="dashboard-card qr-card animate-float-up animate-stagger-3">
@@ -80,38 +79,13 @@
         </div>
       </div>
 
-      <!-- Notifications Card -->
-      <div class="dashboard-card notifications-card animate-float-up animate-stagger-4">
-        <div class="card-header">
-           <h3><i class="fas fa-bell"></i> التنبيهات</h3>
-        </div>
-        <div class="card-content">
-           <div class="notification-setup" id="telegramSetup">
-               <div class="setup-icon">
-                   <i class="fab fa-telegram"></i>
-               </div>
-               <div class="setup-info">
-                   <h4>ربط حساب تيليجرام</h4>
-                   <p>احصل على تنبيهات فورية عند وصول تقييم جديد.</p>
-                   <div id="telegramStatus" class="status-indicator hidden">
-                       <i class="fas fa-check-circle"></i> متصل
-                   </div>
-               </div>
-               <div class="setup-action">
-                   <a href="#" id="connectTelegramBtn" class="btn btn-telegram" target="_blank">
-                       <i class="fab fa-telegram-plane"></i> تفعيل التنبيهات
-                   </a>
-               </div>
-           </div>
-        </div>
-      </div>
 
       <!-- Reviews Tabs Section -->
       <div class="dashboard-card reviews-card animate-float-up animate-stagger-4">
         <div class="card-header">
           <h3><i class="fas fa-comments"></i> التقييمات</h3>
         </div>
-        
+
         <!-- Tab Navigation -->
         <div class="tabs-navigation">
           <button class="tab-btn active" data-tab="processed" onclick="DashboardManager.switchTab('processed', event)">
@@ -119,12 +93,14 @@
             <span>المقبولة</span>
             <span class="tab-count" id="processedCount">0</span>
           </button>
-          <button class="tab-btn" data-tab="rejected-quality" onclick="DashboardManager.switchTab('rejected-quality', event)">
+          <button class="tab-btn" data-tab="rejected-quality"
+            onclick="DashboardManager.switchTab('rejected-quality', event)">
             <i class="fas fa-exclamation-circle"></i>
             <span>منخفضة الجودة</span>
             <span class="tab-count" id="qualityCount">0</span>
           </button>
-          <button class="tab-btn" data-tab="rejected-irrelevant" onclick="DashboardManager.switchTab('rejected-irrelevant', event)">
+          <button class="tab-btn" data-tab="rejected-irrelevant"
+            onclick="DashboardManager.switchTab('rejected-irrelevant', event)">
             <i class="fas fa-ban"></i>
             <span>غير ذات صلة</span>
             <span class="tab-count" id="irrelevantCount">0</span>
@@ -136,7 +112,8 @@
           <div class="search-bar">
             <i class="fas fa-search"></i>
             <input type="text" id="searchInput" placeholder="ابحث عن تقييمات..." class="search-input">
-            <button class="btn-clear-search" id="clearSearchBtn" onclick="DashboardManager.clearSearch()" style="display:none;">
+            <button class="btn-clear-search" id="clearSearchBtn" onclick="DashboardManager.clearSearch()"
+              style="display:none;">
               <i class="fas fa-times"></i>
             </button>
           </div>
@@ -174,7 +151,8 @@
               <option value="lowest-stars">أقل التقييمات</option>
             </select>
 
-            <button class="btn btn-sm btn-outline" id="toggleAdvancedFilters" onclick="DashboardManager.toggleAdvancedFilters()">
+            <button class="btn btn-sm btn-outline" id="toggleAdvancedFilters"
+              onclick="DashboardManager.toggleAdvancedFilters()">
               <i class="fas fa-sliders-h"></i> <span class="filter-text">متقدم</span>
             </button>
           </div>
@@ -183,8 +161,8 @@
           <div class="advanced-filters" id="advancedFilters" style="display: none;">
             <div class="filter-item">
               <label>نطاق درجات الجودة</label>
-              <input type="range" id="qualityScoreFilter" min="0" max="100" value="0" 
-                     onchange="DashboardManager.applyFilters()" class="range-input">
+              <input type="range" id="qualityScoreFilter" min="0" max="100" value="0"
+                onchange="DashboardManager.applyFilters()" class="range-input">
               <div class="range-value"><span id="qualityScoreValue">0</span>%</div>
             </div>
 
@@ -229,66 +207,74 @@
       </div>
 
       <!-- Analytics Card -->
-      <div class="dashboard-card analytics-card animate-float-up animate-stagger-5">
+      <div class="dashboard-card analytics-card metric-glass animate-float-up animate-stagger-5">
         <div class="card-header">
-          <h3><i class="fas fa-chart-bar"></i> تحليلات الأداء</h3>
+          <div class="header-icon-accent accent-cyan">
+            <i class="fas fa-chart-pie"></i>
+          </div>
+          <h3>تحليلات ذكية</h3>
           <div class="card-actions">
-            <select id="chartTypeFilter" class="filter-select filter-sm" onchange="DashboardManager.updateAnalyticsChart()">
+            <select id="chartTypeFilter" class="filter-select filter-sm"
+              onchange="DashboardManager.updateAnalyticsChart()">
               <option value="sentiment">توزيع المشاعر</option>
-              <option value="category">توزيع الفئات</option>
               <option value="rating">توزيع النجوم</option>
               <option value="status">حالة التقييمات</option>
             </select>
           </div>
         </div>
         <div class="card-content analytics-content">
-          <div class="chart-container">
+          <div class="chart-container-premium">
             <canvas id="reviewsChart"></canvas>
           </div>
-          <div id="chartLegend" class="chart-legend"></div>
+          <div id="chartLegend" class="chart-legend-modern"></div>
         </div>
       </div>
 
       <!-- Tools Card -->
-      <div class="dashboard-card tools-card animate-float-up animate-stagger-5">
+      <div class="dashboard-card tools-card metric-glass animate-float-up animate-stagger-5">
         <div class="card-header">
-          <h3><i class="fas fa-tools"></i> التقارير والأدوات</h3>
+          <div class="header-icon-accent accent-indigo">
+            <i class="fas fa-bolt"></i>
+          </div>
+          <h3>أدوات سريعة</h3>
         </div>
         <div class="card-content">
-          <div class="tools-grid">
-            <button class="tool-btn" onclick="DashboardManager.exportData()">
-              <i class="fas fa-download"></i>
-              <span>تصدير البيانات</span>
+          <div class="tools-grid-modern">
+            <button class="tool-btn-premium" onclick="DashboardManager.exportData()">
+              <div class="tool-icon"><i class="fas fa-file-export"></i></div>
+              <span>تصدير</span>
             </button>
-            <button class="tool-btn" onclick="DashboardManager.generateWeeklyReport()">
-              <i class="fas fa-envelope"></i>
-              <span>تقرير أسبوعي</span>
+            <button class="tool-btn-premium" onclick="DashboardManager.generateWeeklyReport()">
+              <div class="tool-icon"><i class="fas fa-paper-plane"></i></div>
+              <span>تقرير</span>
             </button>
-            <button class="tool-btn" onclick="DashboardManager.printReport()">
-              <i class="fas fa-print"></i>
+            <button class="tool-btn-premium" onclick="DashboardManager.printReport()">
+              <div class="tool-icon"><i class="fas fa-print"></i></div>
               <span>طباعة</span>
             </button>
           </div>
         </div>
       </div>
-
       <!-- Statistics Card -->
-      <div class="dashboard-card stats-card animate-float-up animate-stagger-5">
+      <div class="dashboard-card stats-card metric-glass animate-float-up animate-stagger-5">
         <div class="card-header">
-          <h3><i class="fas fa-bar-chart"></i> إحصائيات إضافية</h3>
+          <div class="header-icon-accent accent-indigo">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <h3>مؤشرات الأداء</h3>
         </div>
-        <div class="card-content stats-grid" id="statsContainer">
-          <div class="stat-item">
-            <div class="stat-value" id="avgResponseTime">--</div>
-            <div class="stat-label">متوسط وقت الاستجابة</div>
+        <div class="card-content stats-grid-modern" id="statsContainer">
+          <div class="stat-item-premium">
+            <div class="stat-value-premium" id="avgResponseTime">--</div>
+            <div class="stat-label-premium">متوسط وقت الاستجابة</div>
           </div>
-          <div class="stat-item">
-            <div class="stat-value" id="satisfactionRate">--</div>
-            <div class="stat-label">معدل الرضا</div>
+          <div class="stat-item-premium">
+            <div class="stat-value-premium" id="satisfactionRate">--</div>
+            <div class="stat-label-premium">معدل الرضا</div>
           </div>
-          <div class="stat-item">
-            <div class="stat-value" id="trendsIndicator">--</div>
-            <div class="stat-label">الاتجاه العام</div>
+          <div class="stat-item-premium">
+            <div class="stat-value-premium" id="trendsIndicator">--</div>
+            <div class="stat-label-premium">اتجاه السمعة</div>
           </div>
         </div>
       </div>
@@ -303,6 +289,39 @@
       </button>
       <div id="reviewModalContent" class="modal-body">
         <!-- Content will be populated by JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Account/Settings Modal -->
+  <div class="modal-overlay" id="settingsModal" onclick="DashboardManager.closeSettingsModal(event)">
+    <div class="modal-content settings-modal-premium" onclick="event.stopPropagation()">
+      <div class="modal-header-premium">
+        <div class="header-content">
+          <h2><i class="fas fa-cog"></i> إعدادات الحساب والمتجر</h2>
+          <p>إدارة معلوماتك وتفضيلات التنبيهات</p>
+        </div>
+        <button class="modal-close-btn" onclick="DashboardManager.closeSettingsModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body-premium">
+        <!-- Tabs for Settings -->
+        <div class="settings-tabs">
+          <button class="s-tab-btn active" onclick="DashboardManager.switchSettingsTab('profile')">
+            <i class="fas fa-user-circle"></i> الملف الشخصي
+          </button>
+          <button class="s-tab-btn" onclick="DashboardManager.switchSettingsTab('shop')">
+            <i class="fas fa-store"></i> معلومات المتجر
+          </button>
+          <button class="s-tab-btn" onclick="DashboardManager.switchSettingsTab('notifications')">
+            <i class="fas fa-bell"></i> التنبيهات
+          </button>
+        </div>
+
+        <div id="settingsContent" class="settings-tab-content pt-4">
+          <!-- Content populated by JS -->
+        </div>
       </div>
     </div>
   </div>
@@ -334,4 +353,5 @@
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
 </body>
+
 </html>

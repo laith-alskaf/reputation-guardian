@@ -132,13 +132,6 @@ class _SettingsPageState extends State<SettingsPage> {
               activeColor: AppColors.primary,
             ),
           ),
-          _buildSettingTile(
-            context,
-            icon: Icons.language,
-            title: 'اللغة',
-            subtitle: 'العربية',
-            onTap: () {},
-          ),
 
           SizedBox(height: ResponsiveSpacing.large(context)),
 
@@ -431,30 +424,73 @@ class _SettingsPageState extends State<SettingsPage> {
     Widget? trailing,
     Color? textColor,
   }) {
-    return Card(
+    final color = textColor ?? AppColors.primary;
+    return Container(
       margin: EdgeInsets.only(bottom: ResponsiveSpacing.small(context)),
-      child: ListTile(
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: (textColor ?? AppColors.primary).withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
+      decoration: BoxDecoration(
+        color: AppColors.surface.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.15), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-          child: Icon(icon, color: textColor ?? AppColors.primary),
-        ),
-        title: Text(
-          title,
-          style: TextStyle(fontWeight: FontWeight.w600, color: textColor),
-        ),
-        subtitle: Text(subtitle),
-        trailing:
-            trailing ??
-            Icon(
-              Icons.arrow_forward_ios,
-              size: 16,
-              color: AppColors.textSecondary,
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(icon, color: color, size: 22),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: textColor ?? AppColors.text,
+                        ),
+                      ),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (trailing != null)
+                  trailing
+                else
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    size: 14,
+                    color: AppColors.textSecondary.withOpacity(0.5),
+                  ),
+              ],
             ),
-        onTap: onTap,
+          ),
+        ),
       ),
     );
   }
