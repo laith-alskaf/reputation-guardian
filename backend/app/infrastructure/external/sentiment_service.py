@@ -2,7 +2,7 @@ import requests
 import re
 import unicodedata
 import logging
-from app.presentation.config import HF_TOKEN, HF_SENTIMENT_MODEL_URL, HF_TOXICITY_MODEL_URL
+from app.presentation.config import HF_TOKEN, HF_SENTIMENT_MODEL_URL, HF_TOXICITY_MODEL_URL, HF_ARABIC_TOXICITY_MODEL_URL
 from app.application.dto.sentiment_analysis_result_dto import SentimentAnalysisResultDTO
 from app.application.dto.review_dto import ReviewDTO
 from app.infrastructure.external.text_profanity_service import TextProfanityService
@@ -108,27 +108,17 @@ class SentimentService:
             return "non-toxic"
 
         headers = {"Authorization": f"Bearer {HF_TOKEN}"}
-        url = HF_TOXICITY_MODEL_URL
-
-        toxic_label = "شتائم وكلام بذيء ومهين"
-        safe_label = "نقد محترم وكلام عادي"
+        url = HF_ARABIC_TOXICITY_MODEL_URL
 
         payload = {
-            "inputs": text,
-            "parameters": {
-                "candidate_labels": [toxic_label, safe_label],
-                "multi_label": False  
-            }
+            "inputs": text
         }
 
         for attempt in range(SentimentService.MAX_RETRIES):
             try:
                 response = requests.post(url, headers=headers, json=payload, timeout=70)
                 if response.status_code == 200:
-                    return SentimentService._parse_toxicity_response(
-                        response.json(), 
-                        toxic_label
-                    )
+                    return SentimentService._parse_toxicity_response(response.json())
 
                 elif response.status_code == 503:
                     error_data = response.json()
@@ -146,47 +136,39 @@ class SentimentService:
             
         return "uncertain"
     @staticmethod
-    def _parse_toxicity_response(result, target_toxic_label) -> str:
+    def _parse_toxicity_response(result) -> str:
+        """
+        Parses response from akhooli/xlm-r-large-arabic-toxic
+        LABEL_0: non-toxic
+        LABEL_1: toxic
+        """
         try:
-            labels, scores = [], []
-
-            if isinstance(result, dict):
-                 labels = result.get("labels", [])
-                 scores = result.get("scores", [])
-            elif isinstance(result, list):
-                 for item in result:
-                    if isinstance(item, dict):
-                        labels.append(item.get("label"))
-                        scores.append(item.get("score"))
-                        
-            # if isinstance(result, list):
-            #     result = result[0] if result else {}
-
-            # if not isinstance(result, dict):
-            #     logging.warning("❌ not isinstance(result, dict)  uncertain")
-            #     return "uncertain"
-
-            # labels = result.get("labels", [])
-            # scores = result.get("scores", [])
-            res_map = dict(zip(labels, scores))
-            if not labels or not scores:
-                logging.warning("❌ not labels or not scores")
+            predictions = []
+            if isinstance(result, list) and result:
+                if isinstance(result[0], list):
+                    predictions = result[0]
+                elif isinstance(result[0], dict):
+                    predictions = result
+            
+            if not predictions:
                 return "uncertain"
 
-            top_label = labels[0]
-            top_score = scores[0]
+            # ترتيب حسب الثقة (عادة يكون مرتباً بالأساس)
+            top_prediction = sorted(predictions, key=lambda x: x.get('score', 0), reverse=True)[0]
+            label = top_prediction.get('label', '').upper()
+            score = top_prediction.get('score', 0)
 
-            if top_label == target_toxic_label and top_score >= 0.60:
-                logging.warning("❌ top_label == target_toxic_label and top_score >= 0.60")
-                return "toxic"
-            if top_label == target_toxic_label and top_score >= 0.40:
-                logging.warning("❌  top_label == target_toxic_label and top_score >= 0.40")
-                return "uncertain"
-            if res_map.get(target_toxic_label, 0) < 0.35:
-                logging.warning("❌ res_map.get(target_toxic_label, 0) < 0.35")
-                return "non-toxic"
-       
-            logging.warning("❌ uncertain uncertain")
+            if label == 'LABEL_1': # Toxic
+                if score >= 0.60:
+                    logging.warning(f"⚠️ Toxic detected (score: {score:.2f})")
+                    return "toxic"
+                elif score >= 0.40:
+                    return "uncertain"
+            
+            if label == 'LABEL_0': # Non-toxic
+                if score >= 0.70:
+                    return "non-toxic"
+            
             return "uncertain"
 
         except Exception as e:

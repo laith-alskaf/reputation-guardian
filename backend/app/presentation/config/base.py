@@ -36,6 +36,7 @@ class BaseConfig:
     HF_TOKEN = os.environ.get('HF_TOKEN')
     HF_SENTIMENT_MODEL_URL = os.environ.get('HF_SENTIMENT_MODEL_URL')
     HF_TOXICITY_MODEL_URL = os.environ.get('HF_TOXICITY_MODEL_URL')
+    HF_ARABIC_TOXICITY_MODEL_URL = os.environ.get('HF_ARABIC_TOXICITY_MODEL_URL')
     API_URL = os.environ.get("API_URL")
     MODEL_ID = os.environ.get("MODEL_ID")
     
