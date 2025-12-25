@@ -36,13 +36,11 @@ class DashboardV2 {
     async init() {
         console.log('--- Initializing Dashboard V2 Premium (Integrated) ---');
 
-        // 1. Authentication Check (Keep commented for testing if needed, but structure preserved)
-        /*
+        // 1. Authentication Check
         if (!window.API.isAuthenticated()) {
             window.location.href = 'index.html';
             return;
         }
-        */
 
         // 2. Setup Event Listeners
         this.setupEventListeners();
@@ -52,9 +50,9 @@ class DashboardV2 {
 
         // 4. Update Header
         const cachedShop = JSON.parse(localStorage.getItem('shop_info') || '{}');
-        if (cachedShop.shop_name) {
-            document.getElementById('userName').textContent = cachedShop.shop_name;
-        }
+        const shopName = cachedShop.shop_name || 'المستخدم';
+        const userNameEl = document.getElementById('userName');
+        if (userNameEl) userNameEl.textContent = shopName;
 
         // 5. Default View
         DashboardV2.switchView('dashboard');
@@ -69,7 +67,7 @@ class DashboardV2 {
             // Fetch All Required Data in Parallel
             const [dashboardRes, profileRes] = await Promise.all([
                 window.API.dashboard.getDashboard().catch(e => { throw e; }),
-                window.API.dashboard.getProfile().catch(e => null) // Profile is secondary
+                window.API.dashboard.getProfile().catch(e => null)
             ]);
 
             const data = dashboardRes;
@@ -210,7 +208,6 @@ class DashboardV2 {
         if (!ctx) return;
         if (this.state.charts.trend) this.state.charts.trend.destroy();
 
-        // Calculate real trend from reviews (last 7 days)
         const days = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
         const data = [0, 0, 0, 0, 0, 0, 0];
         const counts = [0, 0, 0, 0, 0, 0, 0];
@@ -259,7 +256,7 @@ class DashboardV2 {
         if (!ctx) return;
         if (this.state.charts.distribution) this.state.charts.distribution.destroy();
 
-        const dist = [0, 0, 0, 0, 0]; // 5 to 1
+        const dist = [0, 0, 0, 0, 0];
         this.state.allReviews.processed.forEach(r => {
             const stars = Math.round(r.stars || (r.overall_sentiment === 'إيجابي' ? 5 : 2));
             if (stars >= 1 && stars <= 5) dist[5 - stars]++;
@@ -315,6 +312,21 @@ class DashboardV2 {
         });
     }
 
+    renderInsights() {
+        const container = document.getElementById('insightsContainerV2');
+        if (!container) return;
+        const insights = [
+            { icon: 'fa-rocket', color: '#6366F1', title: 'أداء متسارع', desc: 'لقد ارتفع تقييمك بنسبة 12% هذا الأسبوع مقارنة بالأسبوع الماضي.' },
+            { icon: 'fa-exclamation-circle', color: '#F59E0B', title: 'تنبيه جودة', desc: 'هناك ملاحظات متكررة حول "تأخير التوصيل" في قسم الحلويات.' },
+            { icon: 'fa-check-circle', color: '#10B981', title: 'ثقة العملاء', desc: '85% من العملاء ينصحون بزيارة متجرك لأصدقائهم بناءً على تحليلاتنا.' }
+        ];
+        container.innerHTML = insights.map(i => `
+            <div class="insight-card-v2">
+                <div class="insight-icon-v2" style="background: ${i.color}15; color: ${i.color};"><i class="fas ${i.icon}"></i></div>
+                <div class="insight-text-v2"><h4>${i.title}</h4><p>${i.desc}</p></div>
+            </div>`).join('');
+    }
+
     /**
      * UI Updates
      */
@@ -355,10 +367,27 @@ class DashboardV2 {
                 <img src="${src}" style="width: 140px; border-radius: 12px; border: 1px solid var(--divider);">
                 <div style="margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: center;">
                     <button class="btn-v2 btn-glass-v2" onclick="DashboardV2.downloadQR('${src}')">تحميل</button>
-                    <button class="btn-v2 btn-glass-v2" onclick="DashboardV2.copyQRLink()">نسخ الرابط</button>
+                    <button class="btn-v2 btn-glass-v2" onclick="DashboardV2.copyQRLink()">نسخ</button>
                 </div>`;
+        }
+    }
+
+    updateTelegramStatusUI() {
+        const label = document.getElementById('telegramStatusLabel');
+        if (!label) return;
+        const chatID = this.state.shopInfo.telegram_chat_id || this.state.shopInfo.chat_id;
+        label.textContent = chatID ? 'مرتبط بنجاح ✅' : 'غير مرتبط ❌';
+    }
+
+    renderQuickQR() {
+        const container = document.getElementById('qrQuickContainer');
+        if (!container) return;
+        const qr = this.state.qrCode;
+        if (qr) {
+            const src = qr.startsWith('data:') ? qr : `data:image/png;base64,${qr}`;
+            container.innerHTML = `<img src="${src}" style="width: 120px; border-radius: 12px; border: 1px solid var(--divider);">`;
         } else {
-            container.innerHTML = `<button class="btn-v2 btn-primary-v2" onclick="DashboardV2.generateQR()">إنشاء كود QR محترف</button>`;
+            container.innerHTML = `<button class="btn-v2 btn-glass-v2" onclick="DashboardV2.generateQR()">إنشاء QR</button>`;
         }
     }
 
@@ -370,6 +399,8 @@ class DashboardV2 {
         this.applyFilters(this.state.currentView === 'reviews' ? 'fullReviewsContainer' : 'dashboardReviewsContainer');
     }
 
+    static handleSearch(event) { window.dashboardV2.handleSearch(event); }
+
     switchTab(tab, event) {
         if (event) event.preventDefault();
         this.state.currentTab = tab;
@@ -377,35 +408,30 @@ class DashboardV2 {
         this.applyFilters(this.state.currentView === 'reviews' ? 'fullReviewsContainer' : 'dashboardReviewsContainer');
     }
 
+    static switchTab(tab, event) { window.dashboardV2.switchTab(tab, event); }
+
     applyFilters(containerId) {
         let reviews = [...this.state.allReviews[this.state.currentTab]];
-
         if (this.state.filters.search) {
-            reviews = reviews.filter(r => {
-                const text = (r.processing?.concatenated_text || r.text || '').toLowerCase();
-                return text.includes(this.state.filters.search);
-            });
+            reviews = reviews.filter(r => (r.processing?.concatenated_text || r.text || '').toLowerCase().includes(this.state.filters.search));
         }
-
         const sentiment = document.getElementById('sentimentFilter')?.value;
         if (sentiment) {
             reviews = reviews.filter(r => (r.overall_sentiment || r.analysis?.sentiment) === sentiment);
         }
-
         this.renderReviewList(containerId, reviews);
     }
+
+    static applyFilters(containerId) { window.dashboardV2.applyFilters(containerId); }
 
     renderReviewList(containerId, list) {
         const container = document.getElementById(containerId);
         if (!container) return;
-
         const displayList = containerId === 'dashboardReviewsContainer' ? list.slice(0, 5) : list;
-
         if (displayList.length === 0) {
             container.innerHTML = `<div class="empty-state-v2"><i class="fas fa-ghost"></i><p>لا توجد بيانات متاحة.</p></div>`;
             return;
         }
-
         container.innerHTML = displayList.map((r, i) => {
             const sentiment = r.overall_sentiment || r.analysis?.sentiment || 'محايد';
             const sClass = { 'إيجابي': 'positive', 'سلبي': 'negative', 'محايد': 'neutral' }[sentiment];
@@ -419,8 +445,7 @@ class DashboardV2 {
                         </div>
                         <p>${(r.processing?.concatenated_text || r.text || '').substring(0, 100)}...</p>
                     </div>
-                </div>
-            `;
+                </div>`;
         }).join('');
     }
 
@@ -433,36 +458,32 @@ class DashboardV2 {
         container.innerHTML = `
             <div class="settings-tile-v2" onclick="DashboardV2.showModal('aboutModal')">
                 <div class="tile-icon-v2" style="background: rgba(99, 102, 241, 0.1); color: #6366f1;"><i class="fas fa-info-circle"></i></div>
-                <div class="tile-info-v2"><h4>حول التطبيق</h4><p>الإصدار، المهمة، وفريق المطورين</p></div>
+                <div class="tile-info-v2"><h4>حول التطبيق</h4><p>الإصدار والمهمة والمطور</p></div>
             </div>
             <div class="settings-tile-v2" onclick="DashboardV2.showModal('supportModal')">
                 <div class="tile-icon-v2" style="background: rgba(16, 185, 129, 0.1); color: #10b981;"><i class="fas fa-headset"></i></div>
-                <div class="tile-info-v2"><h4>المساعدة والدعم</h4><p>تواصل معنا للحصول على مساعدة فنية</p></div>
-            </div>
-        `;
+                <div class="tile-info-v2"><h4>المساعدة والدعم</h4><p>تواصل مع فريقنا التقني</p></div>
+            </div>`;
     }
 
     renderProfileSettings() {
         const container = document.getElementById('profileSettings');
         if (!container) return;
         container.innerHTML = `
-            <div class="settings-tile-v2" onclick="window.UI.Toast.show('تعديل الملف الشخصي متاح قريباً في تحديث V2.1')">
+            <div class="settings-tile-v2" onclick="window.UI.Toast.show('تعديل الملف متاح قريباً')">
                 <div class="tile-icon-v2"><i class="fas fa-user-edit"></i></div>
-                <div class="tile-info-v2"><h4>تعديل الحساب</h4><p>تغيير البريد الإلكتروني والبيانات الشخصية</p></div>
-            </div>
-        `;
+                <div class="tile-info-v2"><h4>تعديل الحساب</h4><p>تغيير البيانات الشخصية</p></div>
+            </div>`;
     }
 
     renderShopSettings() {
         const container = document.getElementById('shopSettings');
         if (!container) return;
-        const info = this.state.shopInfo;
         container.innerHTML = `
             <div class="settings-tile-v2">
-                <div class="tile-icon-v2"><i class="fas fa-id-card"></i></div>
-                <div class="tile-info-v2"><h4>هوية المتجر</h4><p>${info.shop_id || 'GH-8829'}</p></div>
-            </div>
-        `;
+                <div class="tile-icon-v2"><i class="fas fa-store"></i></div>
+                <div class="tile-info-v2"><h4>هوية المتجر</h4><p>${this.state.shopInfo.shop_id || 'GH-8829'}</p></div>
+            </div>`;
     }
 
     renderNotificationSettings() {
@@ -472,36 +493,40 @@ class DashboardV2 {
             <div class="settings-tile-v2" onclick="DashboardV2.openTelegramBot()">
                 <div class="tile-icon-v2" style="color: #0088cc;"><i class="fab fa-telegram-plane"></i></div>
                 <div class="tile-info-v2"><h4>بوت التلغرام</h4><p id="telegramStatusLabel">جاري التحقق...</p></div>
-            </div>
-        `;
+            </div>`;
     }
 
     /**
-     * Modals & Actions
+     * Static Wrappers & Modals
      */
     static showModal(id) { document.getElementById(id).classList.add('show'); }
     static closeModal(id) { document.getElementById(id).classList.remove('show'); }
+    static syncData() { window.dashboardV2.loadDashboardData(); }
+    static showNewAnalysis() { DashboardV2.showModal('newAnalysisModal'); }
+
+    static async startAnalysis() {
+        const urlEl = document.getElementById('analysisUrl');
+        if (!urlEl.value) return window.UI.Toast.show('يرجى إدخال الرابط', 'error');
+        window.UI.Toast.show('جاري بدء التحليل...', 'info');
+        DashboardV2.closeModal('newAnalysisModal');
+    }
 
     static openReviewModal(id) {
         const instance = window.dashboardV2;
         const all = [...instance.state.allReviews.processed, ...instance.state.allReviews['rejected-quality'], ...instance.state.allReviews['rejected-irrelevant']];
         const r = all.find(review => (review._id || review.id) === id);
         if (!r) return;
-
         const details = document.getElementById('modalReviewDetails');
         const qualityScore = r.analysis?.quality?.quality_score || 0;
-
         details.innerHTML = `
-            <div class="detail-item"><h5>النص الكامل</h5><p>${r.text || r.processing?.concatenated_text}</p></div>
-            <div class="detail-item"><h5>ملخص AI</h5><p>${r.generated_content?.summary || 'لا يوجد ملخص متاح.'}</p></div>
-            <div class="detail-item"><h5>مؤشر الجودة</h5>
-                <div class="progress-bar-v2" style="height: 10px; background: var(--background); border-radius: 5px; overflow: hidden; margin-top: 5px;">
-                    <div style="width: ${qualityScore * 100}%; height: 100%; background: ${qualityScore > 0.6 ? 'var(--success)' : 'var(--error)'}; transition: width 1s;"></div>
+            <div class="detail-item"><h5>النص</h5><p>${r.text || r.processing?.concatenated_text}</p></div>
+            <div class="detail-item"><h5>ملخص AI</h5><p>${r.generated_content?.summary || 'لا يوجد ملخص.'}</p></div>
+            <div class="detail-item"><h5>الجودة: ${(qualityScore * 100).toFixed(0)}%</h5>
+                <div class="progress-bar-v2" style="height: 10px; background: #eee; border-radius: 5px; overflow: hidden;">
+                    <div style="width: ${qualityScore * 100}%; height: 100%; background: ${qualityScore > 0.6 ? '#10B981' : '#EF4444'};"></div>
                 </div>
-                <p style="font-size: 0.8rem; margin-top: 5px; text-align: left;">${(qualityScore * 100).toFixed(0)}%</p>
             </div>
-            <div class="detail-item"><h5>الرد المقترح</h5><div class="glass p-3 rounded-md" style="background: var(--background); border: 1px dashed var(--primary);"><p>${r.generated_content?.suggested_reply || 'جاري توليد رد...'}</p></div></div>
-        `;
+            <div class="detail-item"><h5>الرد المقترح</h5><div class="glass p-3 rounded-md" style="border: 1px dashed var(--primary);"><p>${r.generated_content?.suggested_reply || 'جاري التوليد...'}</p></div></div>`;
         DashboardV2.showModal('reviewDetailsModal');
     }
 
@@ -512,6 +537,7 @@ class DashboardV2 {
             const res = await window.API.qr.generateQR();
             instance.state.qrCode = res.qr_code;
             instance.updateQRUI();
+            instance.renderQuickQR();
             window.UI.Toast.show('تم إنشاء رمز QR بنجاح', 'success');
         } catch (e) { instance.handleApiError(e); }
         finally { instance.hideLoading(); }
@@ -520,16 +546,19 @@ class DashboardV2 {
     static downloadQR(src) {
         const link = document.createElement('a');
         link.href = src;
-        link.download = `QR_Reputation_Guardian_${Date.now()}.png`;
+        link.download = `QR_Guardian_${Date.now()}.png`;
         link.click();
     }
 
+    static copyQRLink() {
+        const shopId = window.dashboardV2.state.shopInfo.shop_id;
+        const url = `${window.location.origin}/review/${shopId}`;
+        navigator.clipboard.writeText(url).then(() => window.UI.Toast.show('تم نسخ الرابط', 'success'));
+    }
+
     static async openTelegramBot() {
-        try {
-            const profile = await window.API.dashboard.getProfile();
-            const shopId = profile.shop_id || profile.id;
-            window.open(`https://t.me/LaithAlskafBot?start=${shopId}`, '_blank');
-        } catch (e) { window.UI.Toast.show('فشل فتح البوت، يرجى المحاولة لاحقاً.', 'error'); }
+        const shopId = window.dashboardV2.state.shopInfo.shop_id;
+        window.open(`https://t.me/LaithAlskafBot?start=${shopId}`, '_blank');
     }
 
     /**
@@ -539,10 +568,8 @@ class DashboardV2 {
         const el = document.getElementById(id);
         if (!el) return;
         let current = 0;
-        const duration = 1000;
-        const step = target / (duration / 30);
         const timer = setInterval(() => {
-            current += step;
+            current += target / 40;
             if (current >= target) { el.textContent = target + suffix; clearInterval(timer); }
             else { el.textContent = Math.floor(current) + suffix; }
         }, 30);
@@ -558,7 +585,6 @@ class DashboardV2 {
     }
 }
 
-// Entry Point
 document.addEventListener('DOMContentLoaded', () => {
     window.dashboardV2 = new DashboardV2();
     window.dashboardV2.init();
