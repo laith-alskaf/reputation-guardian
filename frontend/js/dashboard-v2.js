@@ -487,6 +487,7 @@ class DashboardV2 {
         if (this.state.filters.search) {
             reviews = reviews.filter(r => (r.processing?.concatenated_text || r.text || '').toLowerCase().includes(this.state.filters.search));
         }
+        const sentiment = document.getElementById('sentimentFilter')?.value;
         if (sentiment) {
             reviews = reviews.filter(r => (r.overall_sentiment || r.analysis?.sentiment) === sentiment);
         }
@@ -499,6 +500,7 @@ class DashboardV2 {
         }
         this.renderReviewList(containerId, reviews);
     }
+
 
     static applyFilters(containerId) { window.dashboardV2.applyFilters(containerId); }
 
