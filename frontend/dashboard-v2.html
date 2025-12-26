@@ -172,10 +172,12 @@
                             <option value="محايد">محايد</option>
                         </select>
 
-                         <div class="date-filter-group" style="display: flex; gap: 0.5rem; align-items: center;">
-                            <input type="date" id="dateFrom" class="select-v2" onchange="DashboardV2.applyFilters('fullReviewsContainer')" placeholder="من تاريخ">
+                        <div class="date-filter-group" style="display: flex; gap: 0.5rem; align-items: center;">
+                            <input type="date" id="dateFrom" class="select-v2"
+                                onchange="DashboardV2.applyFilters('fullReviewsContainer')" placeholder="من تاريخ">
                             <span>-</span>
-                            <input type="date" id="dateTo" class="select-v2" onchange="DashboardV2.applyFilters('fullReviewsContainer')" placeholder="إلى تاريخ">
+                            <input type="date" id="dateTo" class="select-v2"
+                                onchange="DashboardV2.applyFilters('fullReviewsContainer')" placeholder="إلى تاريخ">
                         </div>
 
                         <select class="select-v2" id="categoryFilter"
@@ -212,7 +214,7 @@
                                 <canvas id="sentimentPieChart"></canvas>
                             </div>
                         </div>
-                         <div class="stat-card-v2">
+                        <div class="stat-card-v2">
                             <h3>تحليل التعليقات المسيئة</h3>
                             <div style="height: 250px; margin-top: 1.5rem;">
                                 <canvas id="toxicityChart"></canvas>

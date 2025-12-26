@@ -37,10 +37,10 @@ class DashboardV2 {
         console.log('--- Initializing Dashboard V2 Premium (Integrated) ---');
 
         // 1. Authentication Check
-        // if (!window.API.isAuthenticated()) {
-        //     window.location.href = 'index.html';
-        //     return;
-        // }
+        if (!window.API.isAuthenticated()) {
+            window.location.href = 'index.html';
+            return;
+        }
 
         // 2. Setup Event Listeners
         this.setupEventListeners();
@@ -186,80 +186,7 @@ class DashboardV2 {
         this.initTrendChart('reputationTrendChartAnalytics');
         this.initDistributionChart();
         this.initSentimentPieChart();
-        this.initToxicityChart();
-        this.initCategoryChart();
         this.renderInsights();
-    }
-
-    initToxicityChart() {
-        const ctx = document.getElementById('toxicityChart');
-        if (!ctx) return;
-        if (this.state.charts.toxicity) this.state.charts.toxicity.destroy();
-
-        const reviews = this.state.allReviews.processed;
-        // Check processing.is_profane or analysis.toxicity.is_profane
-        const toxic = reviews.filter(r => r.processing?.is_profane === true || r.analysis?.toxicity?.is_profane === true).length;
-        const clean = reviews.length - toxic;
-
-        this.state.charts.toxicity = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['محتوى مسيء', 'محتوى مقبول'],
-                datasets: [{
-                    data: [toxic, clean],
-                    backgroundColor: ['#EF4444', '#10B981'],
-                    borderWidth: 0,
-                    hoverOffset: 10
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '70%',
-                plugins: {
-                    legend: { position: 'bottom', labels: { font: { family: 'Cairo' } } },
-                    title: { display: true, text: `نسبة المحتوى المسيء (${((toxic / (reviews.length || 1)) * 100).toFixed(1)}%)`, font: { family: 'Cairo' } }
-                }
-            }
-        });
-    }
-
-    initCategoryChart() {
-        const ctx = document.getElementById('categoryChart');
-        if (!ctx) return;
-        if (this.state.charts.category) this.state.charts.category.destroy();
-
-        const categories = {};
-        this.state.allReviews.processed.forEach(r => {
-            const cat = r.analysis?.category || r.category || 'غير مصنف';
-            categories[cat] = (categories[cat] || 0) + 1;
-        });
-
-        const labels = Object.keys(categories);
-        const data = Object.values(categories);
-
-        this.state.charts.category = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'عدد التقييمات',
-                    data: data,
-                    backgroundColor: '#4F46E5',
-                    borderRadius: 6,
-                    barPercentage: 0.6
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
-                    x: { grid: { display: false }, ticks: { font: { family: 'Cairo' } } }
-                }
-            }
-        });
     }
 
     renderReviews() {
@@ -485,43 +412,13 @@ class DashboardV2 {
 
     applyFilters(containerId) {
         let reviews = [...this.state.allReviews[this.state.currentTab]];
-
-        // 1. Search Filter
         if (this.state.filters.search) {
-            const term = this.state.filters.search;
-            reviews = reviews.filter(r =>
-                (r.processing?.concatenated_text || r.text || '').toLowerCase().includes(term) ||
-                (r.email || '').toLowerCase().includes(term)
-            );
+            reviews = reviews.filter(r => (r.processing?.concatenated_text || r.text || '').toLowerCase().includes(this.state.filters.search));
         }
-
-        // 2. Sentiment Filter
         const sentiment = document.getElementById('sentimentFilter')?.value;
         if (sentiment) {
             reviews = reviews.filter(r => (r.overall_sentiment || r.analysis?.sentiment) === sentiment);
         }
-
-        // 3. Category Filter
-        const category = document.getElementById('categoryFilter')?.value;
-        if (category) {
-            reviews = reviews.filter(r => (r.analysis?.category || r.category) === category);
-        }
-
-        // 4. Date Range Filter
-        const dateFrom = document.getElementById('dateFrom')?.value;
-        const dateTo = document.getElementById('dateTo')?.value;
-
-        if (dateFrom) {
-            const from = new Date(dateFrom);
-            reviews = reviews.filter(r => new Date(r.created_at) >= from);
-        }
-
-        if (dateTo) {
-            const to = new Date(dateTo);
-            to.setHours(23, 59, 59); // End of day
-            reviews = reviews.filter(r => new Date(r.created_at) <= to);
-        }
-
         this.renderReviewList(containerId, reviews);
     }
 
@@ -530,50 +427,23 @@ class DashboardV2 {
     renderReviewList(containerId, list) {
         const container = document.getElementById(containerId);
         if (!container) return;
-
         const displayList = containerId === 'dashboardReviewsContainer' ? list.slice(0, 5) : list;
-
         if (displayList.length === 0) {
             container.innerHTML = `<div class="empty-state-v2"><i class="fas fa-ghost"></i><p>لا توجد بيانات متاحة.</p></div>`;
             return;
         }
-
         container.innerHTML = displayList.map((r, i) => {
             const sentiment = r.overall_sentiment || r.analysis?.sentiment || 'محايد';
-            const category = r.analysis?.category || r.category || 'عام';
-            const qualityScore = r.analysis?.quality?.quality_score || 0;
-            const stars = r.stars || (sentiment === 'إيجابي' ? 5 : 2);
-            const date = new Date(r.created_at).toLocaleDateString('ar-SA');
-            const text = r.processing?.concatenated_text || r.text || '';
-
-            const sConfig = {
-                'إيجابي': { class: 'positive', icon: 'fa-smile' },
-                'سلبي': { class: 'negative', icon: 'fa-frown' },
-                'محايد': { class: 'neutral', icon: 'fa-meh' }
-            }[sentiment] || { class: 'neutral', icon: 'fa-meh' };
-
-            const starsHTML = '<i class="fas fa-star"></i>'.repeat(Math.round(stars)) + '<i class="far fa-star"></i>'.repeat(5 - Math.round(stars));
-
-            // Premium Card Style
+            const sClass = { 'إيجابي': 'positive', 'سلبي': 'negative', 'محايد': 'neutral' }[sentiment];
             return `
-                <div class="review-item-v2 animate-fade-in" style="animation-delay: ${i * 0.05}s; border-right: 4px solid var(--${sConfig.class === 'positive' ? 'success' : sConfig.class === 'negative' ? 'error' : 'warning'})" onclick="DashboardV2.openReviewModal('${r._id || r.id}')">
-                    <div class="sentiment-dot ${sConfig.class}" title="${sentiment}"></div>
-                    
+                <div class="review-item-v2 animate-fade-in" style="animation-delay: ${i * 0.1}s" onclick="DashboardV2.openReviewModal('${r._id || r.id}')">
+                    <div class="sentiment-dot ${sClass}"></div>
                     <div class="review-content-v2">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
-                            <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                <span class="badge-v2" style="background: var(--background);">${category}</span>
-                                <div style="color: #F59E0B; font-size: 0.8rem;">${starsHTML}</div>
-                            </div>
-                            <span style="font-size: 0.75rem; color: var(--text-secondary); white-space: nowrap;">${date}</span>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h4>${r.analysis?.category || r.category || 'مراجعة عامة'}</h4>
+                            <span style="font-size: 0.75rem; color: var(--text-secondary);">${new Date(r.created_at).toLocaleDateString('ar-EG')}</span>
                         </div>
-                        
-                        <p>${text.substring(0, 120)}${text.length > 120 ? '...' : ''}</p>
-                        
-                        <div style="display: flex; gap: 1rem; margin-top: 0.75rem; font-size: 0.8rem; color: var(--text-secondary);">
-                             <span title="الجودة"><i class="fas fa-certificate text-primary"></i> ${(qualityScore * 100).toFixed(0)}%</span>
-                             ${r.analysis?.context?.has_mismatch ? '<span class="text-error"><i class="fas fa-exclamation-triangle"></i> سياق غير متطابق</span>' : ''}
-                        </div>
+                        <p>${(r.processing?.concatenated_text || r.text || '').substring(0, 100)}...</p>
                     </div>
                 </div>`;
         }).join('');
