@@ -358,26 +358,42 @@ class DashboardV2 {
         const data = Object.values(reasons);
 
         this.state.charts.abusive = new Chart(ctx, {
-            type: 'radar',
+            type: 'bar', // Horizontal bar for clarity
             data: {
                 labels: labels.length ? labels : ['آمن'],
                 datasets: [{
-                    label: 'أسباب الرفض',
+                    label: 'عدد التعليقات المرفوضة',
                     data: data.length ? data : [0],
-                    backgroundColor: 'rgba(239, 68, 68, 0.2)',
-                    borderColor: '#EF4444',
-                    pointBackgroundColor: '#EF4444',
-                    fill: true
+                    backgroundColor: [
+                        'rgba(239, 68, 68, 0.8)',
+                        'rgba(245, 158, 11, 0.8)',
+                        'rgba(59, 130, 246, 0.8)',
+                        'rgba(16, 185, 129, 0.8)'
+                    ],
+                    borderRadius: 4,
+                    barThickness: 20
                 }]
             },
             options: {
+                indexAxis: 'y', // Horizontal
                 responsive: true,
                 maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#1e293b',
+                        titleFont: { family: 'Cairo' },
+                        bodyFont: { family: 'Cairo' }
+                    }
+                },
                 scales: {
-                    r: {
-                        angleLines: { color: 'rgba(0,0,0,0.1)' },
-                        grid: { color: 'rgba(0,0,0,0.05)' },
-                        pointLabels: { font: { family: 'Cairo', size: 12 } }
+                    x: {
+                        beginAtZero: true,
+                        grid: { display: false }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: { font: { family: 'Cairo', weight: '600' } }
                     }
                 }
             }
