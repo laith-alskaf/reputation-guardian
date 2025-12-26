@@ -61,6 +61,8 @@ class DashboardService(IDashboardService):
 
         # 3. Calculate metrics ONLY from processed reviews
         total_reviews = len(processed_dicts)
+        category_counts = {}
+        
         if total_reviews > 0:
             avg_stars = sum(r.get('source', {}).get('rating', 0) for r in processed_dicts) / total_reviews
             
@@ -68,11 +70,28 @@ class DashboardService(IDashboardService):
             negative_reviews = sentiments.count('سلبي')
             positive_reviews = sentiments.count('إيجابي')
             neutral_reviews = total_reviews - negative_reviews - positive_reviews
+
+            # Calculate Category Distribution
+            for r in processed_dicts:
+                cat = r.get('analysis', {}).get('category', 'غير مصنف')
+                category_counts[cat] = category_counts.get(cat, 0) + 1
         else:
             avg_stars = 0
             negative_reviews = 0
             positive_reviews = 0
             neutral_reviews = 0
+
+        # Calculate Rejection/Abusive Analysis
+        rejection_reasons = {}
+        for r in rejected_quality_dicts:
+            reason = r.get('rejection_reason', 'جودة منخفضة')
+            if 'toxic' in reason.lower() or 'profan' in reason.lower():
+                 label = 'محتوى مسيء'
+            elif 'short' in reason.lower():
+                 label = 'قصير جداً'
+            else:
+                 label = reason
+            rejection_reasons[label] = rejection_reasons.get(label, 0) + 1
 
         # 4. Assemble the final data structure
         internal_data = {
@@ -87,7 +106,9 @@ class DashboardService(IDashboardService):
                 "average_stars": round(avg_stars, 1),
                 "negative_reviews": negative_reviews,
                 "positive_reviews": positive_reviews,
-                "neutral_reviews": neutral_reviews
+                "neutral_reviews": neutral_reviews,
+                "categories_distribution": category_counts,
+                "rejection_analysis": rejection_reasons
             },
             "processed_reviews": processed_dicts[:50],  # Limit to recent 50
             "rejected_quality_reviews": rejected_quality_dicts[:50],

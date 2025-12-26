@@ -201,12 +201,15 @@ body {
 }
 
 .stat-card-v2:hover {
-    transform: translateY(-10px);
-    box-shadow: var(--shadow-elevated);
+    transform: translateY(-8px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(to bottom right, #ffffff, #f8fafc);
 }
 
 .stat-card-v2:hover::after {
     background: var(--primary);
+    height: 6px;
+    box-shadow: 0 0 15px var(--primary-light);
 }
 
 .card-icon-v2 {

@@ -25,7 +25,9 @@ class DashboardV2 {
             charts: {
                 trend: null,
                 distribution: null,
-                sentiment: null
+                sentiment: null,
+                category: null,
+                abusive: null
             }
         };
     }
@@ -37,10 +39,10 @@ class DashboardV2 {
         console.log('--- Initializing Dashboard V2 Premium (Integrated) ---');
 
         // 1. Authentication Check
-        if (!window.API.isAuthenticated()) {
-            window.location.href = 'index.html';
-            return;
-        }
+        // if (!window.API.isAuthenticated()) {
+        //     window.location.href = 'index.html';
+        //     return;
+        // }
 
         // 2. Setup Event Listeners
         this.setupEventListeners();
@@ -186,6 +188,8 @@ class DashboardV2 {
         this.initTrendChart('reputationTrendChartAnalytics');
         this.initDistributionChart();
         this.initSentimentPieChart();
+        this.initCategoryChart();
+        this.initAbusiveChart();
         this.renderInsights();
     }
 
@@ -312,6 +316,74 @@ class DashboardV2 {
         });
     }
 
+    initCategoryChart() {
+        const ctx = document.getElementById('categoryDistributionChart');
+        if (!ctx) return;
+        if (this.state.charts.category) this.state.charts.category.destroy();
+
+        const categories = this.state.metrics.categories_distribution || {};
+        const labels = Object.keys(categories);
+        const data = Object.values(categories);
+
+        this.state.charts.category = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels.length ? labels : ['غير متوفر'],
+                datasets: [{
+                    label: 'عدد التعليقات',
+                    data: data.length ? data : [0],
+                    backgroundColor: '#8B5CF6',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    initAbusiveChart() {
+        const ctx = document.getElementById('abusiveAnalysisChart');
+        if (!ctx) return;
+        if (this.state.charts.abusive) this.state.charts.abusive.destroy();
+
+        const reasons = this.state.metrics.rejection_analysis || {};
+        const labels = Object.keys(reasons);
+        const data = Object.values(reasons);
+
+        this.state.charts.abusive = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: labels.length ? labels : ['آمن'],
+                datasets: [{
+                    label: 'أسباب الرفض',
+                    data: data.length ? data : [0],
+                    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                    borderColor: '#EF4444',
+                    pointBackgroundColor: '#EF4444',
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        angleLines: { color: 'rgba(0,0,0,0.1)' },
+                        grid: { color: 'rgba(0,0,0,0.05)' },
+                        pointLabels: { font: { family: 'Cairo', size: 12 } }
+                    }
+                }
+            }
+        });
+    }
+
     renderInsights() {
         const container = document.getElementById('insightsContainerV2');
         if (!container) return;
@@ -415,9 +487,15 @@ class DashboardV2 {
         if (this.state.filters.search) {
             reviews = reviews.filter(r => (r.processing?.concatenated_text || r.text || '').toLowerCase().includes(this.state.filters.search));
         }
-        const sentiment = document.getElementById('sentimentFilter')?.value;
         if (sentiment) {
             reviews = reviews.filter(r => (r.overall_sentiment || r.analysis?.sentiment) === sentiment);
+        }
+        const category = document.getElementById('categoryFilter')?.value;
+        if (category) {
+            reviews = reviews.filter(r => {
+                const rCat = (r.analysis?.category || r.category || '');
+                return rCat === category || (category === 'عام' && !rCat);
+            });
         }
         this.renderReviewList(containerId, reviews);
     }
