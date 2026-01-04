@@ -15,7 +15,7 @@ class SupportPage extends StatelessWidget {
     final Uri emailUri = Uri(
       scheme: 'mailto',
       path: 'laithalskaf@gmail.com',
-      query: 'subject=حارس السمعة - استفسار',
+      query: 'subject= ReviewIQ - استفسار',
     );
 
     if (await canLaunchUrl(emailUri)) {
@@ -25,7 +25,7 @@ class SupportPage extends StatelessWidget {
 
   Future<void> _launchWhatsApp(BuildContext context) async {
     final Uri whatsappUri = Uri.parse(
-      'https://wa.me/${AppConstants.whatsappNumber}?text=مرحباً، لدي استفسار حول تطبيق حارس السمعة',
+      'https://wa.me/${AppConstants.whatsappNumber}?text=مرحباً، لدي استفسار حول تطبيق ReviewIQ',
     );
 
     if (await canLaunchUrl(whatsappUri)) {

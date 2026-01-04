@@ -13,6 +13,10 @@ class AppAnimations {
   static const Curve bounceIn = Curves.elasticOut;
   static const Curve smoothCurve = Curves.easeOutCubic;
 
+
+  // ---------------- Curves ----------------
+  static const Curve ease = Curves.easeOutCubic;
+  static const Curve emphasized = Curves.easeInOutCubicEmphasized;
   /// Fade in animation
   static Widget fadeIn({
     required Widget child,
@@ -90,7 +94,33 @@ class AppAnimations {
       child: child,
     );
   }
-
+  /// -------------------------------------------------------------
+  /// Appear animation (Fade + slight slide)
+  /// Best for lists, cards, dialogs
+  /// -------------------------------------------------------------
+  static Widget appear({
+    required Widget child,
+    Duration duration = normal,
+    Curve curve = ease,
+    double offsetY = 24,
+    Duration delay = Duration.zero,
+  }) {
+    return TweenAnimationBuilder<double>(
+      tween:  Tween(begin: 0, end: 1),
+      duration: duration,
+      curve: curve,
+      child: child,
+      builder: (context, value, child) {
+        return Opacity(
+          opacity: value,
+          child: Transform.translate(
+            offset: Offset(0, offsetY * (1 - value)),
+            child: child,
+          ),
+        );
+      },
+    );
+  }
   /// Shimmer loading effect
   static Widget shimmer({
     required Widget child,

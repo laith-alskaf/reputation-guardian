@@ -117,7 +117,7 @@ class QRBloc extends Bloc<QREvent, QRState> {
       // Share the file
       await Share.shareXFiles(
         [XFile(file.path)],
-        subject: 'QR Code - حارس السمعة',
+        subject: 'QR Code - ReviewIQ',
         text: 'رمز QR لجمع تقييمات العملاء',
       );
 

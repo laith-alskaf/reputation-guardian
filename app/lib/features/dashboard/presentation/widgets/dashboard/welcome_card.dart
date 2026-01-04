@@ -54,7 +54,7 @@ class WelcomeCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 12),
                     const Text(
-                      'حارس السمعة Pro',
+                      'ReviewIQ Pro',
                       style: TextStyle(
                         color: Colors.white70,
                         fontSize: 14,

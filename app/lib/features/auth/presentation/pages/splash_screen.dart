@@ -96,20 +96,20 @@ class _SplashScreenState extends State<SplashScreen>
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
-                      Icons.shield,
-                      size: 80,
-                      color: Colors.white,
+                    child: Image.asset(
+                      'assets/icons/icon.png',
+                      width: 80,
+                      height: 80,
                     ),
                   ),
                   const SizedBox(height: 24),
 
                   // App Name
                   const Text(
-                    'حارس السمعة',
+                    "ReviewIQ",
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,

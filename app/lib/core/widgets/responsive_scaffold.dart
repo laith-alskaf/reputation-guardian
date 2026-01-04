@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:reputation_guardian/core/utils/responsive.dart';
 import 'package:reputation_guardian/core/widgets/custom_app_bar.dart';
 
+/// =============================================================
+/// Responsive Scaffold
+/// Handles layout, padding & AppBar behavior
+/// =============================================================
 class ResponsiveScaffold extends StatelessWidget {
   final String title;
   final Widget body;
@@ -29,23 +33,26 @@ class ResponsiveScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: useAnimatedAppBar
-          ? AnimatedCustomAppBar(
-              title: title,
-              actions: actions,
-              showBackButton: showBackButton,
-              onBackPressed: onBackPressed,
-            )
-          : CustomAppBar(
-              title: title,
-              actions: actions,
-              showBackButton: showBackButton,
-              onBackPressed: onBackPressed,
-            ),
       drawer: drawer,
-      body: SafeArea(
-        child: Padding(padding: context.responsivePadding, child: body),
+
+      /// ---------------- AppBar ----------------
+      appBar: CustomAppBar(
+        title: title,
+        actions: actions,
+        showBackButton: showBackButton,
+        onBackPressed: onBackPressed,
+        animated: useAnimatedAppBar,
       ),
+
+      /// ---------------- Body ----------------
+      body: SafeArea(
+        child: Padding(
+          padding: context.responsivePadding,
+          child: body,
+        ),
+      ),
+
+      /// ---------------- Optional UI ----------------
       floatingActionButton: floatingActionButton,
       bottomNavigationBar: bottomNavigationBar,
     );

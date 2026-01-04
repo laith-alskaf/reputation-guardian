@@ -23,22 +23,23 @@ class AboutPage extends StatelessWidget {
             // App Logo
             AppAnimations.scaleIn(
               child: Container(
-                padding: const EdgeInsets.all(40),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
+                  color: Colors.white,
+                  // gradient: AppColors.primaryGradient,
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
                       color: AppColors.primary.withOpacity(0.4),
-                      blurRadius: 30,
-                      offset: const Offset(0, 15),
+                      blurRadius: 20,
+                      offset: const Offset(3, 3),
                     ),
                   ],
                 ),
-                child: const Icon(
-                  Icons.shield_rounded,
-                  size: 80,
-                  color: Colors.white,
+                child: Image.asset(
+                  'assets/icons/icon.png',
+                  width: 80,
+                  height: 80,
                 ),
               ),
             ),
@@ -50,7 +51,7 @@ class AboutPage extends StatelessWidget {
               child: Column(
                 children: [
                   Text(
-                    'حارس السمعة',
+                    "ReviewIQ",
                     style: TextStyle(
                       fontSize: 34,
                       fontWeight: FontWeight.bold,

@@ -18,11 +18,12 @@ class DashboardLoading extends DashboardState {
 
 class DashboardLoaded extends DashboardState {
   final DashboardData dashboardData;
+  final List<dynamic> latestReviews;
 
-  const DashboardLoaded(this.dashboardData);
+  const DashboardLoaded(this.dashboardData, {this.latestReviews = const []});
 
   @override
-  List<Object?> get props => [dashboardData];
+  List<Object?> get props => [dashboardData, latestReviews];
 }
 
 class DashboardError extends DashboardState {

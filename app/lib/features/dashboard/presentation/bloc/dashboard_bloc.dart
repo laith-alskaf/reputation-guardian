@@ -27,17 +27,19 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     await result.fold(
       (failure) async => emit(DashboardError(failure.message)),
       (dashboardData) async {
+        final latestReviews = _getLatestReviews(dashboardData);
+
         // If QR is null from API, try to load from local storage
         if (dashboardData.qrCode == null || dashboardData.qrCode!.isEmpty) {
           final cachedQR = await localDataSource.getQRCode();
           if (cachedQR != null && cachedQR.isNotEmpty) {
             // Create new dashboard data with cached QR
             final updatedData = dashboardData.copyWith(qrCode: cachedQR);
-            emit(DashboardLoaded(updatedData));
+            emit(DashboardLoaded(updatedData, latestReviews: latestReviews));
             return;
           }
         }
-        emit(DashboardLoaded(dashboardData));
+        emit(DashboardLoaded(dashboardData, latestReviews: latestReviews));
       },
     );
   }
@@ -61,17 +63,42 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
         }
       },
       (dashboardData) async {
+        final latestReviews = _getLatestReviews(dashboardData);
+
         // If QR is null from API, try to load from local storage
         if (dashboardData.qrCode == null || dashboardData.qrCode!.isEmpty) {
           final cachedQR = await localDataSource.getQRCode();
           if (cachedQR != null && cachedQR.isNotEmpty) {
             final updatedData = dashboardData.copyWith(qrCode: cachedQR);
-            emit(DashboardLoaded(updatedData));
+            emit(DashboardLoaded(updatedData, latestReviews: latestReviews));
             return;
           }
         }
-        emit(DashboardLoaded(dashboardData));
+        emit(DashboardLoaded(dashboardData, latestReviews: latestReviews));
       },
     );
+  }
+
+  List<dynamic> _getLatestReviews(dynamic data) {
+    final allReviews = [
+      ...data.processedReviews,
+      ...data.rejectedQualityReviews,
+      ...data.rejectedIrrelevantReviews,
+    ];
+
+    allReviews.sort((a, b) {
+      final dateAStr = a['created_at'] ?? a['timestamp'];
+      final dateBStr = b['created_at'] ?? b['timestamp'];
+
+      if (dateAStr == null) return 1;
+      if (dateBStr == null) return -1;
+
+      final dateA = DateTime.tryParse(dateAStr.toString()) ?? DateTime(0);
+      final dateB = DateTime.tryParse(dateBStr.toString()) ?? DateTime(0);
+
+      return dateB.compareTo(dateA);
+    });
+
+    return allReviews.take(3).toList();
   }
 }

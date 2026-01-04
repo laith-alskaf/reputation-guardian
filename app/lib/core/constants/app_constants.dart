@@ -26,7 +26,7 @@ class AppConstants {
   static const String themeKey = 'theme_mode';
 
   // App Configuration
-  static const String appName = 'حارس السمعة';
+  static const String appName = "ReviewIQ";
   static String get appVersion => dotenv.env['APP_VERSION'] ?? '1.0.0';
   static const Duration requestTimeout = Duration(seconds: 60);
   static const int retryAttempts = 3;

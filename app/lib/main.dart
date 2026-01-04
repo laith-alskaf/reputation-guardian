@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => getIt<QRBloc>()),
       ],
       child: MaterialApp(
-        title: 'حارس السمعة',
+        title: "ReviewIQ",
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme(),
         darkTheme: AppTheme.darkTheme(),

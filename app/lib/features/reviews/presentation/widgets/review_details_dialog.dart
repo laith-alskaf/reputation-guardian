@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/utils/app_snackbar.dart';
 import '../../domain/enums/review_status_enum.dart';
@@ -8,52 +9,24 @@ import '../../domain/helpers/review_status_helper.dart';
 import 'common/quality_score_badge.dart';
 import 'common/flags_list_widget.dart';
 
-/// Enhanced review details dialog with comprehensive quality analysis
 class ReviewDetailsDialog extends StatelessWidget {
   final dynamic review;
 
-  const ReviewDetailsDialog({super.key, required this.review});
+  const ReviewDetailsDialog({
+    super.key,
+    required this.review,
+  });
 
   @override
   Widget build(BuildContext context) {
-    // Basic info
-    final sentiment =
-        review['analysis']?['sentiment'] ??
-        review['overall_sentiment'] ??
-        'محايد';
-    final stars = review['source']?['rating'] ?? review['stars'] ?? 0;
-    final content =
-        review['processing']?['concatenated_text'] ?? 'لا يوجد محتوى';
-    final email = review['email'] ?? 'مجهول';
-    final phone = review['source']?['fields']?['phone']?.toString();
-    final createdAt = review['created_at'] ?? '';
-    final displayDate = createdAt.toString().split('T')[0];
-    final status = ReviewStatus.fromString(review['status'] ?? 'processing');
-    final rejectionReason = review['rejection_reason'];
-
-    // Generated content
-    final summary = review['generated_content']?['summary'];
-    final insights = review['generated_content']?['actionable_insights'];
-    final suggestedReply = review['generated_content']?['suggested_reply'];
-
-    // Analysis
-    final category = review['analysis']?['category'] ?? 'عام';
-    final qualityScore = review['analysis']?['quality']?['quality_score'];
-
-    // Quality analysis
-    final isProfane = review['processing']?['is_profane'] ?? false;
-    final isSuspicious =
-        review['analysis']?['quality']?['is_suspicious'] ?? false;
-    final flagsList = review['analysis']?['quality']?['flags'];
-    final flags = QualityFlag.parseList(flagsList);
-    final hasWarnings = isProfane || isSuspicious;
+    final data = _ReviewDetailsData(review);
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       backgroundColor: Colors.transparent,
       elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 600, maxHeight: 750),
+        constraints: const BoxConstraints(maxWidth: 620, maxHeight: 760),
         decoration: BoxDecoration(
           color: AppColors.background,
           borderRadius: BorderRadius.circular(24),
@@ -61,200 +34,14 @@ class ReviewDetailsDialog extends StatelessWidget {
         ),
         child: Column(
           children: [
-            // Premium Header with Gradient
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-              decoration: const BoxDecoration(
-                gradient: AppColors.primaryGradient,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(24),
-                  topRight: Radius.circular(24),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.description_rounded,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'تفاصيل التقييم',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Cairo',
-                          ),
-                        ),
-                        Text(
-                          'تحليل شامل للجودة والمحتوى',
-                          style: TextStyle(color: Colors.white70, fontSize: 11),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.close_rounded,
-                      color: Colors.white,
-                      size: 28,
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-            ),
-
-            // Content
+            _Header(onClose: () => Navigator.pop(context)),
             Expanded(
               child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Status & Rejection (Priority)
-                    if (status.isRejected) ...[
-                      _buildPremiumRejectionCard(status, rejectionReason),
-                      const SizedBox(height: 24),
-                    ],
-
-                    // Core Content
-                    _buildPremiumSection(
-                      context,
-                      'نص التقييم',
-                      Icons.chat_bubble_outline_rounded,
-                      [
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: AppColors.surface,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: AppColors.primary.withOpacity(0.05),
-                            ),
-                            boxShadow: AppColors.softShadow,
-                          ),
-                          child: SelectableText(
-                            content,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              height: 1.6,
-                              fontWeight: FontWeight.w500,
-                              color: AppColors.text,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // AI Insights (Glass Cards)
-                    if (summary != null ||
-                        (insights is List && insights.isNotEmpty)) ...[
-                      _buildPremiumSection(
-                        context,
-                        'تحليل الذكاء الاصطناعي',
-                        Icons.auto_awesome_rounded,
-                        [
-                          if (summary != null)
-                            _buildAIInsightCard(
-                              'الملخص الذكي',
-                              summary.toString(),
-                              Icons.summarize_rounded,
-                              AppColors.info,
-                            ),
-                          if (insights is List && insights.isNotEmpty)
-                            ...insights.map(
-                              (insight) => Padding(
-                                padding: const EdgeInsets.only(top: 12),
-                                child: _buildAIInsightCard(
-                                  'رؤية تحليلية',
-                                  insight.toString(),
-                                  Icons.lightbulb_outline_rounded,
-                                  AppColors.success,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                    ],
-
-                    // Suggested Reply
-                    if (suggestedReply != null) ...[
-                      _buildPremiumSection(
-                        context,
-                        'الرد المقترح',
-                        Icons.reply_rounded,
-                        [
-                          _buildSuggestedReplyCard(
-                            context,
-                            suggestedReply.toString(),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                    ],
-
-                    // Quality Analysis
-                    _buildPremiumSection(
-                      context,
-                      'تحليل الجودة',
-                      Icons.verified_user_rounded,
-                      [
-                        if (qualityScore != null) ...[
-                          QualityScoreBadge(qualityScore: qualityScore),
-                          const SizedBox(height: 16),
-                        ],
-                        if (flags.isNotEmpty)
-                          FlagsListWidget(
-                            flags: flags,
-                            compact: false,
-                            showDescriptions: true,
-                          ),
-                        if (hasWarnings) ...[
-                          const SizedBox(height: 16),
-                          _buildPremiumWarningBox(isProfane, isSuspicious),
-                        ],
-                      ],
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Reviewer Info Grid
-                    _buildPremiumSection(
-                      context,
-                      'معلومات المقيم',
-                      Icons.person_outline_rounded,
-                      [
-                        _buildInfoGrid(
-                          context,
-                          email,
-                          phone,
-                          displayDate,
-                          stars,
-                          sentiment,
-                          category,
-                        ),
-                      ],
-                    ),
-                  ],
+                physics: const BouncingScrollPhysics(),
+                child: _DialogContent(
+                  context: context,
+                  data: data,
                 ),
               ),
             ),
@@ -263,13 +50,425 @@ class ReviewDetailsDialog extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildPremiumSection(
-    BuildContext context,
-    String title,
+/* -------------------------------------------------------------------------- */
+/*                                   HEADER                                   */
+/* -------------------------------------------------------------------------- */
+
+class _Header extends StatelessWidget {
+  final VoidCallback onClose;
+
+  const _Header({required this.onClose});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+      decoration: const BoxDecoration(
+        gradient: AppColors.primaryGradient,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.description_rounded,
+              color: Colors.white,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 16),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'تفاصيل التقييم',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Cairo',
+                  ),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  'عرض وتحليل شامل للتقييم',
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: onClose,
+            icon: const Icon(Icons.close_rounded, color: Colors.white),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                MAIN CONTENT                                */
+/* -------------------------------------------------------------------------- */
+
+class _DialogContent extends StatelessWidget {
+  final BuildContext context;
+  final _ReviewDetailsData data;
+
+  const _DialogContent({
+    required this.context,
+    required this.data,
+  });
+
+  @override
+  Widget build(BuildContext _) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (data.status.isRejected) ...[
+          RejectionCard(
+            status: data.status,
+            reason: data.rejectionReason,
+          ),
+          const SizedBox(height: 24),
+        ],
+
+        _Section(
+          title: 'نص التقييم',
+          icon: Icons.chat_bubble_outline_rounded,
+          child: _TextCard(data.content),
+        ),
+
+        const SizedBox(height: 28),
+
+        if (data.hasAIInsights) ...[
+          _Section(
+            title: 'تحليل الذكاء الاصطناعي',
+            icon: Icons.auto_awesome_rounded,
+            child: Column(
+              children: [
+                if (data.summary != null)
+                  _InsightCard(
+                    title: 'الملخص الذكي',
+                    content: data.summary!,
+                    icon: Icons.summarize_rounded,
+                    color: AppColors.info,
+                  ),
+                if (data.insights != null)
+                  ...data.insights!.map(
+                    (e) => Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: _InsightCard(
+                        title: 'رؤية تحليلية',
+                        content: e.toString(),
+                        icon: Icons.lightbulb_outline_rounded,
+                        color: AppColors.success,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 28),
+        ],
+
+        if (data.suggestedReply != null) ...[
+          _Section(
+            title: 'الرد المقترح',
+            icon: Icons.reply_rounded,
+            child: _SuggestedReplyCard(
+              reply: data.suggestedReply!,
+            ),
+          ),
+          const SizedBox(height: 28),
+        ],
+
+        _Section(
+          title: 'تحليل الجودة',
+          icon: Icons.verified_user_rounded,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (data.qualityScore != null)
+                QualityScoreBadge(qualityScore: data.qualityScore!),
+              if (data.flags.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                FlagsListWidget(
+                  flags: data.flags,
+                  compact: false,
+                  showDescriptions: true,
+                ),
+              ],
+              if (data.hasWarnings) ...[
+                const SizedBox(height: 16),
+                WarningBox(
+                  isProfane: data.isProfane,
+                  isSuspicious: data.isSuspicious,
+                ),
+              ],
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 28),
+
+        _Section(
+          title: 'معلومات المقيم',
+          icon: Icons.person_outline_rounded,
+          child: InfoGrid(data),
+        ),
+      ],
+    );
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                UI WIDGETS                                  */
+/* -------------------------------------------------------------------------- */
+
+class RejectionCard extends StatelessWidget {
+  final ReviewStatus status;
+  final dynamic reason;
+
+  const RejectionCard({
+    super.key,
+    required this.status,
+    required this.reason,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = ReviewStatusHelper.getStatusColor(status);
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.gpp_bad_rounded, color: color, size: 28),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'تقييم مرفوض',
+                  style: TextStyle(
+                    color: color,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  ReviewStatusHelper.getRejectionReasonArabic(reason),
+                  style: TextStyle(color: color.withOpacity(0.8)),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class WarningBox extends StatelessWidget {
+  final bool isProfane;
+  final bool isSuspicious;
+
+  const WarningBox({
+    super.key,
+    required this.isProfane,
+    required this.isSuspicious,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.error.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.error.withOpacity(0.2)),
+      ),
+      child: Column(
+        children: [
+          if (isProfane)
+            _warningRow(
+              Icons.warning_amber_rounded,
+              'محتوى مسيء',
+              'يحتوي على ألفاظ غير لائقة',
+              AppColors.error,
+            ),
+          if (isSuspicious)
+            _warningRow(
+              Icons.report_problem_rounded,
+              'نشاط مشبوه',
+              'قد يكون تقييم غير حقيقي',
+              AppColors.warning,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _warningRow(
     IconData icon,
-    List<Widget> children,
+    String title,
+    String desc,
+    Color color,
   ) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: color),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, color: color)),
+                Text(desc, style: const TextStyle(fontSize: 12)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class InfoGrid extends StatelessWidget {
+  final _ReviewDetailsData data;
+
+  const InfoGrid(this.data, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 24,
+      runSpacing: 16,
+      children: [
+        _item('البريد', data.email, Icons.email_outlined),
+        _item('التاريخ', data.date, Icons.calendar_today_outlined),
+        _item('التقييم', '${data.stars} نجوم', Icons.star_outline),
+        _item('المشاعر', data.sentiment.toString(),
+            Icons.sentiment_satisfied_alt),
+        _item('الفئة', data.category.toString(), Icons.category_outlined),
+      ],
+    );
+  }
+
+  Widget _item(String label, String value, IconData icon) {
+    return SizedBox(
+      width: 150,
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: AppColors.textSecondary),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style: const TextStyle(
+                        fontSize: 10, color: AppColors.textSecondary)),
+                Text(value,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                DATA MODEL                                  */
+/* -------------------------------------------------------------------------- */
+
+class _ReviewDetailsData {
+  final dynamic raw;
+
+  _ReviewDetailsData(this.raw);
+
+  String get content =>
+      raw['processing']?['concatenated_text'] ?? 'لا يوجد محتوى';
+
+  String get email => raw['email'] ?? 'مجهول';
+
+  String get date =>
+      raw['created_at']?.toString().split('T').first ?? '';
+
+  int get stars => raw['source']?['rating'] ?? raw['stars'] ?? 0;
+
+  dynamic get sentiment =>
+      raw['analysis']?['sentiment'] ?? raw['overall_sentiment'] ?? 'محايد';
+
+  dynamic get category => raw['analysis']?['category'] ?? 'عام';
+
+  ReviewStatus get status =>
+      ReviewStatus.fromString(raw['status'] ?? 'processing');
+
+  dynamic get rejectionReason => raw['rejection_reason'];
+
+  double? get qualityScore =>
+      raw['analysis']?['quality']?['quality_score'];
+
+  bool get isProfane => raw['processing']?['is_profane'] ?? false;
+
+  bool get isSuspicious =>
+      raw['analysis']?['quality']?['is_suspicious'] ?? false;
+
+  List<QualityFlag> get flags =>
+      QualityFlag.parseList(raw['analysis']?['quality']?['flags']);
+
+  bool get hasWarnings => isProfane || isSuspicious;
+
+  String? get summary => raw['generated_content']?['summary'];
+
+  List? get insights => raw['generated_content']?['actionable_insights'];
+
+  String? get suggestedReply =>
+      raw['generated_content']?['suggested_reply'];
+
+  bool get hasAIInsights =>
+      summary != null || (insights != null && insights!.isNotEmpty);
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                HELPERS                                     */
+/* -------------------------------------------------------------------------- */
+
+class _Section extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final Widget child;
+
+  const _Section({
+    required this.title,
+    required this.icon,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -288,23 +487,55 @@ class ReviewDetailsDialog extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        ...children,
+        child,
       ],
     );
   }
+}
 
-  Widget _buildAIInsightCard(
-    String title,
-    String content,
-    IconData icon,
-    Color color,
-  ) {
+class _TextCard extends StatelessWidget {
+  final String text;
+
+  const _TextCard(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.primary.withOpacity(0.08)),
+      ),
+      child: SelectableText(
+        text,
+        style: const TextStyle(height: 1.6),
+      ),
+    );
+  }
+}
+
+class _InsightCard extends StatelessWidget {
+  final String title;
+  final String content;
+  final IconData icon;
+  final Color color;
+
+  const _InsightCard({
+    required this.title,
+    required this.content,
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: color.withOpacity(0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.1)),
+        border: Border.all(color: color.withOpacity(0.15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -313,250 +544,45 @@ class ReviewDetailsDialog extends StatelessWidget {
             children: [
               Icon(icon, size: 16, color: color),
               const SizedBox(width: 8),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: color,
-                ),
-              ),
+              Text(title,
+                  style:
+                      TextStyle(fontWeight: FontWeight.bold, color: color)),
             ],
           ),
           const SizedBox(height: 10),
-          Text(
-            content,
-            style: const TextStyle(
-              fontSize: 13,
-              height: 1.6,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
+          Text(content, style: const TextStyle(height: 1.6)),
         ],
       ),
     );
   }
+}
 
-  Widget _buildSuggestedReplyCard(BuildContext context, String reply) {
+class _SuggestedReplyCard extends StatelessWidget {
+  final String reply;
+
+  const _SuggestedReplyCard({required this.reply});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.primary.withOpacity(0.08),
-            AppColors.primary.withOpacity(0.02),
-          ],
-        ),
+        color: AppColors.primary.withOpacity(0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+        border: Border.all(color: AppColors.primary.withOpacity(0.15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SelectableText(
-            reply,
-            style: const TextStyle(
-              fontSize: 13,
-              height: 1.6,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
+          SelectableText(reply, style: const TextStyle(height: 1.6)),
           const SizedBox(height: 16),
           ElevatedButton.icon(
             onPressed: () {
               Clipboard.setData(ClipboardData(text: reply));
-              AppSnackbar.showSuccess(context, 'تم نسخ الرد المقترح');
+              AppSnackbar.showSuccess(context, 'تم نسخ الرد');
             },
             icon: const Icon(Icons.copy_rounded, size: 16),
-            label: const Text('نسخ الرد المقترح'),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              minimumSize: const Size(0, 40),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPremiumRejectionCard(ReviewStatus status, dynamic reason) {
-    final color = ReviewStatusHelper.getStatusColor(status);
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.gpp_bad_rounded, color: color, size: 28),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'تقييم مرفوض',
-                  style: TextStyle(
-                    color: color,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                  ),
-                ),
-                Text(
-                  ReviewStatusHelper.getRejectionReasonArabic(reason),
-                  style: TextStyle(color: color.withOpacity(0.8), fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPremiumWarningBox(bool isProfane, bool isSuspicious) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.error.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.error.withOpacity(0.2)),
-      ),
-      child: Column(
-        children: [
-          if (isProfane)
-            _buildWarningRow(
-              Icons.warning_amber_rounded,
-              'محتوى مسيئ',
-              'يحتوي على ألفاظ غير لائقة',
-              AppColors.error,
-            ),
-          if (isSuspicious)
-            _buildWarningRow(
-              Icons.report_problem_rounded,
-              'نشاط مشبوه',
-              'قد يكون تقييم غير حقيقي',
-              AppColors.warning,
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoGrid(
-    BuildContext context,
-    String email,
-    String? phone,
-    String date,
-    int stars,
-    dynamic sentiment,
-    dynamic category,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primary.withOpacity(0.05)),
-      ),
-      child: Wrap(
-        spacing: 24,
-        runSpacing: 16,
-        children: [
-          _buildInfoItem('البريد', email, Icons.email_outlined),
-          if (phone != null)
-            _buildInfoItem('الهاتف', phone, Icons.phone_outlined),
-          _buildInfoItem('التاريخ', date, Icons.calendar_today_outlined),
-          _buildInfoItem('التقييم', '$stars نجوم', Icons.star_outline_rounded),
-          _buildInfoItem(
-            'المشاعر',
-            sentiment.toString(),
-            Icons.sentiment_satisfied_alt_rounded,
-          ),
-          _buildInfoItem('الفئة', category.toString(), Icons.category_outlined),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoItem(String label, String value, IconData icon) {
-    return SizedBox(
-      width: 140,
-      child: Row(
-        children: [
-          Icon(icon, size: 16, color: AppColors.textSecondary),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    fontSize: 10,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildWarningRow(
-    IconData icon,
-    String title,
-    String description,
-    Color color,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, size: 16, color: color),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: color,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  description,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
-            ),
+            label: const Text('نسخ الرد'),
           ),
         ],
       ),

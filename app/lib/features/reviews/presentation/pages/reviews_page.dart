@@ -65,20 +65,20 @@ class _ReviewsPageState extends State<ReviewsPage>
                   return TabBarView(
                     controller: _tabController,
                     children: [
-                      _buildReviewsList(
-                        context,
-                        state.dashboardData.processedReviews,
-                        'all',
+                      _PaginatedReviewsList(
+                        reviews: state.dashboardData.processedReviews,
+                        type: 'all',
+                        searchQuery: _searchQuery,
                       ),
-                      _buildReviewsList(
-                        context,
-                        state.dashboardData.rejectedQualityReviews,
-                        'rejected_quality',
+                      _PaginatedReviewsList(
+                        reviews: state.dashboardData.rejectedQualityReviews,
+                        type: 'rejected_quality',
+                        searchQuery: _searchQuery,
                       ),
-                      _buildReviewsList(
-                        context,
-                        state.dashboardData.rejectedIrrelevantReviews,
-                        'rejected_irrelevant',
+                      _PaginatedReviewsList(
+                        reviews: state.dashboardData.rejectedIrrelevantReviews,
+                        type: 'rejected_irrelevant',
+                        searchQuery: _searchQuery,
                       ),
                     ],
                   );
@@ -166,29 +166,114 @@ class _ReviewsPageState extends State<ReviewsPage>
       ),
     );
   }
+}
 
-  Widget _buildReviewsList(
-    BuildContext context,
-    List<dynamic> reviews,
-    String type,
-  ) {
-    if (reviews.isEmpty) {
-      return _buildEmptyState(type);
+class _PaginatedReviewsList extends StatefulWidget {
+  final List<dynamic> reviews;
+  final String type;
+  final String searchQuery;
+
+  const _PaginatedReviewsList({
+    required this.reviews,
+    required this.type,
+    required this.searchQuery,
+  });
+
+  @override
+  State<_PaginatedReviewsList> createState() => _PaginatedReviewsListState();
+}
+
+class _PaginatedReviewsListState extends State<_PaginatedReviewsList>
+    with AutomaticKeepAliveClientMixin {
+  final ScrollController _scrollController = ScrollController();
+  List<dynamic> _filteredReviews = [];
+  List<dynamic> _displayedReviews = [];
+  static const int _pageSize = 10;
+  bool _isLoadingMore = false;
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  void initState() {
+    super.initState();
+    _processReviews();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void didUpdateWidget(_PaginatedReviewsList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.reviews != widget.reviews ||
+        oldWidget.searchQuery != widget.searchQuery) {
+      _processReviews();
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _processReviews() {
+    if (widget.searchQuery.isEmpty) {
+      _filteredReviews = widget.reviews;
+    } else {
+      final query = widget.searchQuery.toLowerCase();
+      _filteredReviews = widget.reviews.where((review) {
+        final content =
+            review['processing']?['concatenated_text']
+                ?.toString()
+                .toLowerCase() ??
+            '';
+        final email = review['email']?.toString().toLowerCase() ?? '';
+        return content.contains(query) || email.contains(query);
+      }).toList();
     }
 
-    final filteredReviews = reviews.where((review) {
-      if (_searchQuery.isEmpty) return true;
-      final content =
-          review['processing']?['concatenated_text']
-              ?.toString()
-              .toLowerCase() ??
-          '';
-      final email = review['email']?.toString().toLowerCase() ?? '';
-      return content.contains(_searchQuery.toLowerCase()) ||
-          email.contains(_searchQuery.toLowerCase());
-    }).toList();
+    _displayedReviews = _filteredReviews.take(_pageSize).toList();
+    if (mounted) setState(() {});
+  }
 
-    if (filteredReviews.isEmpty) {
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      _loadMore();
+    }
+  }
+
+  void _loadMore() {
+    if (_isLoadingMore || _displayedReviews.length >= _filteredReviews.length) {
+      return;
+    }
+
+    setState(() {
+      _isLoadingMore = true;
+    });
+
+    Future.delayed(const Duration(milliseconds: 50), () {
+      if (!mounted) return;
+      final nextBatch = _filteredReviews
+          .skip(_displayedReviews.length)
+          .take(_pageSize);
+
+      setState(() {
+        _displayedReviews.addAll(nextBatch);
+        _isLoadingMore = false;
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+
+    if (widget.reviews.isEmpty) {
+      return _buildEmptyState();
+    }
+
+    if (_filteredReviews.isEmpty) {
       return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -201,25 +286,39 @@ class _ReviewsPageState extends State<ReviewsPage>
       );
     }
 
-    return ListView.builder(
+    return ListView.separated(
+      controller: _scrollController,
       padding: EdgeInsets.symmetric(
         horizontal: ResponsiveSpacing.medium(context),
         vertical: 8,
       ),
-      itemCount: filteredReviews.length,
+      itemCount:
+          _displayedReviews.length +
+          (_displayedReviews.length < _filteredReviews.length ? 1 : 0),
       physics: const BouncingScrollPhysics(),
-      addAutomaticKeepAlives: true,
+      separatorBuilder: (context, index) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
-        final review = filteredReviews[index];
-        return _buildReviewCard(review, type);
+        if (index == _displayedReviews.length) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          );
+        }
+        return _buildReviewCard(_displayedReviews[index]);
       },
     );
   }
 
-  Widget _buildReviewCard(dynamic review, String type) {
+  Widget _buildReviewCard(dynamic review) {
     return ReviewCard(
       review: review,
-      type: type,
+      type: widget.type,
       onTap: () => _showReviewDetails(review),
       getSentimentColor: SentimentHelpers.getSentimentColor,
       getSentimentIcon: SentimentHelpers.getSentimentIcon,
@@ -234,13 +333,13 @@ class _ReviewsPageState extends State<ReviewsPage>
     );
   }
 
-  Widget _buildEmptyState(String type) {
+  Widget _buildEmptyState() {
     String message;
     String subtitle;
     IconData icon;
     Color iconColor;
 
-    switch (type) {
+    switch (widget.type) {
       case 'all':
         message = 'لا توجد تقييمات مقبولة';
         subtitle = 'سيظهر هنا التقييمات المعتمدة';

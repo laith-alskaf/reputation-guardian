@@ -1,17 +1,59 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
+/// =============================================================
+/// Custom AppBar – Enterprise SaaS Style
+/// =============================================================
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final List<Widget>? actions;
   final bool showBackButton;
   final VoidCallback? onBackPressed;
+  final bool animated;
 
   const CustomAppBar({
     super.key,
     required this.title,
     this.actions,
     this.showBackButton = false,
+    this.onBackPressed,
+    this.animated = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return animated
+        ? _AnimatedAppBarContent(
+            title: title,
+            actions: actions,
+            showBackButton: showBackButton,
+            onBackPressed: onBackPressed,
+          )
+        : _StaticAppBarContent(
+            title: title,
+            actions: actions,
+            showBackButton: showBackButton,
+            onBackPressed: onBackPressed,
+          );
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+}
+
+/// =============================================================
+/// Static AppBar
+/// =============================================================
+class _StaticAppBarContent extends StatelessWidget {
+  final String title;
+  final List<Widget>? actions;
+  final bool showBackButton;
+  final VoidCallback? onBackPressed;
+
+  const _StaticAppBarContent({
+    required this.title,
+    this.actions,
+    required this.showBackButton,
     this.onBackPressed,
   });
 
@@ -22,150 +64,54 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         gradient: AppColors.primaryGradient,
         boxShadow: AppColors.elevatedShadow,
       ),
-      child: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        leading: showBackButton
-            ? IconButton(
-                icon: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    Icons.arrow_back_ios_new,
-                    size: 18,
-                    color: Colors.white,
-                  ),
-                ),
-                onPressed: onBackPressed ?? () => Navigator.pop(context),
-              )
-            : Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    Icons.shield,
-                    color: Colors.white,
-                    size: 28,
-                  ),
-                ),
-              ),
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.5,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.3),
-                  width: 1,
-                ),
-              ),
-              child: const Row(
-                children: [
-                  Icon(Icons.verified, color: Colors.white, size: 14),
-                  SizedBox(width: 4),
-                  Text(
-                    'Pro',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions:
-            actions ??
-            [
-              IconButton(
-                icon: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    Icons.notifications_outlined,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-                onPressed: () {
-                  // TODO: Implement notifications
-                },
-              ),
-              const SizedBox(width: 8),
-            ],
+      child: _BaseAppBar(
+        title: title,
+        actions: actions,
+        showBackButton: showBackButton,
+        onBackPressed: onBackPressed,
       ),
     );
   }
-
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
 
-/// Animated AppBar with shimmer effect for special pages
-class AnimatedCustomAppBar extends StatefulWidget
-    implements PreferredSizeWidget {
+/// =============================================================
+/// Animated AppBar
+/// =============================================================
+class _AnimatedAppBarContent extends StatefulWidget {
   final String title;
   final List<Widget>? actions;
   final bool showBackButton;
   final VoidCallback? onBackPressed;
 
-  const AnimatedCustomAppBar({
-    super.key,
+  const _AnimatedAppBarContent({
     required this.title,
     this.actions,
-    this.showBackButton = false,
+    required this.showBackButton,
     this.onBackPressed,
   });
 
   @override
-  State<AnimatedCustomAppBar> createState() => _AnimatedCustomAppBarState();
-
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  State<_AnimatedAppBarContent> createState() =>
+      _AnimatedAppBarContentState();
 }
 
-class _AnimatedCustomAppBarState extends State<AnimatedCustomAppBar>
+class _AnimatedAppBarContentState extends State<_AnimatedAppBarContent>
     with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
+  late final AnimationController _controller;
+  late final Animation<double> _animation;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(seconds: 4),
       vsync: this,
+      duration: const Duration(seconds: 4),
     )..repeat(reverse: true);
 
-    _animation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _animation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    );
   }
 
   @override
@@ -178,7 +124,7 @@ class _AnimatedCustomAppBarState extends State<AnimatedCustomAppBar>
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _animation,
-      builder: (context, child) {
+      builder: (_, __) {
         return Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -189,113 +135,182 @@ class _AnimatedCustomAppBarState extends State<AnimatedCustomAppBar>
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              stops: [0.0, 0.6 + (0.2 * _animation.value), 1.0],
+              stops: [0.0, 0.6 + (_animation.value * 0.2), 1.0],
             ),
             boxShadow: AppColors.elevatedShadow,
           ),
-          child: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            centerTitle: true,
-            leading: widget.showBackButton
-                ? IconButton(
-                    icon: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.arrow_back_ios_new,
-                        size: 18,
-                        color: Colors.white,
-                      ),
-                    ),
-                    onPressed:
-                        widget.onBackPressed ?? () => Navigator.pop(context),
-                  )
-                : Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.shield,
-                        color: Colors.white,
-                        size: 28,
-                      ),
-                    ),
-                  ),
-            title: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  widget.title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.3),
-                      width: 1,
-                    ),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.verified, color: Colors.white, size: 14),
-                      SizedBox(width: 4),
-                      Text(
-                        'Pro',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            actions:
-                widget.actions ??
-                [
-                  IconButton(
-                    icon: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.notifications_outlined,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ),
-                    onPressed: () {
-                      // TODO: Implement notifications
-                    },
-                  ),
-                  const SizedBox(width: 8),
-                ],
+          child: _BaseAppBar(
+            title: widget.title,
+            actions: widget.actions,
+            showBackButton: widget.showBackButton,
+            onBackPressed: widget.onBackPressed,
           ),
         );
       },
+    );
+  }
+}
+
+/// =============================================================
+/// Base AppBar (Shared UI)
+/// =============================================================
+class _BaseAppBar extends StatelessWidget {
+  final String title;
+  final List<Widget>? actions;
+  final bool showBackButton;
+  final VoidCallback? onBackPressed;
+
+  const _BaseAppBar({
+    required this.title,
+    this.actions,
+    required this.showBackButton,
+    this.onBackPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      centerTitle: true,
+      leading: showBackButton
+          ? _BackButton(onPressed: onBackPressed)
+          : const _AppLogo(),
+      title: _TitleWithBadge(title: title),
+      actions: actions ?? const [_NotificationAction()],
+    );
+  }
+}
+
+/// =============================================================
+/// Components
+/// =============================================================
+class _BackButton extends StatelessWidget {
+  final VoidCallback? onPressed;
+
+  const _BackButton({this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      onPressed: onPressed ?? () => Navigator.pop(context),
+      icon: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Icon(
+          Icons.arrow_back_ios_new,
+          size: 18,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+}
+
+class _AppLogo extends StatelessWidget {
+  const _AppLogo();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: Container(
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Image.asset(
+          'assets/icons/icon.png',
+          width: 24,
+          height: 24,
+        ),
+      ),
+    );
+  }
+}
+
+class _TitleWithBadge extends StatelessWidget {
+  final String title;
+
+  const _TitleWithBadge({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
+          ),
+        ),
+        const SizedBox(width: 8),
+        _ProBadge(),
+      ],
+    );
+  }
+}
+
+class _ProBadge extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withOpacity(0.3)),
+      ),
+      child: const Row(
+        children: [
+          Icon(Icons.verified, size: 14, color: Colors.white),
+          SizedBox(width: 4),
+          Text(
+            'Pro',
+            style: TextStyle(
+              fontSize: 10,
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NotificationAction extends StatelessWidget {
+  const _NotificationAction();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: IconButton(
+        onPressed: () {
+          // TODO: Notifications
+        },
+        icon: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: const Icon(
+            Icons.notifications_outlined,
+            color: Colors.white,
+            size: 20,
+          ),
+        ),
+      ),
     );
   }
 }

@@ -96,7 +96,7 @@ class _LoginPageState extends State<LoginPage>
                           child: Container(
                             padding: const EdgeInsets.all(24),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
+                              color: Colors.white,
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
@@ -106,10 +106,10 @@ class _LoginPageState extends State<LoginPage>
                                 ),
                               ],
                             ),
-                            child: const Icon(
-                              Icons.shield,
-                              size: 80,
-                              color: Colors.white,
+                            child: Image.asset(
+                              'assets/icons/icon.png',
+                              width: 80,
+                              height: 80,
                             ),
                           ),
                         ),
@@ -119,7 +119,7 @@ class _LoginPageState extends State<LoginPage>
                         AppAnimations.fadeSlideIn(
                           delay: const Duration(milliseconds: 100),
                           child: const Text(
-                            'حارس السمعة',
+                            'ReviewIQ',
                             style: TextStyle(
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
