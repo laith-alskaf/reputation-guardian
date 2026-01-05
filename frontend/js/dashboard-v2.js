@@ -39,10 +39,10 @@ class DashboardV2 {
         console.log('--- Initializing Dashboard V2 Premium (Integrated) ---');
 
         // 1. Authentication Check
-        // if (!window.API.isAuthenticated()) {
-        //     window.location.href = 'index.html';
-        //     return;
-        // }
+        if (!window.API.isAuthenticated()) {
+            window.location.href = 'index.html';
+            return;
+        }
 
         // 2. Setup Event Listeners
         this.setupEventListeners();

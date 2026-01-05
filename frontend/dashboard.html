@@ -1,384 +1,0 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>لوحة التحكم - حارس السمعة</title>
-
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/design-tokens.css">
-  <link rel="stylesheet" href="css/schema-enhancements.css">
-
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-</head>
-
-<body>
-  <div class="container">
-    <!-- Navigation -->
-    <nav class="navbar">
-      <div class="nav-brand">
-        <i class="fas fa-shield-alt"></i>
-        <span>حارس السمعة</span>
-      </div>
-      <div class="nav-links">
-        <a href="index.html" class="nav-link"><i class="fas fa-home"></i> الرئيسية</a>
-      </div>
-      <div class="user-info" id="userInfo" style="display: none;">
-        <span class="user-name" id="userName">جاري التحميل...</span>
-        <button class="btn btn-glass btn-sm" onclick="DashboardManager.openSettingsModal()" title="الإعدادات">
-          <i class="fas fa-cog"></i>
-        </button>
-        <button class="btn btn-outline btn-sm" onclick="AuthManager.logout()">
-          <i class="fas fa-sign-out-alt"></i> خروج
-        </button>
-      </div>
-    </nav>
-
-    <!-- Header -->
-    <section class="dashboard-header">
-      <div class="header-content">
-        <div class="header-top">
-          <div>
-            <h1 class="dashboard-title"><i class="fas fa-chart-line"></i> مركز إدارة السمعة</h1>
-            <p class="dashboard-subtitle">نظرة شاملة على أداء متجرك وتفاعل العملاء</p>
-          </div>
-          <div class="header-actions">
-            <button class="btn btn-primary" id="refreshDashboard" title="تحديث البيانات">
-              <i class="fas fa-sync-alt"></i> <span class="action-text">تحديث</span>
-            </button>
-            <button class="btn btn-outline" id="generateQR" title="إنشاء رمز QR جديد">
-              <i class="fas fa-qrcode"></i> <span class="action-text">QR جديد</span>
-            </button>
-          </div>
-        </div>
-        <p class="last-updated mt-3"></p>
-      </div>
-    </section>
-
-    <!-- Content -->
-    <div class="dashboard-content" id="dashboardContainer">
-
-      <!-- Main Metrics -->
-      <section class="metrics-section">
-        <div class="metrics-grid" id="metricsContainer">
-          <!-- Metrics will be populated by JavaScript -->
-        </div>
-      </section>
-
-      <!-- QR Card -->
-      <div class="dashboard-card qr-card animate-float-up animate-stagger-3">
-        <div class="card-header">
-          <h3><i class="fas fa-qrcode"></i> رمز QR الحالي</h3>
-        </div>
-        <div class="card-content" id="qrDisplay">
-          <div class="qr-placeholder">
-            <i class="fas fa-qrcode"></i>
-            <p>جاري تحميل رمز QR...</p>
-            <div class="loading-dots"><span></span></div>
-          </div>
-        </div>
-      </div>
-
-
-      <!-- Reviews Tabs Section -->
-      <div class="dashboard-card reviews-card animate-float-up animate-stagger-4">
-        <div class="card-header">
-          <h3><i class="fas fa-comments"></i> التقييمات</h3>
-        </div>
-
-        <!-- Tab Navigation -->
-        <div class="tabs-navigation">
-          <button class="tab-btn active" data-tab="processed" onclick="DashboardManager.switchTab('processed', event)">
-            <i class="fas fa-check-circle"></i>
-            <span>المقبولة</span>
-            <span class="tab-count" id="processedCount">0</span>
-          </button>
-          <button class="tab-btn" data-tab="rejected-quality"
-            onclick="DashboardManager.switchTab('rejected-quality', event)">
-            <i class="fas fa-exclamation-circle"></i>
-            <span>منخفضة الجودة</span>
-            <span class="tab-count" id="qualityCount">0</span>
-          </button>
-          <button class="tab-btn" data-tab="rejected-irrelevant"
-            onclick="DashboardManager.switchTab('rejected-irrelevant', event)">
-            <i class="fas fa-ban"></i>
-            <span>غير ذات صلة</span>
-            <span class="tab-count" id="irrelevantCount">0</span>
-          </button>
-        </div>
-
-        <!-- Filters & Search Bar -->
-        <div class="filters-section">
-          <div class="search-bar">
-            <label for="searchInput" class="visually-hidden">ابحث عن تقييمات</label>
-            <i class="fas fa-search" aria-hidden="true"></i>
-            <input type="text" id="searchInput" name="search" autocomplete="on" placeholder="ابحث عن تقييمات..."
-              class="search-input">
-            <button type="button" class="btn-clear-search" id="clearSearchBtn" onclick="DashboardManager.clearSearch()"
-              style="display:none;" aria-label="مسح البحث">
-              <i class="fas fa-times" aria-hidden="true"></i>
-            </button>
-          </div>
-
-          <div class="filters-group" id="activeFilters">
-            <div class="filter-item">
-              <label for="sentimentFilter" class="visually-hidden">تصفية حسب المشاعر</label>
-              <select id="sentimentFilter" name="sentiment" class="filter-select"
-                onchange="DashboardManager.applyFilters()">
-                <option value="">جميع المشاعر</option>
-                <option value="إيجابي">إيجابي 🟢</option>
-                <option value="سلبي">سلبي 🔴</option>
-                <option value="محايد">محايد 🟡</option>
-              </select>
-            </div>
-
-            <div class="filter-item">
-              <label for="categoryFilter" class="visually-hidden">تصفية حسب الفئة</label>
-              <select id="categoryFilter" name="category" class="filter-select"
-                onchange="DashboardManager.applyFilters()">
-                <option value="">جميع الفئات</option>
-                <option value="شكوى">شكوى 🗣️</option>
-                <option value="اقتراح">اقتراح 💡</option>
-                <option value="مدح">مدح 👍</option>
-                <option value="استفسار">استفسار ❓</option>
-                <option value="عام">عام 📝</option>
-              </select>
-            </div>
-
-            <div class="filter-item">
-              <label for="starsFilter" class="visually-hidden">تصفية حسب النجوم</label>
-              <select id="starsFilter" name="stars" class="filter-select" onchange="DashboardManager.applyFilters()">
-                <option value="">كل التقييمات ⭐</option>
-                <option value="5">5 نجوم</option>
-                <option value="4">4 نجوم</option>
-                <option value="3">3 نجوم</option>
-                <option value="2">2 نجوم</option>
-                <option value="1">نجمة واحدة</option>
-              </select>
-            </div>
-
-            <div class="filter-item">
-              <label for="sortBy" class="visually-hidden">ترتيب حسب</label>
-              <select id="sortBy" name="sort" class="filter-select" onchange="DashboardManager.applyFilters()">
-                <option value="latest">الأحدث أولاً</option>
-                <option value="oldest">الأقدم أولاً</option>
-                <option value="highest-stars">أعلى التقييمات</option>
-                <option value="lowest-stars">أقل التقييمات</option>
-              </select>
-            </div>
-
-            <button type="button" class="btn btn-sm btn-outline" id="toggleAdvancedFilters"
-              onclick="DashboardManager.toggleAdvancedFilters()">
-              <i class="fas fa-sliders-h" aria-hidden="true"></i> <span class="filter-text">متقدم</span>
-            </button>
-          </div>
-
-          <!-- Advanced Filters (Hidden by default) -->
-          <div class="advanced-filters" id="advancedFilters" style="display: none;">
-            <div class="filter-item">
-              <label for="qualityScoreFilter">نطاق درجات الجودة</label>
-              <input type="range" id="qualityScoreFilter" name="qualityScore" min="0" max="100" value="0"
-                onchange="DashboardManager.applyFilters()" class="range-input">
-              <div class="range-value"><span id="qualityScoreValue">0</span>%</div>
-            </div>
-
-            <div class="filter-item">
-              <label for="dateFromFilter">من التاريخ</label>
-              <input type="date" id="dateFromFilter" name="dateFrom" onchange="DashboardManager.applyFilters()"
-                class="filter-input">
-            </div>
-
-            <div class="filter-item">
-              <label for="dateToFilter">إلى التاريخ</label>
-              <input type="date" id="dateToFilter" name="dateTo" onchange="DashboardManager.applyFilters()"
-                class="filter-input">
-            </div>
-
-            <div class="filter-item">
-              <label class="checkbox-label" for="contextMatchFilter">
-                <input type="checkbox" id="contextMatchFilter" name="contextMatch"
-                  onchange="DashboardManager.applyFilters()">
-                <span>التقييمات المطابقة فقط</span>
-              </label>
-            </div>
-
-            <button class="btn btn-sm btn-outline" onclick="DashboardManager.resetFilters()">
-              <i class="fas fa-redo"></i> إعادة تعيين
-            </button>
-          </div>
-        </div>
-
-        <!-- Reviews List Container -->
-        <div class="card-content recent-reviews" id="reviewsContainer">
-          <div class="loading-dots">جاري تحميل التقييمات<span></span></div>
-        </div>
-
-        <!-- Pagination -->
-        <div class="pagination" id="reviewsPagination" style="display: none;">
-          <button class="pagination-btn" onclick="DashboardManager.previousPage()" id="prevBtn">
-            <i class="fas fa-chevron-right"></i> السابق
-          </button>
-          <span class="pagination-info" id="pageInfo"></span>
-          <button class="pagination-btn" onclick="DashboardManager.nextPage()" id="nextBtn">
-            التالي <i class="fas fa-chevron-left"></i>
-          </button>
-        </div>
-      </div>
-
-      <!-- Analytics Card -->
-      <div class="dashboard-card analytics-card metric-glass animate-float-up animate-stagger-5">
-        <div class="card-header">
-          <div class="header-icon-accent accent-cyan">
-            <i class="fas fa-chart-pie"></i>
-          </div>
-          <h3>تحليلات ذكية</h3>
-          <div class="card-actions">
-            <label for="chartTypeFilter" class="visually-hidden">نوع التقرير</label>
-            <select id="chartTypeFilter" name="chartType" class="filter-select filter-sm"
-              onchange="DashboardManager.updateAnalyticsChart()">
-              <option value="sentiment">توزيع المشاعر</option>
-              <option value="rating">توزيع النجوم</option>
-              <option value="status">حالة التقييمات</option>
-            </select>
-          </div>
-        </div>
-        <div class="card-content analytics-content">
-          <div class="chart-container-premium">
-            <canvas id="reviewsChart"></canvas>
-          </div>
-          <div id="chartLegend" class="chart-legend-modern"></div>
-        </div>
-      </div>
-
-      <!-- Tools Card -->
-      <div class="dashboard-card tools-card metric-glass animate-float-up animate-stagger-5">
-        <div class="card-header">
-          <div class="header-icon-accent accent-indigo">
-            <i class="fas fa-bolt"></i>
-          </div>
-          <h3>أدوات سريعة</h3>
-        </div>
-        <div class="card-content">
-          <div class="tools-grid-modern">
-            <button class="tool-btn-premium" onclick="DashboardManager.exportData()">
-              <div class="tool-icon"><i class="fas fa-file-export"></i></div>
-              <span>تصدير</span>
-            </button>
-            <button class="tool-btn-premium" onclick="DashboardManager.generateWeeklyReport()">
-              <div class="tool-icon"><i class="fas fa-paper-plane"></i></div>
-              <span>تقرير</span>
-            </button>
-            <button class="tool-btn-premium" onclick="DashboardManager.printReport()">
-              <div class="tool-icon"><i class="fas fa-print"></i></div>
-              <span>طباعة</span>
-            </button>
-          </div>
-        </div>
-      </div>
-      <!-- Statistics Card -->
-      <div class="dashboard-card stats-card metric-glass animate-float-up animate-stagger-5">
-        <div class="card-header">
-          <div class="header-icon-accent accent-indigo">
-            <i class="fas fa-chart-line"></i>
-          </div>
-          <h3>مؤشرات الأداء</h3>
-        </div>
-        <div class="card-content stats-grid-modern" id="statsContainer">
-          <div class="stat-item-premium">
-            <div class="stat-value-premium" id="avgResponseTime">--</div>
-            <div class="stat-label-premium">متوسط وقت الاستجابة</div>
-          </div>
-          <div class="stat-item-premium">
-            <div class="stat-value-premium" id="satisfactionRate">--</div>
-            <div class="stat-label-premium">معدل الرضا</div>
-          </div>
-          <div class="stat-item-premium">
-            <div class="stat-value-premium" id="trendsIndicator">--</div>
-            <div class="stat-label-premium">اتجاه السمعة</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Review Details Modal -->
-  <div class="modal-overlay" id="reviewModal" onclick="DashboardManager.closeReviewModal(event)">
-    <div class="modal-content review-modal" onclick="event.stopPropagation()">
-      <button class="modal-close" onclick="DashboardManager.closeReviewModal()">
-        <i class="fas fa-times"></i>
-      </button>
-      <div id="reviewModalContent" class="modal-body">
-        <!-- Content will be populated by JavaScript -->
-      </div>
-    </div>
-  </div>
-
-  <!-- Account/Settings Modal -->
-  <div class="modal-overlay" id="settingsModal" onclick="DashboardManager.closeSettingsModal(event)">
-    <div class="modal-content settings-modal-premium" onclick="event.stopPropagation()">
-      <div class="modal-header-premium">
-        <div class="header-content">
-          <h2><i class="fas fa-cog"></i> إعدادات الحساب والمتجر</h2>
-          <p>إدارة معلوماتك وتفضيلات التنبيهات</p>
-        </div>
-        <button class="modal-close-btn" onclick="DashboardManager.closeSettingsModal()">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      <div class="modal-body-premium">
-        <!-- Tabs for Settings -->
-        <div class="settings-tabs">
-          <button class="s-tab-btn active" onclick="DashboardManager.switchSettingsTab('profile')">
-            <i class="fas fa-user-circle"></i> الملف الشخصي
-          </button>
-          <button class="s-tab-btn" onclick="DashboardManager.switchSettingsTab('shop')">
-            <i class="fas fa-store"></i> معلومات المتجر
-          </button>
-          <button class="s-tab-btn" onclick="DashboardManager.switchSettingsTab('notifications')">
-            <i class="fas fa-bell"></i> التنبيهات
-          </button>
-          <button class="s-tab-btn" onclick="DashboardManager.switchSettingsTab('support')">
-            <i class="fas fa-headset"></i> الدعم الفني
-          </button>
-          <button class="s-tab-btn" onclick="DashboardManager.switchSettingsTab('about')">
-            <i class="fas fa-info-circle"></i> حول النظام
-          </button>
-        </div>
-
-        <div id="settingsContent" class="settings-tab-content pt-4">
-          <!-- Content populated by JS -->
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Loading Overlay -->
-  <div id="loadingOverlay" class="loading-overlay" style="display:none;">
-    <div class="loading-spinner">
-      <i class="fas fa-spinner fa-spin"></i>
-      <p>جاري التحميل...</p>
-    </div>
-  </div>
-
-  <!-- Toast Notification -->
-  <div id="messageToast">
-    <div class="toast-content">
-      <i class="fas fa-check-circle"></i>
-      <span id="messageText"></span>
-    </div>
-  </div>
-
-  <!-- Scripts -->
-  <script src="js/config.js"></script>
-  <script src="js/api.js"></script>
-  <script src="js/ui.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/dashboard-enhanced.js"></script>
-  <script src="js/main.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@3"></script>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
-</body>
-
-</html>

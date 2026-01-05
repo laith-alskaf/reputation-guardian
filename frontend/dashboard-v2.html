@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>حارس السمعة - لوحة التحكم الشاملة</title>
+    <title>ReviewIQ - لوحة التحكم الشاملة</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap"
         rel="stylesheet">
 
+    <link rel="icon" href="images/icon.png">
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -22,35 +23,35 @@
     <link rel="stylesheet" href="css/dashboard-v2.css">
 </head>
 
-<body>
+<body style="background-image: url('images/background.jpg'); background-size: cover; background-attachment: fixed; background-position: center;">
     <div class="app-container">
         <!-- Sidebar Navigation -->
         <aside class="sidebar">
             <div class="sidebar-logo">
-                <i class="fas fa-shield-alt"></i>
-                <span>حارس السمعة</span>
+                <img src="images/icon.png" alt="ReviewIQ" style="height: 40px; margin-left: 10px;">
+                <span>ReviewIQ</span>
             </div>
 
             <nav class="nav-menu">
-                <div class="nav-item">
+                <div class="nav-item" style="animation-delay: 0.1s;">
                     <a href="#" class="nav-link active" onclick="DashboardV2.switchView('dashboard', event)">
                         <i class="fas fa-th-large"></i>
                         <span>لوحة التحكم</span>
                     </a>
                 </div>
-                <div class="nav-item">
+                <div class="nav-item" style="animation-delay: 0.2s;">
                     <a href="#" class="nav-link" onclick="DashboardV2.switchView('reviews', event)">
                         <i class="fas fa-star"></i>
                         <span>التعليقات</span>
                     </a>
                 </div>
-                <div class="nav-item">
+                <div class="nav-item" style="animation-delay: 0.3s;">
                     <a href="#" class="nav-link" onclick="DashboardV2.switchView('analytics', event)">
                         <i class="fas fa-chart-line"></i>
                         <span>التحليلات</span>
                     </a>
                 </div>
-                <div class="nav-item">
+                <div class="nav-item" style="animation-delay: 0.4s;">
                     <a href="#" class="nav-link" onclick="DashboardV2.switchView('settings', event)">
                         <i class="fas fa-cog"></i>
                         <span>الإعدادات</span>
@@ -92,22 +93,22 @@
             <!-- 1. DASHBOARD VIEW -->
             <div id="view-dashboard" class="page-view active">
                 <section class="stats-grid section-v2 stagger-1">
-                    <div class="stat-card-v2">
+                    <div class="stat-card-v2" style="animation-delay: 0.1s;">
                         <div class="card-icon-v2"><i class="fas fa-comments"></i></div>
                         <h3 id="totalReviewsCount">0</h3>
                         <span>إجمالي التعليقات</span>
                     </div>
-                    <div class="stat-card-v2">
+                    <div class="stat-card-v2" style="animation-delay: 0.2s;">
                         <div class="card-icon-v2" style="color: var(--success);"><i class="fas fa-smile"></i></div>
                         <h3 id="positiveReviewsCount">0</h3>
                         <span>التعليقات الإيجابية</span>
                     </div>
-                    <div class="stat-card-v2">
+                    <div class="stat-card-v2" style="animation-delay: 0.3s;">
                         <div class="card-icon-v2" style="color: var(--error);"><i class="fas fa-frown"></i></div>
                         <h3 id="negativeReviewsCount">0</h3>
                         <span>التعليقات السلبية</span>
                     </div>
-                    <div class="stat-card-v2">
+                    <div class="stat-card-v2" style="animation-delay: 0.4s;">
                         <div class="card-icon-v2" style="color: var(--accent);"><i class="fas fa-percentage"></i></div>
                         <h3 id="reputationScore">0%</h3>
                         <span>مؤشر السمعة</span>
@@ -321,16 +322,15 @@
             </div>
             <div class="modal-body-v2">
                 <div style="text-align: center; margin-bottom: 2rem;">
-                    <i class="fas fa-shield-alt"
-                        style="font-size: 4rem; color: var(--primary); margin-bottom: 1rem; display: block;"></i>
-                    <h3 style="font-weight: 800; font-size: 1.5rem;">حارس السمعة</h3>
+                    <img src="images/icon.png" alt="ReviewIQ" style="height: 80px; margin-bottom: 1rem; display: block; margin-left: auto; margin-right: auto;">
+                    <h3 style="font-weight: 800; font-size: 1.5rem;">ReviewIQ</h3>
                     <p style="color: var(--text-secondary); font-weight: 600;">Reputation Guardian</p>
                     <p style="color: var(--primary); font-size: 0.9rem; margin-top: 0.5rem; font-weight: 700;">الإصدار
                         1.0.0</p>
                 </div>
                 <div class="detail-item">
                     <h5>نبذة عن النظام</h5>
-                    <p>حارس السمعة هو منصة احترافية متكاملة تهدف إلى مساعدة أصحاب الأعمال على إدارة سمعتهم الرقمية
+                    <p>ReviewIQهو منصة احترافية متكاملة تهدف إلى مساعدة أصحاب الأعمال على إدارة سمعتهم الرقمية
                         بذكاء. باستخدام تقنيات الذكاء الاصطناعي، نقوم بتحليل التقييمات وتصفيتها لضمان حصولك على رؤى
                         دقيقة وحلول فورية.</p>
                 </div>
@@ -376,7 +376,7 @@
 
                 <div class="settings-list-v2">
                     <div class="settings-tile-v2"
-                        onclick="window.open('https://wa.me/963982055788?text=مرحباً، لدي استفسار حول تطبيق حارس السمعة', '_blank')">
+                        onclick="window.open('https://wa.me/963982055788?text=مرحباً، لدي استفسار حول تطبيق ReviewIQ', '_blank')">
                         <div class="tile-icon-v2" style="background: rgba(37, 211, 102, 0.1); color: #25D366;"><i
                                 class="fab fa-whatsapp"></i></div>
                         <div class="tile-info-v2">
@@ -386,7 +386,7 @@
                         <i class="fas fa-chevron-left" style="font-size: 0.7rem; opacity: 0.3;"></i>
                     </div>
                     <div class="settings-tile-v2"
-                        onclick="window.open('mailto:laithalskaf@gmail.com?subject=حارس السمعة - استفسار')">
+                        onclick="window.open('mailto:laithalskaf@gmail.com?subject=ReviewIQ - استفسار')">
                         <div class="tile-icon-v2" style="background: rgba(99, 102, 241, 0.1); color: var(--primary);"><i
                                 class="fas fa-envelope"></i></div>
                         <div class="tile-info-v2">

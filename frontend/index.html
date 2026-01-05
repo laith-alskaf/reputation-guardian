@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/design-tokens.css">
 
+  <link rel="icon" href="images/icon.png">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
   <meta name="description"
@@ -28,8 +29,8 @@
   <nav class="navbar">
     <div class="container" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
       <div class="nav-brand">
-        <i class="fas fa-shield-halved"></i>
-        <span>حارس السمعة</span>
+        <img src="images/icon.png" alt="ReviewIQ" style="height: 40px; margin-left: 0.5rem;">
+        <span>ReviewIQ</span>
       </div>
 
       <!-- Desktop Menu -->
@@ -68,7 +69,7 @@
 
   <!-- Hero Section -->
   <section id="home" class="hero">
-    <div class="hero-background"></div>
+    <div class="hero-background" style="background-image: url('images/background.jpg'); background-size: cover; background-position: center;"></div>
     <div class="container hero-container">
       <div class="hero-content animate-fade-in-up">
         <div class="hero-badge">
@@ -162,13 +163,13 @@
   <!-- How It Works Section -->
   <section class="how-it-works">
     <div class="container">
-      <div class="section-header">
+      <div class="section-header reveal">
         <h2>كيف يعمل النظام؟</h2>
         <p>عملية بسيطة وذكية في 4 خطوات</p>
       </div>
 
-      <div class="steps-grid">
-        <div class="step-card">
+      <div class="steps-grid reveal">
+        <div class="step-card hover-scale">
           <div class="step-number">1</div>
           <i class="fas fa-qrcode step-icon"></i>
           <h3>شارك رمز QR</h3>
@@ -177,7 +178,7 @@
 
         <div class="step-arrow">→</div>
 
-        <div class="step-card">
+        <div class="step-card hover-scale reveal-delay-1">
           <div class="step-number">2</div>
           <i class="fas fa-lightbulb step-icon"></i>
           <h3>استقبل التقييمات</h3>
@@ -186,7 +187,7 @@
 
         <div class="step-arrow">→</div>
 
-        <div class="step-card">
+        <div class="step-card hover-scale reveal-delay-2">
           <div class="step-number">3</div>
           <i class="fas fa-brain step-icon"></i>
           <h3>تحليل ذكي</h3>
@@ -195,7 +196,7 @@
 
         <div class="step-arrow">→</div>
 
-        <div class="step-card">
+        <div class="step-card hover-scale reveal-delay-3">
           <div class="step-number">4</div>
           <i class="fas fa-chart-line step-icon"></i>
           <h3>نمو مستمر</h3>
@@ -208,13 +209,13 @@
   <!-- Features Section -->
   <section id="features" class="features">
     <div class="container">
-      <div class="section-header">
+      <div class="section-header reveal">
         <h2>المميزات الرئيسية</h2>
         <p>كل ما تحتاجه لإدارة وتحسين سمعتك الرقمية</p>
       </div>
 
-      <div class="features-grid">
-        <div class="feature-card feature-1">
+      <div class="features-grid reveal">
+        <div class="feature-card feature-1 hover-scale">
           <div class="feature-header">
             <div class="feature-icon"><i class="fas fa-qrcode"></i></div>
             <span class="feature-badge">إدارة سهلة</span>
@@ -228,7 +229,7 @@
           </div>
         </div>
 
-        <div class="feature-card feature-2">
+        <div class="feature-card feature-2 hover-scale reveal-delay-1">
           <div class="feature-header">
             <div class="feature-icon"><i class="fas fa-brain"></i></div>
             <span class="feature-badge">تقنية متقدمة</span>
@@ -242,7 +243,7 @@
           </div>
         </div>
 
-        <div class="feature-card feature-3">
+        <div class="feature-card feature-3 hover-scale reveal-delay-2">
           <div class="feature-header">
             <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
             <span class="feature-badge">تحليلات عميقة</span>
@@ -256,7 +257,7 @@
           </div>
         </div>
 
-        <div class="feature-card feature-4">
+        <div class="feature-card feature-4 hover-scale">
           <div class="feature-header">
             <div class="feature-icon"><i class="fas fa-bell"></i></div>
             <span class="feature-badge">تنبيهات ذكية</span>
@@ -270,7 +271,7 @@
           </div>
         </div>
 
-        <div class="feature-card feature-5">
+        <div class="feature-card feature-5 hover-scale reveal-delay-1">
           <div class="feature-header">
             <div class="feature-icon"><i class="fas fa-reply"></i></div>
             <span class="feature-badge">مساعد ذكي</span>
@@ -284,7 +285,7 @@
           </div>
         </div>
 
-        <div class="feature-card feature-6">
+        <div class="feature-card feature-6 hover-scale reveal-delay-2">
           <div class="feature-header">
             <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
             <span class="feature-badge">أمان عالي</span>
@@ -304,13 +305,13 @@
   <!-- Pricing Section -->
   <section class="pricing">
     <div class="container">
-      <div class="section-header">
+      <div class="section-header reveal">
         <h2>خطط مرنة وميسورة</h2>
         <p>اختر الخطة التي تناسب احتياجات عملك</p>
       </div>
 
-      <div class="pricing-grid">
-        <div class="pricing-card starter">
+      <div class="pricing-grid reveal">
+        <div class="pricing-card starter hover-scale">
           <div class="pricing-badge">الأشهر الثلاثة الأولى مجاني</div>
           <h3>الأساسي</h3>
           <div class="pricing-price">
@@ -327,7 +328,7 @@
           <button class="btn btn-outline btn-block">ابدأ الآن</button>
         </div>
 
-        <div class="pricing-card professional">
+        <div class="pricing-card professional hover-scale reveal-delay-1">
           <div class="pricing-badge">الأكثر شهرة</div>
           <h3>احترافي</h3>
           <div class="pricing-price">
@@ -344,7 +345,7 @@
           <button class="btn btn-primary btn-block">شروع الآن</button>
         </div>
 
-        <div class="pricing-card enterprise">
+        <div class="pricing-card enterprise hover-scale reveal-delay-2">
           <div class="pricing-badge">للشركات الكبرى</div>
           <h3>متقدم</h3>
           <div class="pricing-price">
@@ -429,8 +430,8 @@
       <div class="footer-main">
         <div>
           <div class="nav-brand" style="margin-bottom: 1rem; color: white;">
-            <i class="fas fa-shield-halved"></i>
-            <span>حارس السمعة</span>
+            <img src="images/icon.png" alt="ReviewIQ" style="height: 35px; margin-left: 0.5rem;">
+            <span>ReviewIQ</span>
           </div>
           <p style="color: var(--text-light); max-width: 300px;">
             الشريك الأمثل لإدارة وتطوير سمعة علامتك التجارية باستخدام أحدث تقنيات الذكاء الاصطناعي.
@@ -562,6 +563,26 @@
   <script src="js/ui.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/main.js"></script>
+
+  <!-- Scroll Reveal Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const reveals = document.querySelectorAll('.reveal');
+
+      const revealOnScroll = () => {
+        const windowHeight = window.innerHeight;
+        const elementVisible = 100;
+        reveals.forEach((reveal) => {
+          const elementTop = reveal.getBoundingClientRect().top;
+          if (elementTop < windowHeight - elementVisible) {
+            reveal.classList.add('active');
+          }
+        });
+      };
+      window.addEventListener('scroll', revealOnScroll);
+      revealOnScroll(); // Trigger once on load
+    });
+  </script>
 </body>
 
 </html>

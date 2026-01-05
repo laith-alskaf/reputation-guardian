@@ -40,7 +40,7 @@
 
     --shadow-card: 0 10px 25px -5px rgba(15, 23, 42, 0.05), 0 8px 10px -6px rgba(15, 23, 42, 0.05);
     --shadow-elevated: 0 20px 25px -5px rgba(79, 70, 229, 0.1), 0 8px 10px -6px rgba(79, 70, 229, 0.1);
-    --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-smooth: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); /* More bouncy/professional feel */
 }
 
 /* Base & Typography */
@@ -106,6 +106,18 @@ body {
 
 .nav-item {
     margin-bottom: 0.5rem;
+    opacity: 0;
+    animation: slideInRight 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Stagger Sidebar Items */
+.nav-item:nth-child(1) { animation-delay: 0.1s; }
+.nav-item:nth-child(2) { animation-delay: 0.2s; }
+.nav-item:nth-child(3) { animation-delay: 0.3s; }
+.nav-item:nth-child(4) { animation-delay: 0.4s; }
+.sidebar-footer { 
+    opacity: 0;
+    animation: slideInRight 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards 0.5s;
 }
 
 .nav-link {
@@ -125,6 +137,17 @@ body {
     background: rgba(255, 255, 255, 0.1);
     color: white;
     transform: translateX(-5px);
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 .nav-link.active {
@@ -151,12 +174,24 @@ body {
     background: rgba(248, 250, 252, 0.8);
     backdrop-filter: blur(12px);
     z-index: 900;
+    animation: fadeInDown 0.6s ease-out;
 }
 
 .welcome-msg h1 {
     font-size: 2rem;
     font-weight: 800;
     margin-bottom: 0.25rem;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .welcome-msg p {
@@ -187,6 +222,7 @@ body {
     position: relative;
     overflow: hidden;
     cursor: pointer;
+    animation: zoomIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
 }
 
 .stat-card-v2::after {
@@ -247,14 +283,23 @@ body {
 .section-v2 {
     opacity: 0;
     transform: translateY(30px);
-    animation: fadeInUp 0.8s ease forwards;
+    animation: fadeInUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
 @keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
     to {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+@keyframes zoomIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
 }
 
 .stagger-1 {
@@ -294,6 +339,7 @@ body {
     align-items: center;
     transition: var(--transition-smooth);
     border: 1px solid var(--divider);
+    animation: fadeInUp 0.5s ease-out backwards;
 }
 
 .review-item-v2:hover {
@@ -741,7 +787,7 @@ body {
 /* --- Page View System --- */
 .page-view {
     display: none;
-    animation: fadeIn 0.4s ease-out;
+    /* Animation handled by section-v2 children for better control */
 }
 
 .page-view.active {
@@ -776,6 +822,7 @@ body {
     display: flex;
     gap: 1.25rem;
     transition: var(--transition-smooth);
+    animation: fadeInUp 0.5s ease-out backwards;
 }
 
 .insight-card-v2:hover {

@@ -56,6 +56,7 @@
   --spacing: 1rem;
   --spacing-lg: 1.5rem;
   --spacing-xl: 3rem;
+  --ease-out-back: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 * {
@@ -214,12 +215,30 @@ a {
   background: var(--primary);
   color: white;
   box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+  position: relative;
+  overflow: hidden;
 }
 
 .btn-primary:hover {
   background: var(--primary-dark);
   transform: translateY(-2px);
   box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4);
+}
+
+/* Button Shine Effect */
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: 0.5s;
+}
+
+.btn-primary:hover::after {
+  left: 100%;
 }
 
 .btn-outline {
@@ -342,6 +361,7 @@ a {
   margin-bottom: 1.5rem;
   box-shadow: var(--shadow-sm);
 }
+
 
 /* ============================
    Contact Section
@@ -3156,6 +3176,7 @@ a {
   animation: fadeInUp 0.8s ease-out 0.1s both;
 }
 
+
 .highlight-text {
   background: linear-gradient(135deg, var(--primary), var(--accent));
   -webkit-background-clip: text;
@@ -3707,6 +3728,30 @@ a {
 
 .animate-float {
   animation: animate-float 3s ease-in-out infinite;
+}
+
+/* --- Scroll Reveal Animations --- */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+}
+
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+
+/* Hover Scale Effect for Cards */
+.hover-scale {
+  transition: transform 0.3s var(--ease-out-back), box-shadow 0.3s ease;
+}
+.hover-scale:hover {
+  transform: translateY(-10px) scale(1.02);
 }
 
 /* Responsive */
