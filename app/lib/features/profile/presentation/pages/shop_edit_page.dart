@@ -353,12 +353,6 @@ class _ShopEditPageState extends State<ShopEditPage> {
     });
 
     try {
-      // Prepare shop data
-      final shopName = _shopNameController.text.trim();
-      final shopType = _selectedShopType == 'أخرى'
-          ? _shopTypeController.text.trim()
-          : _selectedShopType;
-
       // TODO: Implement actual API call through a use case or repository
       // For now, this is a placeholder that simulates the API call
       // In a real implementation, you would:
