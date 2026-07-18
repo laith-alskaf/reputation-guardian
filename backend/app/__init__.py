@@ -56,8 +56,8 @@ def create_app(config_name: str = None):
         database_name=config.DATABASE_NAME
     )
     
-    # Setup CORS - Fix: get value from property
-    cors_origins = ["*"] if app.debug else ["http://localhost:3000"]
+    # Setup CORS - Allow all origins or specify the frontend URL
+    cors_origins = ["*"] # or ["https://reputation-guardian.vercel.app", "http://localhost:3000"]
     CORS(app, origins=cors_origins)
     
     # Import blueprints AFTER MongoDB initialization
